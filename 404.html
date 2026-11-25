@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>迷い込みました — mitsulab</title>
+<link rel="icon" href="/favicon.ico">
+<style>
+:root{--bg:#071014;--ink:#d8eef0;--sub:rgba(200,226,230,.62);--ac:#8fe3ea}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink)}
+body{display:flex;align-items:center;justify-content:center;padding:24px 16px;font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+ background:radial-gradient(ellipse at 50% 40%,rgba(143,227,234,.08),transparent 60%),var(--bg)}
+main{width:100%;max-width:520px;margin:0 auto;text-align:center}
+.no{font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:.3em;color:var(--ac);opacity:.8}
+svg{display:block;width:120px;height:80px;margin:28px auto 18px;overflow:visible}
+.w{transform-origin:60px 40px;animation:f 3.2s ease-in-out infinite}
+.w2{animation-delay:-.1s}
+@keyframes f{0%,100%{transform:scaleX(1)}50%{transform:scaleX(.35)}}
+.drift{animation:d 9s ease-in-out infinite}
+@keyframes d{0%,100%{transform:translate(0,0)}50%{transform:translate(6px,-8px)}}
+h1{margin:0 0 14px;font-weight:400;font-size:22px;letter-spacing:.14em;line-height:1.6}
+p{margin:0 0 8px;font-size:14px;line-height:1.9;letter-spacing:.08em;color:var(--sub)}
+a.home{display:inline-block;margin-top:26px;min-height:44px;padding:12px 26px;border:1px solid rgba(143,227,234,.45);border-radius:2px;color:var(--ink);text-decoration:none;font:500 13px/1.4 "Zen Kaku Gothic New","Hiragino Sans",sans-serif;letter-spacing:.16em}
+a.home:hover{background:rgba(143,227,234,.1)}
+@media (prefers-reduced-motion:reduce){.w,.drift{animation:none}}
+</style>
+</head>
+<body>
+<main>
+ <div class="no">404 ── NOT FOUND</div>
+ <svg viewBox="0 0 120 80" aria-hidden="true"><g class="drift" fill="none" stroke="#8fe3ea" stroke-width="1" stroke-linejoin="round">
+  <g class="w"><path d="M60 40 C46 18 22 14 20 28 C18 40 40 44 60 40Z"/><path d="M60 40 C48 50 32 62 40 66 C48 70 58 54 60 40Z"/></g>
+  <g class="w w2"><path d="M60 40 C74 18 98 14 100 28 C102 40 80 44 60 40Z"/><path d="M60 40 C72 50 88 62 80 66 C72 70 62 54 60 40Z"/></g>
+  <path d="M60 30 L60 52" stroke-width="1.6"/></g></svg>
+ <h1 id="h">このページは、夢だったようです。</h1>
+ <p id="p1">探していた標本は、ここにはありません。</p>
+ <p id="p2">蝶が一羽、あなたと同じく迷い込んでいます。</p>
+ <a class="home" id="b" href="/">ラボの入口へ戻る</a>
+</main>
+<script>
+if(/^en/.test(navigator.language||'')){document.documentElement.lang='en';document.title='Lost — mitsulab';
+ document.getElementById('h').textContent='This page seems to have been a dream.';
+ document.getElementById('p1').textContent='The specimen you were looking for is not here.';
+ document.getElementById('p2').textContent='A butterfly has wandered in, just like you.';
+ document.getElementById('b').textContent='Back to the lab entrance';}
+</script>
+</body>
+</html>
