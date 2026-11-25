@@ -213,5 +213,19 @@ html body button[aria-pressed="true"],html body button.on,html body button.is-on
 html body button:active{transform:scale(.95);border-color:var(--qg-line-hi)!important;box-shadow:var(--qg-glow)!important}
 html body button:disabled{opacity:.35}
 </style>
+<style>/* 2026-11-26 最小の GUI：≡ に道具をたたみ、説明は「説明」で on/off */
+.qg-menu{min-width:44px;min-height:44px;font-size:20px!important;line-height:1!important}
+body:not(.qg-open) header nav.tools>*:not(.qg-menu){display:none!important}
+body.qg-open header nav.tools{flex-wrap:wrap;justify-content:flex-end}
+body:not(.qg-help) :is(#nearSoundPrompt,.out-ear,#bList2){display:none!important}
+header nav.tools .ml-btn{min-height:44px}
+</style>
+<script>(function(){var K="qg-help-sound",n=document.querySelector("header nav.tools");if(!n)return;var on=false;try{on=localStorage.getItem(K)==="1"}catch(e){}
+document.body.classList.toggle("qg-help",on);
+var h=document.createElement("button");h.type="button";h.className="ml-btn ml-btn--quiet";h.setAttribute("aria-pressed",on);h.textContent="説明";
+h.onclick=function(){on=!on;document.body.classList.toggle("qg-help",on);h.setAttribute("aria-pressed",on);try{localStorage.setItem(K,on?"1":"0")}catch(e){}};
+n.appendChild(h);var m=document.createElement("button");m.type="button";m.className="ml-btn ml-btn--quiet qg-menu";m.setAttribute("aria-label","メニュー");m.setAttribute("aria-expanded","false");m.textContent="≡";
+m.onclick=function(){var o=document.body.classList.toggle("qg-open");m.setAttribute("aria-expanded",o);m.textContent=o?"×":"≡"};n.appendChild(m);
+n.addEventListener("click",function(e){if(e.target!==m&&e.target!==h&&e.target.closest("button,a")){document.body.classList.remove("qg-open");m.textContent="≡";m.setAttribute("aria-expanded","false")}});})();</script>
 </body>
 </html>

@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="style.css?v=20261109r2">
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"../../vendor/three/examples/jsm/","@pixiv/three-vrm":"../../vendor/three-vrm/three-vrm.module.min.js"}}</script>
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
-<link rel="modulepreload" href="app.js?v=20261122a">
+<link rel="modulepreload" href="app.js?v=20261122b">
 <link rel="modulepreload" href="kit/sho3d.js?v=20261107light">
 <link rel="modulepreload" href="room.js?v=20261105s">
 <link rel="modulepreload" href="live.js?v=20261023e">
@@ -109,7 +109,7 @@
 </section>
 
 <noscript><p class="nojs">この作品は JavaScript と WebGL で動きます。</p></noscript>
-<script type="module" src="app.js?v=20261122a"></script>
+<script type="module" src="app.js?v=20261122b"></script>
 <link rel="stylesheet" href="qgui.css?v=20261126a">
 <style id="qgui-buttons-20261126">/* 2026-11-26 本人「GUI を洗練・ボタンも調整」：どの道具でもボタンを同じ形に（細い線・透ける地・押した所だけ光る・44px）。置き場と働きはそのまま */
 html body button:not([class*="leaflet"]):not(.qyk button){border:1px solid var(--qg-line)!important;background-color:var(--qg-ground)!important;background-image:none!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:var(--qg-ink)!important;min-height:44px;min-width:44px;font-family:var(--qg-font);box-shadow:none;transition:box-shadow 80ms,transform 80ms,border-color 80ms}
@@ -117,5 +117,20 @@ html body button[aria-pressed="true"],html body button.on,html body button.is-on
 html body button:active{transform:scale(.95);border-color:var(--qg-line-hi)!important;box-shadow:var(--qg-glow)!important}
 html body button:disabled{opacity:.35}
 </style>
+<style>/* 2026-11-26 最小の GUI：≡ に道具をたたみ、説明は「説明」で on/off */
+.qg-menu{min-width:44px;min-height:44px;font-size:20px!important;line-height:1!important}
+body:not(.qg-open) header nav.tools>*:not(.qg-menu){display:none!important}
+body.qg-open header nav.tools{flex-wrap:wrap;justify-content:flex-end}
+body:not(.qg-help) :is(#capRd,#hint){display:none!important}
+header nav.tools .ml-btn{min-height:44px}
+body:not(.qg-open) header nav.tools>#snd{display:inline-flex!important}
+</style>
+<script>(function(){var K="qg-help-oto",n=document.querySelector("header nav.tools");if(!n)return;var on=false;try{on=localStorage.getItem(K)==="1"}catch(e){}
+document.body.classList.toggle("qg-help",on);
+var h=document.createElement("button");h.type="button";h.className="ml-btn ml-btn--quiet";h.setAttribute("aria-pressed",on);h.textContent="説明";
+h.onclick=function(){on=!on;document.body.classList.toggle("qg-help",on);h.setAttribute("aria-pressed",on);try{localStorage.setItem(K,on?"1":"0")}catch(e){}};
+n.appendChild(h);var m=document.createElement("button");m.type="button";m.className="ml-btn ml-btn--quiet qg-menu";m.setAttribute("aria-label","メニュー");m.setAttribute("aria-expanded","false");m.textContent="≡";
+m.onclick=function(){var o=document.body.classList.toggle("qg-open");m.setAttribute("aria-expanded",o);m.textContent=o?"×":"≡"};n.appendChild(m);
+n.addEventListener("click",function(e){if(e.target!==m&&e.target!==h&&e.target.closest("button,a")){document.body.classList.remove("qg-open");m.textContent="≡";m.setAttribute("aria-expanded","false")}});})();</script>
 </body>
 </html>
