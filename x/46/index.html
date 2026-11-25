@@ -66,12 +66,13 @@ details{margin-top:6px}summary{list-style:none;min-height:44px;display:flex;alig
 @media (min-width:800px){#sub{font-size:16px}.bot{padding-bottom:20px}#sub small{font-size:14px;letter-spacing:.1em}#sub .mb+small{font-size:11px}#bQ{color:var(--t1);border-color:var(--aoi);font-size:14px;padding:0 16px}}
 @media (max-height:520px){#sub{min-height:2em;padding-top:6px}}
 @media (max-width:600px){#sub{padding-top:12px;padding-bottom:6px;line-height:1.7}#cr{font-size:10px;letter-spacing:0}.row{gap:8px}.top{left:12px;right:12px}#tag small{white-space:normal;width:8.6em}}
+body.quiet .lg,body.quiet .row,body.quiet #cr,body.quiet #tag small,body.quiet #bQ,body.quiet #bI{display:none!important}#bM{min-width:44px;font-size:18px}
 </style>
 </head>
 <body>
 <canvas id="c" aria-label="大宮を遠くから見た地形と、その上の関係の線"></canvas>
 <div class="top"><div class="ttl"><span id="nm"></span><small id="pl"></small></div>
-<div class="tr"><button id="bQ">問い</button><button id="bI">線の意味</button></div>
+<div class="tr"><button id="bQ">問い</button><button id="bI">線の意味</button><button id="bM" aria-expanded="false" aria-label="説明とつまみをひらく">≡</button></div>
 <div class="lg" aria-label="輪の色"><span><i style="--c:#4fd67a"></i>林</span><span><i style="--c:#e3ee62"></i>公園・草地</span><span><i style="--c:#d99a66"></i>田畑</span><span><i style="--c:#78d6ed"></i>水</span><span><u></u>その輪を通る最短の道すじ</span></div></div>
 <button id="bZ">全体にもどる</button><div id="lead"></div><div id="tag">橋わたし<small>道すじがいちばん多く通る輪</small></div>
 <div class="bot"><div class="in">
@@ -417,5 +418,8 @@ html body button[aria-pressed="true"],html body button.on,html body button.is-on
 html body button:active{transform:scale(.95);border-color:var(--qg-line-hi)!important;box-shadow:var(--qg-glow)!important}
 html body button:disabled{opacity:.35}
 </style>
+<script>(()=>{const b=document.body,k='qnet_more',m=document.getElementById('bM');let o=false;try{o=localStorage.getItem(k)==='1'}catch(e){}
+const set=v=>{o=v;b.classList.toggle('quiet',!v);m.setAttribute('aria-expanded',v);m.textContent=v?'×':'≡';try{localStorage.setItem(k,v?'1':'0')}catch(e){}dispatchEvent(new Event('resize'))};
+set(o);m.addEventListener('click',()=>set(!o))})()</script>
 </body>
 </html>
