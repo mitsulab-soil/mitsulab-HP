@@ -10,7 +10,7 @@
 <link rel="icon" href="favicon/icon.svg" type="image/svg+xml">
 <script>if (/[?&](ws|plate)=/.test(location.search)) location.replace("studio.html" + location.search);</script>
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
-<link rel="modulepreload" href="vendor/three/build/three.module.js"><link rel="modulepreload" href="touch.js?v=t4"><link rel="modulepreload" href="forest.js?v=20261123n">
+<link rel="modulepreload" href="vendor/three/build/three.module.js"><link rel="modulepreload" href="touch.js?v=t5"><link rel="modulepreload" href="forest.js?v=20261123n">
 <link rel="stylesheet" href="kit/qui.css?v=1">
 <style>
 .pick{position:fixed;left:0;right:0;bottom:calc(66px + env(safe-area-inset-bottom));display:flex;gap:6px;justify-content:center;padding:0 16px;flex-wrap:nowrap}
@@ -43,6 +43,14 @@ body.near #bLeave,body.near #bStl{display:inline-block}
 #place button+button{border-top:0!important}
 @media(max-width:700px){#pick{flex-wrap:wrap!important;justify-content:center!important;overflow:visible!important;max-width:calc(100vw - 16px);margin:0 auto}#pick button{min-width:0!important;padding:0 10px!important}.cap.two{bottom:calc(222px + env(safe-area-inset-bottom))!important}}
 #place button[aria-pressed=true]{background:rgba(6,10,18,.82)!important;border-color:var(--aoi,#5ec8c8)!important;color:#bff0ee!important}
+/* 2026-11-25 夜：風景が主。面は「‹ 名前 ›」の小さな札一つで選ぶ（前の並びの札は画面の下を広くふさいでいた）。字幕は一行 */
+.step{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(66px + env(safe-area-inset-bottom));display:flex;z-index:6}
+.step button{min-width:44px;min-height:44px;padding:0 10px;font:600 15px/1 "Shippori Mincho","Hiragino Mincho ProN",serif;letter-spacing:.08em;color:#dfe6ee;background:rgba(6,10,18,.55);border:1px solid rgba(195,204,224,.22);cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);white-space:nowrap}
+.step button+button{border-left:0}#bName{min-width:9em}#bPrev,#bNext{font-size:20px;font-weight:400}
+.cap{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100vw - 32px);left:50%!important;right:auto!important;transform:translateX(-50%);bottom:calc(120px + env(safe-area-inset-bottom))!important}
+.mosiki{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));font:11px/1.4 "Hiragino Kaku Gothic ProN",sans-serif;color:#eef3f2;text-shadow:0 0 4px rgba(0,0,0,.6);opacity:0;transition:opacity .5s;pointer-events:none}
+body.near .mosiki{opacity:.8}
+@media(max-width:700px){.step button{font-size:14px}#bName{min-width:8em}.mosiki{right:auto;left:50%;transform:translateX(-50%);bottom:calc(118px + env(safe-area-inset-bottom))}body.near .cap{bottom:calc(136px + env(safe-area-inset-bottom))!important}.cap{font-size:14px!important}}
 </style>
 </head>
 <body>
@@ -53,22 +61,24 @@ body.near #bLeave,body.near #bStl{display:inline-block}
 <p><b>手ごたえは模式</b>　かたさ・ざらつき・ひんやり感などの値は、写真の凹凸から組み立てた模式で、測った値ではありません。振動は、振動できる端末だけ（iPhone の Safari は震えないので、音と指の下の光で）。</p>
 <p><b>表面</b>　Poly Haven（Japanese Zelkova Bark・Rock Surface・Moss Wood・Farm Soil・Dry Decay Leaves・Rough Linen・Japanese Cedar Planks）の CC0 の写真を、実寸 10 cm で貼っています。近づくと、10 cm 四方がほぼ画面いっぱいになります。</p>
 <p><b>触れた音</b>　Freesound の CC0 の録音（指でなでる・たたく）。<b>形の保存</b>　「形を保存」で、いま触れている表面の凹凸を STL（3D プリント用・一辺 10 cm）にして、この端末に保存します。送信はしません。</p>
-<p><b>都市（模式）</b>　駅前の大通りの模式で、特定の店や建物を写したものではありません（街路樹の樹皮・敷石は CC0 の写真）。歩道の結び目は、前の Qualia/touch の麻縄の形です。触れた音は、いちばん近い素材の録音（敷石＝石）。Qualia/sight・hear と同じ場の部品です。</p>
+<p><b>まち（模式）</b>　駅前の大通りの模式で、特定の店や建物を写したものではありません。歩道を北へ、点字ブロック・敷石・結び目・アスファルト・植え込みの土・街路樹・錆びた鉄・ガラス・木の手すり・苔むした石垣の順に「›」で歩いて移れます。面は Poly Haven の CC0 の写真（Asphalt 04・Japanese Stone Wall・Rough Wood・Rusty Metal 02 ほか）を実寸 10 cm で。点字ブロックは JIS T 9251 の寸法（点の上の径 12 mm・高さ 5 mm）で描いた形、ガラスのほこりとくもりは描いた模式です。</p>
+<p><b>触覚の層</b>　近づくと重なる線は凹凸の等高線、点は細かな凹凸のざらつき、指の跡の光はなぞった所。色は温もりの手がかり（青み＝ひんやり・琥珀＝温かい）、点のまたたきは湿りの手がかり。触覚そのものの再現ではなく、手がかりを見える形と振動に移した模式です。</p>
 <p>場所は Qualia/sight と同じ森（関東の雑木林のつもりの創作空間）。写真から自分の触覚をつくる前の道具は <a href="studio.html">こちら</a>。three.js（MIT）。© mitsulab.</p>
 </div></details>
 <div class="feel" id="feel" aria-live="off"></div>
 <div class="cap" id="cap">木の幹、石、苔、土。近づいて、指でなぞってみる。</div>
 <div id="place" role="group" aria-label="場所を切りかえる"><button data-place="forest" aria-pressed="true">自然</button><button data-place="city" aria-pressed="false">都市</button></div>
-<div class="pick" role="group" aria-label="触れるもの" id="pick"></div>
+<div class="step" role="group" aria-label="触れる面"><button id="bPrev" aria-label="前の面">‹</button><button id="bName"></button><button id="bNext" aria-label="次の面">›</button></div><div id="pick" hidden></div>
+<div class="mosiki" id="mosiki">手がかりを、線と振動に移した模式</div>
 <div class="bar" role="group" aria-label="操作"><button id="bLeave">はなれる</button><button id="bStl">形を保存</button><button id="bGo">外へ</button></div>
 <div class="away" id="away" role="dialog" aria-label="外へ"><p>画面を閉じて、近くの木の幹に、手のひらを当ててみてください。<br>それから、石にも。<br>どちらが、ひんやりしますか。</p><button id="bBack">画面にもどる</button></div>
 <script type="module">
 const $ = id => document.getElementById(id);
 let V = null, THINGS = [], walkCap = '木の幹、石、苔、土。近づいて、指でなぞってみる。';
-const cap = $('cap'), feel = $('feel');
+const cap = $('cap'), feel = $('feel'); let list = [], idx = 0; const setName = th => { const i = list.indexOf(th); if (i >= 0) idx = i; $('bName').textContent = list[idx] ? list[idx].name : ''; };
 const ui = {
-  mode(m, th) { document.body.classList.toggle('near', m === 'near'); document.querySelectorAll('#pick button').forEach(b => b.setAttribute('aria-pressed', !!th && b.dataset.id === th.id));
-    if (m === 'going' && th) cap.textContent = th.cue; if (m === 'near') feel.textContent = 'なぞる・押したまま待つ'; if (m === 'walk') { cap.textContent = walkCap; feel.classList.remove('on'); } if (m === 'near') feel.classList.add('on'); },
+  mode(m, th) { document.body.classList.toggle('near', m === 'near'); 
+    if (m === 'going' && th) { cap.textContent = innerWidth < 700 ? (th.s || th.name) : th.name + '　' + (th.s || ''); setName(th); } if (m === 'near') feel.textContent = 'なぞる・押したまま待つ'; if (m === 'walk') { cap.textContent = walkCap; feel.classList.remove('on'); } if (m === 'near') feel.classList.add('on'); },
   touch(on) { if (on) navigator.vibrate; },
   feel(r) { if (!r.held) return; feel.textContent = r.moving ? (r.amp > .3 ? 'ざらつく' : 'なぞっている') : r.dent > .4 ? '指が沈む' : 'じっと押している'; },
 };
@@ -77,10 +87,12 @@ $('bStl').onclick = () => { const r = V && V.stl(); if (!r) return; const d = ne
   a.href = u; a.download = `qualia-touch_${r.id}_${d.getFullYear()}${z(d.getMonth() + 1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.stl`; a.click(); setTimeout(() => URL.revokeObjectURL(u), 4000);
   cap.textContent = 'この表面の 10 cm 四方の凹凸を、STL で保存した（この端末の中だけ）。'; };
 $('bGo').onclick = () => { $('away').classList.add('on'); navigator.vibrate && navigator.vibrate([12, 80, 12]); }; $('bBack').onclick = () => $('away').classList.remove('on');
-import('./touch.js?v=t4').then(m => { THINGS = m.THINGS; V = m.start($('c'), ui); window.__touchApp = V;
+import('./touch.js?v=t5').then(m => { THINGS = m.THINGS; V = m.start($('c'), ui); window.__touchApp = V;
   const AWAY = { forest: '画面を閉じて、近くの木の幹に、手のひらを当ててみてください。<br>それから、石にも。<br>どちらが、ひんやりしますか。', shore: '海や川の近くに行ったら、乾いた砂と、濡れた砂を、指で押してみてください。<br>どちらが、指を押し返しますか。', city: '画面を閉じて、歩道の敷石と、植えこみの土を、手のひらで比べてみてください。<br>日の当たる所と、影の所では、どう違いますか。' };
-  const CAP = { forest: '森と浜のものに、近づいて指でなぞる。', shore: '砂、貝殻、流木、磯の岩。海辺のものに、近づいて触れる。', city: '歩道の結び目、街路樹の幹、敷石。街の中の手ざわりに、近づいて触れる。' };
-  const pick = p => { const pk = $('pick'); pk.textContent = ''; for (const th of THINGS.filter(t => p === 'city' ? t.place === 'city' : t.place !== 'city')) { const b = document.createElement('button'); b.textContent = th.name; b.dataset.id = th.id; b.setAttribute('aria-pressed', false); b.onclick = () => V.approach(th.id); pk.appendChild(b); } cap.textContent = CAP[p]; cap.classList.toggle('two', p !== 'city'); walkCap = CAP[p]; $('away').querySelector('p').innerHTML = AWAY[p]; };
+  const CAP = { forest: '森と浜のものに、近づいて指でなぞる。', shore: '海辺のものに、近づいて触れる。', city: '歩道を歩きながら、まちの面に触れる。' };
+  const pick = p => { list = THINGS.filter(t => p === 'city' ? t.place === 'city' : t.place !== 'city'); idx = 0; setName(list[0]); cap.textContent = CAP[p]; walkCap = CAP[p]; $('away').querySelector('p').innerHTML = AWAY[p]; };
+  const goI = d => { idx = (idx + d + list.length) % list.length; setName(list[idx]); V.approach(list[idx].id); };
+  $('bPrev').onclick = () => goI(-1); $('bNext').onclick = () => goI(1); $('bName').onclick = () => goI(0);
   pick('forest');
   document.querySelectorAll('#place button').forEach(b => b.onclick = async () => { if (b.getAttribute('aria-pressed') === 'true' && V.place === b.dataset.place) return; b.setAttribute('aria-busy', 'true');
     try { await V.setPlace(b.dataset.place); } catch (e) { console.warn(e); } finally { b.removeAttribute('aria-busy'); }
