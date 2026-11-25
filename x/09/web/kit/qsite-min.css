@@ -1,0 +1,11 @@
+/* qsite-min.css（2026-11-26 本人「表示される文字が多い。最小限の GUI・文字に。説明は on/off」）omiya・kawagoe。
+   html.qx-off（既定）で説明の文字を隠す。字幕（碧の声）と操作の札は残す。 */
+html:not(.embed) #menuBtn .q7t{display:none!important}
+html:not(.embed) #menuBtn{width:44px!important;min-width:44px!important;padding:0!important;justify-content:center}
+html.qx-off #qRingW, html.qx-off #qTown i, html.qx-off #qTown small{display:none!important}
+#qxBtn{position:fixed;z-index:40;right:12px;bottom:calc(112px + env(safe-area-inset-bottom));width:44px;height:44px;border-radius:22px;
+ border:1px solid rgba(195,204,224,.35);background:rgba(8,14,24,.42);color:#eef5fb;font:600 15px/1 "Shippori Mincho",serif;cursor:pointer;
+ -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+#qxBtn[aria-pressed="true"]{border-color:#5cc8e0;color:#5cc8e0}
+@media (max-width:640px){#qxBtn{bottom:calc(122px + env(safe-area-inset-bottom))}}
+html body .rg-arrow.rg-arrow{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;transform:none!important}
