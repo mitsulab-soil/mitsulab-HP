@@ -236,7 +236,7 @@ body{word-break:auto-phrase;line-break:strict}
 "@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
 </script>
 <!-- 20261017 Explicit dependency preloads: existing same-version modules and first-view assets only. -->
-<link rel="modulepreload" href="umwelt.js?v=20261125a">
+<link rel="modulepreload" href="umwelt.js?v=20261125q">
 <link rel="modulepreload" href="vendor/three/build/three.module.js?v=m1" fetchpriority="high">
 <link rel="modulepreload" href="bodies.js?v=20261120r">
 <link rel="modulepreload" href="forest.js?v=20261123n">
@@ -406,7 +406,7 @@ for(const f of ["leaf_spray.webp","leaf_spray2.webp"])a(f,S||F?"image":"fetch");
 /* 2026-10-14 テストプレー：広告よけの機能などで読みこみが止まると、森が黒いままになった → 止まったら知らせて、もう一度読みこめるようにする */
 window.__bootFail=function(){if(window.__muBoot||window.__bootFailed)return;window.__bootFailed=true;var m=document.getElementById('bootMsg');if(m)m.textContent='森の読みこみが止まりました。通信が切れたか、ブラウザの広告よけの機能が読みこみを止めたのかもしれません。';var b=document.getElementById('start');b.hidden=false;b.id='bootFail';b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};};
 addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='SCRIPT'&&!/voice\.js/.test(t.src))window.__bootFail();},true);
-if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261125a';s.onerror=window.__bootFail;document.body.appendChild(s);
+if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261125q';s.onerror=window.__bootFail;document.body.appendChild(s);
   setTimeout(function(){if(!window.__muBoot){var m=document.getElementById('bootMsg');if(m&&!window.__bootFailed)m.textContent='まだ組み立てています。止まって見えるときは、下のボタンでもう一度読みこめます。';var b=document.getElementById('start');if(b&&!window.__bootFailed){b.hidden=false;b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};}}},45000);}
 </script>
 <noscript><p style="padding:20px">この体験は JavaScript で動きます。</p></noscript>
@@ -453,5 +453,48 @@ body.kur #where{top:62px!important}
 @media (min-width:900px){#legend:not([data-lens="hachi"]),#legend[data-lens="hachi"]{left:auto!important;right:64px!important;transform:none!important;text-align:left!important}}   /* PC：凡例を右下へ（大きくした自分の体にかからないように） */
 </style>
 <div id="away" class="away" role="status" aria-live="polite" hidden></div>
+<link rel="stylesheet" href="kit/qgui.css?v=20261125q">
+<style id="quiet-gui-20261125">
+/* 2026-11-25 本人「生き物の選択の GUI が大きすぎて視界を遮る・字幕が多い。風景がメイン」→ 選ぶ列は下の端に細く、選ぶあいだだけ広がる。中央 6 割には何も重ねない。字幕は下の端に 1 行・小さく薄く */
+#ring{top:auto!important;bottom:calc(var(--qg-safe-b) + var(--qg-edge))!important;height:60px!important;width:min(520px,calc(100vw - 2*var(--qg-edge)))!important;
+  background:linear-gradient(0deg,rgba(4,18,20,.34),rgba(4,18,20,0))!important;border:0!important;border-radius:14px!important;transition:height .22s ease,background .22s;opacity:.92}
+#ring.open{height:96px!important;background:linear-gradient(0deg,rgba(4,22,24,.5),rgba(4,22,24,.08))!important;opacity:1}
+#ring .rg-it span{font:500 12px/1.2 var(--qg-font)!important;color:var(--qg-ink-dim)!important;background:none!important;border:0!important;padding:0 2px 2px!important;text-shadow:0 0 2px #000,0 1px 6px rgba(0,0,0,.8)!important}
+#ring .rg-it.on span{font-size:14px!important;color:#fff!important;font-weight:600!important;border-bottom:1.5px solid var(--qg-line-hi)!important}
+#ring .rg-it{min-width:44px}
+#ring .rg-arrow{width:44px!important;height:44px!important;margin-top:-22px!important;font-size:16px!important;border:1px solid var(--qg-line)!important;background:var(--qg-ground)!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:var(--qg-ink)!important;transition:box-shadow 80ms,transform 80ms}
+#ring .rg-arrow:active{transform:scale(.94);box-shadow:var(--qg-glow)}
+#ring:not(.open) .rg-arrow{opacity:.7;transform:scale(.82)}
+/* 生きものの一言（三色型 など）と操作の札：上の端に小さく、少しして薄れる */
+#where{top:calc(max(8px,env(safe-area-inset-top)) + 58px)!important;left:var(--qg-edge)!important;right:auto!important;transform:none!important;width:auto!important;max-width:46vw!important;text-align:left!important;background:none!important;margin:0!important}
+#whereName{display:none!important}
+html body #where #whereSub,html body #where #whereSub *{white-space:nowrap!important;font:400 12px/1.4 var(--qg-font)!important;color:var(--qg-ink-dim)!important;background:none!important;padding:0!important}
+#moveNote{top:auto!important;bottom:calc(var(--qg-safe-b) + var(--qg-edge) + 92px)!important;left:50%!important;transform:translateX(-50%)!important;font-size:11.5px!important;font-weight:400!important;background:none!important;color:var(--qg-ink-dim)!important;animation:qgfade 6s forwards!important;max-width:90vw!important}
+@keyframes qgfade{0%,70%{opacity:1}100%{opacity:0;visibility:hidden}}
+/* 字幕：選ぶ列の上に 1 行 */
+#guide{top:auto!important;bottom:calc(var(--qg-safe-b) + var(--qg-edge) + 62px)!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;width:auto!important;max-width:calc(100vw - 2*var(--qg-edge))!important;text-align:center!important;background:none!important;padding:0!important}
+#say{font:400 13px/1.5 var(--qg-font)!important;letter-spacing:.04em!important;color:rgba(240,248,246,.86)!important;white-space:nowrap!important;overflow:hidden;min-height:0!important;text-shadow:0 0 2px rgba(0,0,0,.95),0 1px 8px rgba(0,0,0,.75)!important;transition:opacity .35s}
+#say.sub-gone{opacity:0}
+#acts{justify-content:center}
+/* ボタンをそろえる：細い線・透ける地・押した所だけ光る */
+#top .btn,#menuBtn,#habitats button,#bodyControls button,#acts .btn,#kesTile{border:1px solid var(--qg-line)!important;background:var(--qg-ground)!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:var(--qg-ink)!important;box-shadow:none!important;min-height:44px;min-width:44px;font-family:var(--qg-font)!important;transition:box-shadow 80ms,transform 80ms,border-color 80ms}
+#top .btn,#menuBtn,#acts .btn{border-radius:999px!important;font-size:13px!important;padding:0 16px!important;height:44px}
+#menuBtn{padding:0!important;width:44px}
+#habitats button,#bodyControls button,#kesTile{border-radius:12px!important}
+#habitats button[aria-pressed="true"]{border-width:1.5px!important;border-color:var(--qg-line-hi)!important;color:#fff!important;box-shadow:var(--qg-glow)!important}
+#top .btn:active,#menuBtn:active,#habitats button:active,#bodyControls button:active,#acts .btn:active,#kesTile:active{transform:scale(.95);border-color:var(--qg-line-hi)!important;box-shadow:var(--qg-glow)!important}
+#top .topR{top:calc(max(8px,env(safe-area-inset-top)) + 4px)}
+@media (min-width:768px){#top{padding-right:var(--qg-edge)}}
+@media (max-width:767px){
+  #top .btn{font-size:12px!important;padding:0 12px!important}
+  #habitats{top:calc(max(8px,env(safe-area-inset-top)) + 84px)!important;bottom:auto!important;left:var(--qg-edge)!important;flex-direction:row!important;display:flex!important;gap:6px}
+  #where{left:var(--qg-edge)!important;right:auto!important;width:auto!important;max-width:calc(100vw - 32px)!important;text-align:left!important;top:calc(max(8px,env(safe-area-inset-top)) + 134px)!important;margin:0!important;padding:0!important}
+  #habitats button{height:44px!important;font-size:12px!important;padding:0 10px!important}
+  #bodyControls{bottom:calc(var(--qg-safe-b) + var(--qg-edge) + 110px)!important}
+  #kesTile{bottom:calc(var(--qg-safe-b) + var(--qg-edge) + 110px)!important}
+}
+</style>
+<script>(function(){var r=document.getElementById('ring');if(!r)return;var t=0;function o(){clearTimeout(t);r.classList.add('open')}function c(d){clearTimeout(t);t=setTimeout(function(){if(!r.matches(':hover')&&!r.contains(document.activeElement))r.classList.remove('open')},d)}
+r.addEventListener('pointerenter',o);r.addEventListener('pointerdown',o);r.addEventListener('focusin',o);r.addEventListener('pointerleave',function(){c(600)});r.addEventListener('click',function(){c(1600)});r.addEventListener('focusout',function(){c(800)});addEventListener('pointerup',function(){if(r.classList.contains('open'))c(1800)});})();</script>
 </body>
 </html>

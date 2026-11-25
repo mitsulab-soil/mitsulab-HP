@@ -698,9 +698,27 @@ function tick() { lastTick = performance.now(); const c = AUD.ctx; if (!c || c.c
 const SP = { tok: 0, playing: false, paused: false, resolve: null, timer: null, t0: 0, rest: 0 };
 const voiceOn = () => AUD.ctx && $("optVoice").checked && $("optSound").checked;
 const est = t => 900 + t.length * 135;
+// 2026-11-25 本人「字幕が多い・風景がメイン」：字幕は 1 行ずつ（句読点で短く区切り、声の長さに合わせて順に出す）、話し終えたら早く消す
+const SUB = { t: [], clr: 0 };
+function subChunks(text) {
+  const max = innerWidth < 600 ? 24 : 32, out = []; let cur = '';
+  for (const part of String(text).split(/(?<=[。、！？」])/)) {
+    if ((cur + part).length > max && cur) { out.push(cur); cur = ''; }
+    cur += part;
+    while (cur.length > max + 6) { out.push(cur.slice(0, max)); cur = cur.slice(max); }
+  }
+  if (cur) out.push(cur); return out;
+}
+function subShow(text, ms) {
+  SUB.t.forEach(clearTimeout); SUB.t = []; clearTimeout(SUB.clr);
+  const el = $("say"), cs = subChunks(text), tot = cs.join('').length || 1; let at = 0;
+  el.classList.remove('sub-gone');
+  cs.forEach(c => { SUB.t.push(setTimeout(() => { el.textContent = c; }, at)); at += ms * c.length / tot; });
+  SUB.clr = setTimeout(() => el.classList.add('sub-gone'), Math.max(ms, 600) + 700);
+}
 function speakLine(text) {
   return new Promise(res => {
-    $("say").textContent = text; $("guide").classList.add("talking");
+    subShow(text, (VOICE[text]?.dur ? VOICE[text].dur * 1000 : est(text))); $("guide").classList.add("talking");
     // 四つの時計：いま話している窓を光らせる（スマホの 2×2 でも、PC の横並びでも同じ窓を指す）
     { const k = S.toki.indexOf(text) - 1; tokiFrames.forEach((f, i) => f.classList.toggle("on", i === k)); } A.talkT = 0; window.__said = (window.__said || []).concat([text]).slice(-40);
     const v = VOICE[text];
@@ -721,7 +739,7 @@ function pauseSpeech(on) {
   setActs(curActs);
 }
 function skipLine() { if (SP.playing) AUD.voice.pause(); SP.resolve?.(); }
-function hush() { SP.tok++; if (SP.playing) AUD.voice.pause(); SP.resolve?.(); }
+function hush() { SUB.t.forEach(clearTimeout); SUB.t = []; SP.tok++; if (SP.playing) AUD.voice.pause(); SP.resolve?.(); }
 const seenLens = new Set(); let awayDone = false;
 function awayOnce(id) { seenLens.add(id); if (awayDone || seenLens.size < 4) return; awayDone = true;
   setTimeout(() => { const el = document.getElementById('away'); if (!el) return; el.textContent = '画面から目を上げて、近くの花か葉を一つ。いま選んだ生きものの目なら、どう見えるだろう。'; el.hidden = false; try { navigator.vibrate && navigator.vibrate([30, 80, 30]); } catch (e) {} setTimeout(() => { el.hidden = true; }, 12000); }, 2500); }
@@ -1199,7 +1217,7 @@ function kurabeFinish() {
   talk(K.end || [], [["自由に歩く ›", () => freeWalk(), true], ["もう一度くらべる", kurabeStart]]);   // 押したことが分かるよう、字幕を替える（2026-10-14 r2）
 }
 function kurabeEnd(talkOn = true) { document.body.classList.remove("kur"); KUR.on = false; $("kurQ").hidden = true; $("moveNote").hidden = chapter !== "umwelt"; }
-const freeWalk = () => { $("takeaway").hidden = true; hush(); setActs([]); $("say").textContent = "ここからは自由に歩けます。上の並びで体を入れかえたり、地面を押して歩いたりしてみてください。"; };   // 押したことが分かるよう、字幕を替える（2026-10-14 r3）
+const freeWalk = () => { $("takeaway").hidden = true; hush(); setActs([]); $("say").classList.remove("sub-gone"); $("say").textContent = "ここからは自由に。体を入れかえて歩こう。"; };   // 押したことが分かるよう、字幕を替える（2026-10-14 r3）
 $("takeX").onclick = freeWalk;
 $("takeAgain").onclick = () => { $("takeaway").hidden = true; kurabeStart(); };
 $("kurBtn").onclick = () => { first(false); hush(); kurabeStart(); };
@@ -1342,7 +1360,7 @@ STARTUP.sceneBuiltAt = performance.now();
     // 碧のはじめの位置（2026-10-13・2026-11-22 スマホで足もとが下の説明と「今の景色」にかぶった → 4.0→4.7m）：見る人のすぐ前（0.6 m）で見えなかったので、ふだん立つ右前（となり）に置く
     if (vrm) { const nar = innerWidth / innerHeight < .8, D = nar ? 4.7 : 2.6, ang = aoiSideAng(2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect)); A.pos.set(me.pos.x + D * Math.sin(ang), 0, me.pos.z - D * Math.cos(ang)); A.yaw = 0; AM.place(A.pos.x, A.pos.z, A.yaw); aoi.position.copy(A.pos); }
     A.loadDone = true;
-    if (vrm && A.sayOnShow && !started) $("say").textContent = A.sayOnShow;   // 碧が現れてから「となりに立っているのが…」を出す
+    if (vrm && A.sayOnShow && !started) { $("say").classList.remove("sub-gone"); $("say").textContent = A.sayOnShow; }   // 碧が現れてから「となりに立っているのが…」を出す
     if (vrm) { STARTUP.aoiAppearAt = performance.now(); A.late = !!$("boot").hidden; if (A.late) { A.shadowOn = false; aoi.traverse(o => { if (o.isMesh) o.castShadow = false; }); } A.hold = false; A.appear = true; if (!started) A.intro = true; if (AM) AM.calm = 2.4; }   // 幕のあとに届いたときは、1 秒かけて静かに現れる
   });
   await Promise.race([preCompile, new Promise(r => setTimeout(r, 120))]); prog(100);   // 2026-11-18 起動 1 秒：材質の組み立ては待ちきらず、残りは霞の中で（下の幕上げ後のかすみ）   // 2026-11-03：PC も碧を待たない（森と操作を先に出す・起動 2 秒）
@@ -1371,7 +1389,7 @@ STARTUP.sceneBuiltAt = performance.now();
   requestAnimationFrame(frame); { const t0 = performance.now(); let lt = t0, n = 0; while (true) { await new Promise(r => requestAnimationFrame(r)); const t = performance.now(), dt = t - lt; lt = t; n++; if ((n >= 2 && dt < 50) || t - t0 > 160) break; } }   // 幕の裏で数こま回し、こまが落ち着いてから幕を上げる
   { const f = scene.fog, D = f.density, t0 = performance.now(); f.density = D * 3.2; const st = () => { const k = Math.min(1, (performance.now() - t0) / 2800); f.density = D * (3.2 - 2.2 * k * k * (3 - 2 * k)); if (k < 1) requestAnimationFrame(st); }; requestAnimationFrame(st); }   // 2026-11-18 幕を上げたら、濃い霞からゆっくり晴れる（あとから入る遠くの木・質感が急に入れかわって見えない）
   window.__muBoot = true; bootOpen(); $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 180);
-  { const T0 = "となりにいるのは案内の碧。画面を押すと、はじまります。"; if (A.hold) A.sayOnShow = T0; else $("say").textContent = T0; }
+  { const T0 = "となりは案内の碧。画面を押すと、はじまる。"; if (A.hold) A.sayOnShow = T0; else $("say").textContent = T0; }
   setActs([]);
   // 姿は、はじめて押す前から、揺れずにゆっくり現れる
   if (!A.hold) { A.appear = true; A.intro = true; if (AM) AM.calm = 2.4; }   // 2026-10-14：待たずに、最初のこまから現れはじめる
