@@ -82,5 +82,13 @@ $('bGo').onclick = () => { $('away').classList.add('on'); navigator.vibrate && n
 import('./hear.js?v=h12').then(m => { mod = m; V = m.start($('c')); window.__hear = window.__sonic = V; }).catch(e => console.warn(e));
 </script>
 <!-- © mitsulab. All rights reserved. 2026-11-23 公開。AI の学習・生成への利用はお断りします。 -->
+<link rel="stylesheet" href="kit/qgui.css?v=20261125q">
+<style id="quiet-gui-20261125">/* 2026-11-25 本人「風景がメイン・字幕が多い・GUI を洗練」：字幕を下の端に小さく薄く（中央 6 割を空ける）、ボタンを共通の線と透ける地に */
+html body #cap.cap{top:auto!important;bottom:calc(var(--qg-safe-b) + var(--qg-edge) + 58px)!important;font:400 13px/1.5 var(--qg-font)!important;letter-spacing:.04em;color:rgba(240,248,246,.86)!important;background:none!important;
+  text-shadow:0 0 2px rgba(0,0,0,.95),0 1px 8px rgba(0,0,0,.75)!important;max-width:min(560px,calc(100vw - 32px))!important;display:-webkit-box!important;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+html body button{border:1px solid var(--qg-line)!important;background:var(--qg-ground)!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:var(--qg-ink)!important;min-height:44px;font-family:var(--qg-font)!important;transition:box-shadow 80ms,transform 80ms,border-color 80ms}
+html body button[aria-pressed="true"],html body button.on{border-width:1.5px!important;border-color:var(--qg-line-hi)!important;box-shadow:var(--qg-glow)!important}
+html body button:active{transform:scale(.95);border-color:var(--qg-line-hi)!important;box-shadow:var(--qg-glow)!important}
+</style>
 </body>
 </html>
