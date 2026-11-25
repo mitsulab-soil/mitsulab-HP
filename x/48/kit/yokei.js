@@ -14,16 +14,20 @@
   var css = '.qyk{position:fixed;right:var(--qg-edge,16px);top:calc(max(8px,env(safe-area-inset-top)) + 64px);z-index:60;max-width:min(300px,calc(100vw - 32px));padding:10px 12px;border:1px solid var(--qg-line,rgba(170,226,236,.55));border-radius:14px;background:var(--qg-ground,rgba(6,34,38,.38));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:var(--qg-ink,#e9f6f5);font:400 13px/1.5 var(--qg-font,serif);opacity:0;transform:translateY(-4px);transition:opacity .3s,transform .3s}' +
     '.qyk.on{opacity:1;transform:none}.qyk p{margin:0 0 8px;letter-spacing:.04em}.qyk .r{display:flex;gap:6px;flex-wrap:wrap}' +
     '.qyk button,.qyk a{min-width:44px;min-height:44px;padding:0 12px;border:1px solid var(--qg-line,rgba(170,226,236,.55));border-radius:999px;background:transparent;color:inherit;font:inherit;text-decoration:none;display:inline-grid;place-items:center;transition:box-shadow 80ms,transform 80ms}' +
-    '.qyk button:active,.qyk a:active{transform:scale(.95);box-shadow:var(--qg-glow,0 0 12px rgba(120,220,235,.4))}.qyk .x{position:absolute;right:2px;top:2px;border:0;min-width:36px;min-height:36px;opacity:.6}' +
+    '.qyk button:active,.qyk a:active{transform:scale(.95);box-shadow:var(--qg-glow,0 0 12px rgba(120,220,235,.4))}.qyk{padding-right:44px}.qyk .x{position:absolute;right:0;top:0;border:0;min-width:44px;min-height:44px;font-size:16px;opacity:.7}' +
     '.qyk-n{position:fixed;left:16px;bottom:16px;z-index:61;padding:8px 12px;border-radius:10px;background:rgba(0,0,0,.7);color:#fff;font:12px/1.5 monospace;white-space:pre}';
   var shown = false, t0 = Date.now(), box;
   function addCss() { if (document.getElementById('qyk-css')) return; var s = document.createElement('style'); s.id = 'qyk-css'; s.textContent = css; document.head.appendChild(s); }
   function close() { if (!box) return; box.classList.remove('on'); var b = box; setTimeout(function () { b.remove(); }, 320); box = null; }
   function answer(k) {
     var c = counts(); c[tool] = c[tool] || { yes: 0, little: 0, notyet: 0 }; c[tool][k] = (c[tool][k] || 0) + 1; set(KEY, JSON.stringify(c));
-    if (!nextUrl) { box.innerHTML = '<p>ありがとう。画面を閉じて、いつもの景色へ。</p>'; setTimeout(close, 2200); return; }
-    box.innerHTML = '<p>ありがとう。</p><div class="r"><a rel="noopener" target="_blank"></a></div>';
-    var a = box.querySelector('a'); a.href = nextUrl; a.textContent = nextLabel; setTimeout(close, 12000);
+    var links = [];
+    if (k === 'yes') links.push(['/x/39/?from=yokei', '地図に一言を置く']);   // 2026-11-26 余景を Qualia/map へ（投稿は端末の中・位置は約 250 m に丸める）
+    if (nextUrl) links.push([nextUrl, nextLabel]);
+    if (!links.length) { box.innerHTML = '<p>ありがとう。画面を閉じて、いつもの景色へ。</p>'; setTimeout(close, 2600); return; }
+    box.innerHTML = '<button class="x" aria-label="閉じる">×</button><p>ありがとう。</p><div class="r"></div>';
+    links.forEach(function (l) { var a = document.createElement('a'); a.href = l[0]; a.textContent = l[1]; if (/^https?:/.test(l[0])) { a.target = '_blank'; a.rel = 'noopener'; } box.querySelector('.r').appendChild(a); });
+    setTimeout(close, 15000); return;
   }
   function show() {
     if (shown || get(ASKED)) return; shown = true; set(ASKED, '1'); addCss();

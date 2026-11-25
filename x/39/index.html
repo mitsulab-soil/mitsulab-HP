@@ -298,6 +298,8 @@ bPut.onclick=function(){
 };
 bCancel.onclick=close;
 txt.addEventListener('input',function(){ready()});
+/* 2026-11-26 余景の一問で「はい」と答えた人が来たら、置く画面をすぐ開く（位置は約 250 m の格子に丸める snap のまま・投稿は端末の中） */
+if(/[?&]from=yokei/.test(location.search))setTimeout(function(){if(!body.classList.contains('placing'))bPut.click()},900);
 txt.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();txt.blur()}});
 document.getElementById('sheet').onsubmit=function(e){e.preventDefault()};
 /* 写真：縮小して描き直す（撮影位置・機種・日時の情報はここで消える） */
