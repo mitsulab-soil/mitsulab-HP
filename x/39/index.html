@@ -98,7 +98,7 @@ body.placing .toast{bottom:auto;top:calc(110px + env(safe-area-inset-top))}
 @media (max-width:767px){.slab{display:none}}   /* 2026-11-22 スマホは札の列に見出しを混ぜない */
 @media (min-width:768px){.hd h1{font-size:32px}.senses{bottom:calc(88px + env(safe-area-inset-bottom))}}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
-html.seen .hd p{display:none}
+html.seen .hd p{display:none}.hd a{display:inline-flex;align-items:center;min-height:44px;padding:0 10px;margin:-16px -10px}
 </style>
 <style id="m1122b">/* 2026-11-22 札の on/off が分かりにくい → on は色を敷き、off は薄く。スマホは札を詰めて右で切れにくく */.chip[aria-pressed="true"]{background:color-mix(in srgb,var(--c) 24%,rgba(3,6,15,.72))}.chip[aria-pressed="false"]{opacity:.42;background:rgba(3,6,15,.35)}@media (max-width:767px){.chip{padding:0 9px;gap:5px;font-size:12.5px;letter-spacing:.02em}}</style>
 <style id="m1122">/* 2026-11-22 スマホで感覚の札とボタンが 3 段に積み上がり地図が狭い → 札は横に流す 1 列に */@media (max-width:767px){.senses{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;scrollbar-width:none;pointer-events:auto;padding:2px 16px;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}.senses::-webkit-scrollbar{display:none}.senses .chip{flex:0 0 auto;padding:0 10px}}</style>
