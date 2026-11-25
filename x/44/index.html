@@ -83,7 +83,7 @@ const NS='http://www.w3.org/2000/svg',ticks=$('ticks');for(let i=0;i<72;i++){con
 // 背景：地球の磁場を棒磁石（双極子）で近似したときの力線 r = L·sin²θ を、ゆっくり流れる線で描く（模式）
 const cv=$('field'),cx=cv.getContext('2d');let fw,fh,dpr=Math.min(2,devicePixelRatio||1),ft=0,still=matchMedia('(prefers-reduced-motion:reduce)').matches;
 function fsize(){fw=innerWidth;fh=innerHeight;cv.width=fw*dpr;cv.height=fh*dpr;cx.setTransform(dpr,0,0,dpr,0,0)}fsize();addEventListener('resize',fsize);
-function fdraw(){const db=$('dial').getBoundingClientRect(),R=db.width*.11||Math.min(fw,fh)*.1,ox=db.left+db.width/2||fw/2,oy=db.top+db.height/2||fh*.4;cx.clearRect(0,0,fw,fh);
+function fdraw(){if(window.__ar&&document.body.classList.contains('cam')){window.__ar(cx,fw,fh,ft);ft+=.016;requestAnimationFrame(fdraw);return}const db=$('dial').getBoundingClientRect(),R=db.width*.11||Math.min(fw,fh)*.1,ox=db.left+db.width/2||fw/2,oy=db.top+db.height/2||fh*.4;cx.clearRect(0,0,fw,fh);
  const rot=(window.__h||0)*Math.PI/180;cx.save();cx.translate(ox,oy);cx.rotate(-rot);
  for(let k=1;k<=9;k++){const L=R*(1.25+k*k*.32);for(const sd of[1,-1]){cx.beginPath();for(let j=0;j<=120;j++){const th=.02+j/120*(Math.PI-.04),r=L*Math.sin(th)**2;if(r<R*.98)continue;const x=sd*r*Math.sin(th),y=-r*Math.cos(th);cx.lineTo(x,y)}
   const g=.10+.05*Math.sin(ft*.6+k);cx.strokeStyle='rgba(134,211,193,'+(g*2.2).toFixed(3)+')';cx.lineWidth=1;cx.setLineDash([3,9]);cx.lineDashOffset=-ft*14*(k%2?1:-1);cx.stroke()}}
@@ -173,5 +173,79 @@ html body button[aria-pressed="true"],html body button.on,html body button.is-on
 html body button:active{transform:scale(.95);border-color:var(--qg-line-hi)!important;box-shadow:var(--qg-glow)!important}
 html body button:disabled{opacity:.35}
 </style>
+<!-- 2026-11-26 本人「現実空間で使用できるイメージに」：スマホはカメラの景色に地磁気の向き（模式）を重ねる。説明は ≡ に畳み、表示は on/off -->
+<style id="ar1126">
+#cam{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;display:none;pointer-events:none}
+body.cam{background:#000}body.cam #cam{display:block}body.cam>#field{opacity:1;z-index:1!important}#birds{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}#birds p{font-size:13px}body.cam::after{display:none}
+body.cam #dial{position:fixed;left:var(--qg-edge);bottom:calc(84px + var(--qg-safe-b));width:84px;z-index:2}
+body.cam #read{position:fixed;left:calc(var(--qg-edge) + 96px);bottom:calc(104px + var(--qg-safe-b));text-align:left;min-height:0;z-index:2;text-shadow:0 1px 6px #000}
+body.cam #deg{font-size:26px}body.cam header{border-bottom-color:transparent;text-shadow:0 1px 6px #000}
+body.cam #more,body.cam #trail{display:none!important}
+body.cam #note{position:fixed;left:16px;right:16px;top:calc(56px + env(safe-area-inset-top));margin:auto;font-size:13px;line-height:1.7;min-height:0;background:rgba(4,14,16,.45);border-radius:12px;padding:8px 12px;max-width:360px;z-index:2}
+body.cam .row{position:fixed;left:var(--qg-edge);right:calc(var(--qg-edge) + 112px);bottom:calc(16px + var(--qg-safe-b));width:auto;z-index:2}
+body.cam .row button{min-height:48px;font-size:13px;letter-spacing:.06em}
+body.nonote #note{display:none}
+#qtools{position:fixed;right:var(--qg-edge);bottom:calc(16px + var(--qg-safe-b));display:flex;gap:8px;z-index:5}
+#qtools .qg-btn{width:48px;height:48px;padding:0;font-size:17px}
+#qtools #camB{display:none}@media (pointer:coarse){#qtools #camB{display:inline-grid}}
+@media (pointer:coarse),(max-width:767px){body:not(.cam){padding-bottom:calc(76px + var(--qg-safe-b))}}
+body>#qtools,body>#sheet,body>#arlab,body>#cam{position:fixed!important}body>#cam{z-index:0!important}body>#sheet{z-index:4!important}body>#qtools{z-index:5!important}body>#arlab{z-index:2!important}
+body.cam>header{position:fixed!important;top:max(14px,env(safe-area-inset-top));left:16px;right:16px;width:auto;z-index:2}body.cam>#dial,body.cam>#read,body.cam>#note,body.cam>.row{position:fixed!important;z-index:2}body.cam #pk{display:none}
+#sheet .sw button{flex:0 0 auto;min-width:64px}
+#sheet{position:fixed;right:var(--qg-edge);bottom:calc(76px + var(--qg-safe-b));width:min(360px,calc(100vw - 32px));max-height:62vh;overflow:auto;z-index:4;display:none;
+ background:rgba(5,20,22,.86);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid var(--qg-line);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.8;color:#dbe8e4;text-align:left}
+#sheet.show{display:block}#sheet p{margin:0 0 10px}#sheet small{display:block;font-size:12px;color:var(--sub);line-height:1.7}
+#sheet .sw{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px;min-height:44px}
+#arlab{position:fixed;left:0;right:0;top:calc(40px + env(safe-area-inset-top));text-align:center;font-size:11px;letter-spacing:.12em;color:rgba(220,240,236,.75);z-index:2;display:none;text-shadow:0 1px 4px #000}
+body.cam #arlab{display:block}body.cam:not(.nonote) #arlab{display:none}
+</style>
+<video id="cam" playsinline muted aria-hidden="true"></video>
+<div id="arlab">地磁気の向き（模式）</div>
+<div id="qtools"><button class="qg-btn" id="camB" aria-pressed="false" aria-label="カメラの景色に重ねる" title="景色に重ねる">景</button><button class="qg-btn" id="menuB" aria-expanded="false" aria-label="説明をひらく" title="説明">≡</button></div>
+<div id="sheet" role="dialog" aria-label="説明">
+ <div class="sw"><span>画面の説明を出す</span><button class="qg-btn" id="noteB" aria-pressed="true">on</button></div>
+ <p>スマホでは「景」で、カメラの景色に地磁気の向きを重ねます。流れる線は、いまここで磁場が向かう向き（北へ、そして地面の下へ）。</p>
+ <p>さいたま付近の地磁気は、偏角 約 7.5° 西（磁北は真北より少し西）・伏角 約 49°（斜め下へ潜る）・全磁力 約 46 µT。</p>
+ <small>値は国土地理院「磁気図 2020.0」による概数。線は端末の向きのセンサーとこの概数から描いた模式で、実際の磁場を測って描いたものではありません。近くの鉄や電線で方位はずれます。カメラの映像は画面に映すだけで、録画・保存・送信はしません。</small>
+</div>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);let bt=null,gm=null,stream=null;
+// 鳥と地磁気の欄は ≡ の中へ
+const mo=$('more');if(mo){const dv=document.createElement('div');dv.id='birds';mo.querySelectorAll('p').forEach(p=>dv.appendChild(p));mo.remove();$('sheet').appendChild(dv)}
+addEventListener('deviceorientation',e=>{if(e.beta!=null){bt=e.beta;gm=e.gamma}});
+const I=49*Math.PI/180,D2R=Math.PI/180;
+function devVec(v){ // 世界（東・磁北・上）→ 端末（右・上・手前）。W3C の Z-X'-Y'' の向き
+ const h=window.__h;if(h==null||bt==null)return null;const a=(360-h)*D2R,b=bt*D2R,g=gm*D2R;
+ const cA=Math.cos(a),sA=Math.sin(a),cB=Math.cos(b),sB=Math.sin(b),cG=Math.cos(g),sG=Math.sin(g);
+ const R=[[cA*cG-sA*sB*sG,-sA*cB,cA*sG+sA*sB*cG],[sA*cG+cA*sB*sG,cA*cB,sA*sG-cA*sB*cG],[-cB*sG,sB,cB*cG]];
+ return [0,1,2].map(i=>R[0][i]*v[0]+R[1][i]*v[1]+R[2][i]*v[2]);
+}
+window.__ar=(cx,w,h,t)=>{cx.clearRect(0,0,w,h);const d=devVec([0,Math.cos(I),-Math.sin(I)]);
+ if(!d){cx.fillStyle='rgba(220,240,236,.8)';cx.font='13px serif';cx.textAlign='center';cx.fillText('「はじめる」で向きを読みます',w/2,h*.45);return}
+ const m=Math.hypot(d[0],d[1]),ux=d[0]/(m||1),uy=-d[1]/(m||1),px=-uy,py=ux,cxm=w/2,cym=h/2,L=Math.hypot(w,h);
+ cx.lineCap='round';
+ if(m>.18){const a=Math.min(1,m*1.3);for(let k=-9;k<=9;k++){const o=k*Math.max(34,L/22),sx=cxm+px*o,sy=cym+py*o;
+  cx.beginPath();cx.moveTo(sx-ux*L,sy-uy*L);cx.lineTo(sx+ux*L,sy+uy*L);cx.setLineDash([10,22]);cx.lineDashOffset=-(t*40+k*7)%32;
+  cx.strokeStyle='rgba(150,235,220,'+(.55*a*(1-Math.abs(k)/12)).toFixed(3)+')';cx.lineWidth=1.6;cx.stroke()}
+  cx.setLineDash([]);}
+ if(m<.6){const a=1-m/.6,into=d[2]<0;for(let i=0;i<5;i++)for(let j=0;j<8;j++){const x=w*(i+.5)/5,y=h*(j+.5)/8;cx.strokeStyle='rgba(150,235,220,'+(.5*a).toFixed(3)+')';cx.lineWidth=1.2;cx.beginPath();cx.arc(x,y,7,0,7);cx.stroke();if(into){cx.beginPath();cx.moveTo(x-4,y-4);cx.lineTo(x+4,y+4);cx.moveTo(x+4,y-4);cx.lineTo(x-4,y+4);cx.stroke()}else{cx.beginPath();cx.arc(x,y,1.8,0,7);cx.fillStyle=cx.strokeStyle;cx.fill()}}}
+ // 磁北（水平）の向きを画面の縁に小さく
+ const n=devVec([0,1,0]);if(n){const nm=Math.hypot(n[0],n[1]);if(nm>.15){const nx=n[0]/nm,ny=-n[1]/nm,s=Math.min((w/2-30)/Math.abs(nx||1e-6),(h/2-90)/Math.abs(ny||1e-6)),x=cxm+nx*s,y=cym+ny*s;
+  cx.save();cx.translate(x,y);cx.rotate(Math.atan2(ny,nx));cx.fillStyle='rgba(233,247,243,.9)';cx.beginPath();cx.moveTo(10,0);cx.lineTo(-6,-6);cx.lineTo(-6,6);cx.fill();cx.restore();
+  cx.font='12px serif';cx.textAlign='center';cx.fillStyle='rgba(233,247,243,.9)';cx.fillText('磁北',x-nx*22,y-ny*22+4)}}
+};
+async function camOn(){
+ try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});const v=$('cam');v.srcObject=stream;await v.play();document.body.classList.add('cam');$('camB').setAttribute('aria-pressed','true');
+  if(!$('start').classList.contains('on'))$('start').click();}
+ catch(_){$('note').innerHTML='カメラが使えませんでした。<br>カメラなしでも、音と方位盤で使えます。'}
+}
+function camOff(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}$('cam').srcObject=null;document.body.classList.remove('cam');$('camB').setAttribute('aria-pressed','false')}
+$('camB').onclick=()=>stream?camOff():camOn();
+addEventListener('pagehide',camOff);document.addEventListener('visibilitychange',()=>{if(document.hidden)camOff()});
+$('menuB').onclick=()=>{const s=$('sheet').classList.toggle('show');$('menuB').setAttribute('aria-expanded',s)};
+$('noteB').onclick=()=>{const off=document.body.classList.toggle('nonote');$('noteB').setAttribute('aria-pressed',!off);$('noteB').textContent=off?'off':'on'};
+})();
+</script>
 </body>
 </html>
