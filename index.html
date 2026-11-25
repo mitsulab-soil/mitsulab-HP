@@ -3002,7 +3002,7 @@ footer.ft2 p.lw-ft{font-size:11px!important;line-height:1.8!important;letter-spa
 @media print{.lw-ft,.lw-end{display:none}body::after{content:"このページは、紙の標本になりました。 ── mitsulab";display:block;margin-top:24px;text-align:center;font-size:10pt;color:#555}}
 </style>
 <script>
-(function(){
+(function(){var run=function(){
 var L=function(){return document.documentElement.lang==='en';};
 var T=function(ja,en){return L()?en:ja;};
 /* 1 道具のカードの「記録」の一行 */
@@ -3011,7 +3011,7 @@ var OBS={
  'x/48/':['閉じたあと、耳だけ少し夕方に残る。','After closing, your ears stay a little in the dusk.'],
  'x/10/':['画面が、いつもより少しざらつく。','The screen feels a little rougher than usual.'],
  'x/44/':['方位磁針を持ち歩きたくなる副作用あり。','Side effect: you may want to carry a compass.'],
- 'x/09/':['参道はおよそ 2 km。碧は疲れない。','The approach is about 2 km. Aoi never tires.'],
+ 'x/09/':['碧は、何度歩いても疲れない。','Aoi never tires, however many times she walks.'],
  'x/12/':['迷ったら、裏路地へ。','When lost, take the back lane.'],
  'x/14/':['川は、見えなくても流れている。','A river flows even when unseen.'],
  'x/39/':['あなたの一枚で、地図が少し広くなる。','Your one post makes the map a little wider.'],
@@ -3047,7 +3047,7 @@ var ot=document.title;document.addEventListener('visibilitychange',function(){if
 try{console.log('%cmitsulab%c\n'+'ソースまで読みに来たあなたは、たぶんもう住人です。 official@mitsulab.jp','font:600 16px serif;color:#8fe3ea','font:12px sans-serif;color:#9bb');}catch(_){}
 function all(){obs();sign();foot();}
 all();new MutationObserver(all).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
-})();
+};if(window.__afterPaint)window.__afterPaint(run,2000);else addEventListener('load',run);})();
 </script>
 
 </body>
