@@ -203,7 +203,7 @@ var TR=window.Trace?Trace.create({key:'qmap.trace',halfLife:3*864e5,cap:4}):null
 function cid(la,lo){var g=snap(la,lo);return g[0].toFixed(5)+','+g[1].toFixed(5)}
 var tlayer=L.layerGroup().addTo(map);
 var layer=L.layerGroup().addTo(map);
-function drawTrace(){tlayer.clearLayers();if(!TR)return;var z=map.getZoom(),R=z<8?10:z<12?16:26;TR.all().forEach(function(e){if(!e.m||!SM[e.m.k]||!on[e.m.k])return;var k=Math.min(1,e.w/TR.cap);L.circleMarker([e.m.la,e.m.lo],{radius:R*(0.7+0.7*k),stroke:false,fillColor:SM[e.m.k].c,fillOpacity:.1+.32*k,interactive:false}).addTo(tlayer)})}
+function drawTrace(){tlayer.clearLayers();if(!TR)return;var z=map.getZoom(),R=z<8?14:z<12?22:30;TR.all().forEach(function(e){if(!e.m||!SM[e.m.k]||!on[e.m.k])return;var k=Math.min(1,e.w/TR.cap);L.circleMarker([e.m.la,e.m.lo],{radius:R*(0.7+0.7*k),stroke:false,fillColor:SM[e.m.k].c,fillOpacity:.16+.34*k,interactive:false}).addTo(tlayer)})}
 function trLine(la,lo){if(!TR)return'';var id=cid(la,lo),w=TR.strength(id);if(w<.05)return'';var k=Math.min(4,Math.max(1,Math.round(w))),d=TR.daysLeft(id);return'<p class="pm" style="margin-top:4px">痕跡 '+'●●●●'.slice(0,k)+'<span style="opacity:.35">'+'●●●●'.slice(k)+'</span> ・ 約 '+d+' 日で薄れる</p>'}
 function esc(t){return String(t).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function draw(){

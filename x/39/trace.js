@@ -47,9 +47,9 @@
   }
 
   /* 淡く重ねる：濃さに応じた透けるにじみ。map(e) は {x,y,r,c} を返す（c は #rrggbb） */
-  function paint(ctx, list, map, alpha) {
+  function paint(ctx, list, map, alpha, mode) {
     var A = alpha == null ? 0.42 : alpha;
-    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    ctx.save(); ctx.globalCompositeOperation = mode || 'lighter';   // 明るい景色では 'source-over' のほうが見える
     list.forEach(function (e) {
       var p = map(e); if (!p) return;
       var k = Math.min(1, e.w / (p.cap || 4)), r = p.r * (0.6 + 0.6 * k);
