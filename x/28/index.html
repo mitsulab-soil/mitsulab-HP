@@ -129,5 +129,5 @@ h.onclick=function(){on=!on;document.body.classList.toggle("qg-help",on);h.setAt
 n.appendChild(h);var m=document.createElement("button");m.type="button";m.className="ml-btn ml-btn--quiet qg-menu";m.setAttribute("aria-label","メニュー");m.setAttribute("aria-expanded","false");m.textContent="≡";
 m.onclick=function(){var o=document.body.classList.toggle("qg-open");m.setAttribute("aria-expanded",o);m.textContent=o?"×":"≡"};n.appendChild(m);
 n.addEventListener("click",function(e){if(e.target!==m&&e.target!==h&&e.target.closest("button,a")){document.body.classList.remove("qg-open");m.textContent="≡";m.setAttribute("aria-expanded","false")}});})();</script>
-<!--qgu--><link rel="stylesheet" href="../_qgui/qgui-unify.css?v=20261126u5"><script src="../_qgui/qgui-unify.js?v=20261126u5"></script><script>qgUnify({"menu": "text:≡", "sw": "#snd", "main": "#next", "labels": {"#next": "次の書 →"}, "hide": ["#prev"], "panel": [".top .tools"], "name": ".top .brand"})</script><!--/qgu--></body>
+<!--qgu--><link rel="stylesheet" href="../_qgui/qgui-unify.css?v=20261126u5"><script src="../_qgui/qgui-unify.js?v=20261126u5"></script><script>window.qgUnify&&qgUnify({"menu": "text:≡", "sw": "#snd", "main": "#next", "labels": {"#next": "次の書 →"}, "hide": ["#prev"], "panel": [".top .tools"], "name": ".top .brand"})</script><!--/qgu--></body>
 </html>
