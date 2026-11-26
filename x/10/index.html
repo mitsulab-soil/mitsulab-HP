@@ -114,6 +114,9 @@ const set=v=>{off=v;document.body.classList.toggle('nocap',v);b.setAttribute('ar
 .fold .in .tm-row>*,.fold .in .tm-row #place button{position:static!important;transform:none!important;min-height:44px;min-width:44px;display:inline-flex!important;align-items:center;justify-content:center;padding:0 14px!important;border-radius:999px!important;font-size:13px!important;opacity:1!important}
 .fold .in .tm-row #place{position:static!important;display:flex!important;gap:8px;transform:none!important}
 html body .top .back{display:none!important}
+@media (max-width:767px){html body .fold{top:auto!important;bottom:calc(14px + env(safe-area-inset-bottom))!important;right:12px!important;display:flex;flex-direction:column-reverse;align-items:flex-end}
+html body .fold[open]{left:12px!important;z-index:30!important}html body .fold summary{float:none;border:1px solid rgba(190,220,235,.35);border-radius:24px;background:rgba(18,26,32,.55);color:#eef3f6;width:48px;height:48px}
+html body .fold .in{margin:0 0 8px!important;max-height:64vh;width:100%;box-sizing:border-box}}
 </style>
 <script>(function(){var f=document.querySelector('.fold .in');if(!f)return;var r=document.createElement('div');r.className='tm-row';
 var a=document.querySelector('.top .back').cloneNode(true);a.style.display='inline-flex';a.className='tm-back';

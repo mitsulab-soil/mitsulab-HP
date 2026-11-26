@@ -530,6 +530,13 @@ body.kes-ar #acts{display:none!important}   /* AR 中は碧の話の ⏸（止�
 /* 2026-11-26 本人「ボタンがおおすぎ」：常に出すのは ≡・AR と生きものの列（スマホは ↑ 進むも）。気づいた・持ち帰りの一枚は ≡ の中、碧の話の ⏸⏭ は「説明と字幕」を on にしたときだけ */
 .qg-txt-off #acts{display:none!important}
 #ring .rg-arrow{min-width:44px!important;min-height:44px!important;width:44px!important;height:44px!important}
+/* 2026-11-26 本人「まだ多い」：生きものの列は常に出さず、今の生きもの 1 つのボタン。押すと列が開く */
+html body #ring:not(.qpick){width:auto!important;min-width:132px;height:48px!important;background:none!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important}
+html body #ring:not(.qpick) canvas,html body #ring:not(.qpick) .rg-arrow,html body #ring:not(.qpick) .rg-it:not(.on){display:none!important}
+html body #ring:not(.qpick) .rg-row{position:static!important}
+html body #ring:not(.qpick) .rg-it.on{position:static!important;margin:0!important;width:auto!important;min-width:132px;height:48px!important;transform:none!important;align-items:center!important;border:1px solid var(--qg-line,rgba(190,220,235,.3))!important;border-radius:24px!important;background:rgba(6,12,14,.62)!important;padding:0 16px!important}
+html body #ring:not(.qpick) .rg-it.on span{font-size:15px!important;border:0!important;background:none!important;padding:0!important}
+html body #ring:not(.qpick) .rg-it.on span::after{content:" ▾";font-size:11px;opacity:.75}
 #dMore .icm,#dMore .qg-btn{position:static!important;width:auto!important;min-width:44px;min-height:44px;padding:0 14px!important;opacity:1;gap:6px;font:500 13px/1 var(--qg-font)}
 </style>
 <script src="kit/qgui.js?v=20261126a"></script>
@@ -541,6 +548,11 @@ var K=Kizuki.start({key:'sight.kizuki',mount:document.getElementById('dMore'),pl
  visible:function(){var a=document.getElementById('qgAr');return !(a&&a.getAttribute('aria-pressed')==='true')},
  aim:function(){c.getWorldDirection(d);return{x:c.position.x+d.x*6,y:c.position.y+d.y*6,z:c.position.z+d.z*6}},
  project:function(p){v.set(p.x,p.y,p.z);var dist=v.distanceTo(c.position);v.project(c);return{x:(v.x+1)/2*innerWidth,y:(1-v.y)/2*innerHeight,d:dist,ok:v.z<1&&v.z>-1&&dist<60}}});if(K)K.button.addEventListener('click',function(){var m=document.getElementById('qgMenu');if(m&&m.getAttribute('aria-expanded')==='true')m.click()})})()})();
+(function(){var r=document.getElementById('ring');if(!r)return;var t=0;
+r.addEventListener('click',function(e){var it=e.target.closest('.rg-it,.rg-arrow');if(!r.classList.contains('qpick')){if(it){e.stopPropagation();e.preventDefault();r.classList.add('qpick')}return}
+if(it&&it.classList.contains('rg-it')&&!it.classList.contains('on')){clearTimeout(t);t=setTimeout(function(){r.classList.remove('qpick')},1400)}},true);
+addEventListener('pointerdown',function(e){if(r.classList.contains('qpick')&&!r.contains(e.target)){clearTimeout(t);r.classList.remove('qpick')}},true);
+addEventListener('keydown',function(e){if(e.key==='Escape')r.classList.remove('qpick')})})();
 (function m(n){var i=document.querySelector('body>.icm');if(!i){if((n||0)<80)setTimeout(function(){m((n||0)+1)},100);return}i.insertAdjacentHTML('beforeend','<span>一枚を保存</span>');document.getElementById('dMore').appendChild(i)})();</script>
 
 <script>
