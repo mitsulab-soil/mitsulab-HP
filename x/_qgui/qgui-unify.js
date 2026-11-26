@@ -66,6 +66,7 @@
       function build() {
         pop.textContent = ''; sel().forEach(function (b) {
           var x = document.createElement('button'); x.type = 'button'; x.className = 'qg-u'; x.textContent = lbl(b); x.setAttribute('role', 'menuitemradio');
+          if (c.itemHtml) { x.innerHTML = b.innerHTML; var cv = b.style.getPropertyValue('--c'); if (cv) x.style.setProperty('--c', cv); if (b.dataset.k) x.dataset.k = b.dataset.k; x.classList.add('qu-ih'); } // 2026-11-27 札の形・色をそのまま写す（map の五感）
           var on = isOn(g) === b; x.classList.toggle('on', on); x.setAttribute('aria-checked', String(on));
           x.addEventListener('click', function () { if (c.pickClass) g.classList.add(c.pickClass); b.click(); setTimeout(function () { cur(); build(); if (!c.keepOpen) set(false); }, 80); });
           pop.appendChild(x); });

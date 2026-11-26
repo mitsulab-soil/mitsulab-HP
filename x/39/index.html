@@ -99,19 +99,20 @@ body.placing .toast{bottom:auto;top:calc(110px + env(safe-area-inset-top))}
 @media (min-width:768px){.hd h1{font-size:32px}.senses{bottom:calc(88px + env(safe-area-inset-bottom))}}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
 html.seen .hd p{display:none}.hd a{display:inline-flex;align-items:center;min-height:44px;padding:0 10px;margin:-16px -10px}
+/* 2026-11-27 */.qm{background:none;border:0}.chip svg{flex:none}.chip small{font:500 11px/1 var(--ml-mono);color:var(--ml-ink-3);margin-left:2px}.pk svg{vertical-align:-3px}
 </style>
 <style id="m1122b">/* 2026-11-22 札の on/off が分かりにくい → on は色を敷き、off は薄く。スマホは札を詰めて右で切れにくく */.chip[aria-pressed="true"]{background:color-mix(in srgb,var(--c) 24%,rgba(3,6,15,.72))}.chip[aria-pressed="false"]{opacity:.42;background:rgba(3,6,15,.35)}@media (max-width:767px){.chip{padding:0 9px;gap:5px;font-size:12.5px;letter-spacing:.02em}}</style>
 <style id="m1122">/* 2026-11-22 スマホで感覚の札とボタンが 3 段に積み上がり地図が狭い → 札は横に流す 1 列に */@media (max-width:767px){.senses{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;scrollbar-width:none;pointer-events:auto;padding:2px 16px;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}.senses::-webkit-scrollbar{display:none}.senses .chip{flex:0 0 auto;padding:0 10px}}</style>
 </head>
-<body class="ml-root"><!--qgu--><script>(function(c,b,v){var l=document.createElement("link");l.rel="stylesheet";document.head.appendChild(l);function L(i){l.href=b[i]+"qgui-unify.css?v="+v;var s=document.createElement("script");s.src=b[i]+"qgui-unify.js?v="+v;s.onload=function(){qgUnify(c)};s.onerror=function(){if(i+1<b.length)L(i+1)};document.head.appendChild(s)}L(0)})({"main": "#bPut", "sw": "#bHere", "group": "#senses", "item": ".chip", "groupName": "感覚", "groupLabel": "感覚", "keepOpen": true},["../_qgui/"],"20261127v7")</script><!--/qgu-->
+<body class="ml-root"><!--qgu--><script>(function(c,b,v){var l=document.createElement("link");l.rel="stylesheet";document.head.appendChild(l);function L(i){l.href=b[i]+"qgui-unify.css?v="+v;var s=document.createElement("script");s.src=b[i]+"qgui-unify.js?v="+v;s.onload=function(){qgUnify(c)};s.onerror=function(){if(i+1<b.length)L(i+1)};document.head.appendChild(s)}L(0)})({"main": "#bPut", "sw": "#bHere", "group": "#senses", "item": ".chip", "groupName": "感覚", "itemHtml": true},["../_qgui/"],"20261127v8")</script><!--/qgu-->
 <div id="map" role="application" aria-label="日本の地図"></div>
 <header class="hd">
   <a href="/" translate="no">mitsulab</a>
   <h1 translate="no">Qualia/map</h1>
-  <p>五感マップ。感じたことを、地図に置いて重ねる。</p>
+  <p>五感マップ。全国の見る・聴く・触れる・嗅ぐ・味わうに、あなたの感じたことを重ねる。</p>
 <script>try{if(localStorage.getItem('qmap.first')==='1')document.documentElement.classList.add('seen')}catch(e){}</script>
 </header>
-<div class="senses" id="senses" aria-label="感覚で絞りこむ"><span class="slab" aria-hidden="true">表示</span></div>
+<div class="senses" id="senses" aria-label="感覚で絞りこむ"></div>
 <div id="hint" hidden aria-hidden="true"><i></i><i></i></div>
 <div class="aim" aria-hidden="true"><span></span></div>
 <form class="sheet" id="sheet" aria-label="感じたことを置く" autocomplete="off">
@@ -136,17 +137,36 @@ html.seen .hd p{display:none}.hd a{display:inline-flex;align-items:center;min-he
 
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="trace.js"></script>
+<script src="seeds.js?v=20261127"></script>
 <script>
 (function(){
 'use strict';
 var S=[
- {k:'see',n:'見る',c:'#9bdcf0'},
- {k:'hear',n:'聴く',c:'#7fe0b4'},
- {k:'touch',n:'触れる',c:'#f2cf8c'},
- {k:'smell',n:'嗅ぐ',c:'#f4aa96'},
- {k:'taste',n:'味わう',c:'#e8b6d8'},
- {k:'meas',n:'測る',c:'#c9d2d6'}   /* 五感ではなく機器で測った値（気温・音の大きさなど）。表示では「機器」の札で五感と分ける */
+ {k:'see',n:'見る',c:'#78d6ec',g:'視'},
+ {k:'hear',n:'聴く',c:'#7fe0b4',g:'聴'},
+ {k:'touch',n:'触れる',c:'#f2cf8c',g:'触'},
+ {k:'smell',n:'嗅ぐ',c:'#f4aa96',g:'嗅'},
+ {k:'taste',n:'味わう',c:'#b4a2ff',g:'味'},
+ {k:'meas',n:'測る',c:'#c9d2d6',g:'測'}   /* 五感ではなく機器で測った値。色を持たせず灰で分ける */
 ];
+/* 2026-11-27 色だけに頼らない：感覚ごとに形も変える（見る＝丸・聴く＝二重丸・触れる＝四角・嗅ぐ＝三角・味わう＝菱形・測る＝十字） */
+function shape(k,c,r,op){var s=r*2+4,m=s/2,f='fill="'+c+'" fill-opacity="'+(op==null?.35:op)+'" stroke="'+c+'" stroke-width="1.6"',h;
+ if(k==='see')h='<circle cx="'+m+'" cy="'+m+'" r="'+r+'" '+f+'/>';
+ else if(k==='hear')h='<circle cx="'+m+'" cy="'+m+'" r="'+r+'" fill="none" stroke="'+c+'" stroke-width="1.6"/><circle cx="'+m+'" cy="'+m+'" r="'+(r*.45)+'" '+f+'/>';
+ else if(k==='touch')h='<rect x="'+(m-r*.85)+'" y="'+(m-r*.85)+'" width="'+(r*1.7)+'" height="'+(r*1.7)+'" rx="1.5" '+f+'/>';
+ else if(k==='smell')h='<path d="M'+m+' '+(m-r)+'L'+(m+r*.95)+' '+(m+r*.75)+'L'+(m-r*.95)+' '+(m+r*.75)+'Z" '+f+'/>';
+ else if(k==='taste')h='<path d="M'+m+' '+(m-r)+'L'+(m+r)+' '+m+'L'+m+' '+(m+r)+'L'+(m-r)+' '+m+'Z" '+f+'/>';
+ else h='<path d="M'+m+' '+(m-r)+'V'+(m+r)+'M'+(m-r)+' '+m+'H'+(m+r)+'" stroke="'+c+'" stroke-width="2"/>';
+ return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 '+s+' '+s+'" aria-hidden="true">'+h+'</svg>'}
+/* 2026-11-27 地図の印は canvas に形で描く（数百あっても軽い） */
+var Shape=L.CircleMarker.extend({_updatePath:function(){var R=this._renderer,c=R._ctx;if(!c||this._empty())return;var p=this._point,r=this._radius,k=this.options.k;c.beginPath();
+ if(k==='hear'){c.arc(p.x,p.y,r,0,Math.PI*2);R._fillStroke(c,{options:Object.assign({},this.options,{fill:false})});c.beginPath();c.arc(p.x,p.y,r*.45,0,Math.PI*2)}
+ else if(k==='touch'){c.rect(p.x-r*.85,p.y-r*.85,r*1.7,r*1.7)}
+ else if(k==='smell'){c.moveTo(p.x,p.y-r);c.lineTo(p.x+r*.95,p.y+r*.75);c.lineTo(p.x-r*.95,p.y+r*.75);c.closePath()}
+ else if(k==='taste'){c.moveTo(p.x,p.y-r);c.lineTo(p.x+r,p.y);c.lineTo(p.x,p.y+r);c.lineTo(p.x-r,p.y);c.closePath()}
+ else if(k==='meas'){c.moveTo(p.x,p.y-r);c.lineTo(p.x,p.y+r);c.moveTo(p.x-r,p.y);c.lineTo(p.x+r,p.y)}
+ else c.arc(p.x,p.y,r,0,Math.PI*2);
+ R._fillStroke(c,this)}});
 var SM={};S.forEach(function(s){SM[s.k]=s});
 var LV=['かすか','ふつう','つよい'];
 /* 11-20：印を開いたとき、その感覚をひらく公開中のアプリへの小さな入口（嗅ぐ・味わうは無い） */
@@ -155,31 +175,9 @@ var APP={see:['02','Qualia/sight','見る道具'],hear:['07','Qualia/sound','聴
 var ASK={see:'顔を上げて。いまいる場所で、いちばん遠くに見えるものは？',hear:'目を閉じて十秒。いまいる場所で、いちばん遠い音は？',touch:'いま手の届くものに、ひとつ触れてみて。',smell:'ひと息、鼻から吸ってみて。いまいる場所は、何のにおい？',taste:'さいごに食べたものの味を、まだ思い出せる？',meas:'いまの暑さ寒さを、肌は何度くらいと感じている？'};
 function app(k){var a=APP[k];return a?'<a class="pa" href="../'+a[0]+'/"><span style="font-family:var(--ml-sans);letter-spacing:.06em;color:var(--ml-ink-3);margin-right:10px">'+a[2]+'</span>'+a[1]+' ›</a>':''}
 /* mitsulab が出典で確かめた印（位置はおおよそ） */
-var SEED=[
- {s:'see',lv:2,la:35.9050,lo:139.6325,t:'氷川参道。一の鳥居から三の鳥居まで約 2 km の並木道。樹木の 62.5％ がケヤキ。',src:'さいたま市「氷川参道 樹木調査報告書」',u:'https://www.city.saitama.lg.jp/001/010/015/004/004/p014020_d/fil/jumokutyousa_hyoushi4.pdf'},
- {s:'meas',lv:3,la:36.1508,lo:139.3800,t:'熊谷。2018 年 7 月 23 日、日最高気温 41.1℃ を観測。',src:'気象庁「夏（6〜8月）の天候」2018',u:'https://www.jma.go.jp/jma/press/1809/03c/tenko180608.html'},
- {s:'smell',lv:2,la:35.9236,lo:139.4818,t:'川越の菓子屋横丁。約 80 m の通りに、ハッカ飴や駄菓子のかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.24',u:'https://www.env.go.jp/content/900525295.pdf'},
- {s:'smell',lv:2,la:35.6958,lo:139.7585,t:'神田古書店街。約 200 m にわたる古書のかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.28',u:'https://www.env.go.jp/content/900525295.pdf'},
- {s:'smell',lv:2,la:34.8902,lo:135.8078,t:'宇治 平等院表参道。お茶屋が並び、宇治茶のかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.57',u:'https://www.env.go.jp/content/900525295.pdf'},
- {s:'smell',lv:3,la:43.4050,lo:142.4250,t:'富良野周辺のラベンダー畑。',src:'環境省「かおり風景100選」（2001 年選定）No.1',u:'https://www.env.go.jp/content/900525295.pdf'},
- {s:'hear',lv:2,la:37.9130,lo:139.2470,t:'福島潟のヒシクイの声。',src:'環境省「残したい日本の音風景100選」',u:'https://www.env.go.jp/air/life/sonooto.pdf'},
- {s:'hear',lv:3,la:26.3600,lo:127.8700,t:'エイサー（旧 与那城町・勝連町、いまのうるま市）。',src:'環境省「残したい日本の音風景100選」',u:'https://www.env.go.jp/air/life/sonooto.pdf'},
- {s:'taste',lv:2,la:35.9810,lo:139.4790,t:'冷や汁／すったて。ごま・みそ・きゅうり・大葉をすり、うどんで食べる（川島町・入間地域・県北）。',src:'農林水産省「うちの郷土料理」',u:'https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/33_3_saitama.html'},
- {s:'smell',lv:2,la:42.497,lo:141.150,t:'登別 地獄谷。硫黄泉など 11 種類の温泉がわき、湯けむりのにおい。',src:'環境省「かおり風景100選」（2001 年選定）No.3',u:'https://www.env.go.jp/content/900525295.pdf'},
- {s:'smell',lv:2,la:39.651,lo:141.983,t:'宮古 浄土ヶ浜。白い岩と入り江の、潮のかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.7',u:'https://www.env.go.jp/content/900525295.pdf'},
- {s:'smell',lv:2,la:36.374,lo:140.452,t:'水戸 偕楽園。正月から彼岸過ぎまで、長く梅のかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.19',u:'https://www.env.go.jp/content/900525295.pdf'},
- {s:'smell',lv:2,la:36.623,lo:138.596,t:'草津温泉の湯畑。町の広い範囲に、硫黄のにおい。',src:'環境省「かおり風景100選」（2001 年選定）No.23',u:'https://www.env.go.jp/content/900525295.pdf'},
- {s:'smell',lv:2,la:35.244,lo:139.020,t:'箱根 大涌谷。白い噴煙とともに、硫黄のにおい。',src:'環境省「かおり風景100選」（2001 年選定）No.30',u:'https://www.env.go.jp/content/900525295.pdf'},
- {s:'smell',lv:2,la:36.648,lo:136.962,t:'砺波平野。開花期には一面のチューリップのかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.33',u:'https://www.env.go.jp/content/900525295.pdf'},
- {s:'smell',lv:2,la:37.394,lo:136.901,t:'輪島の朝市。約 360 m の通りに、日本海の魚介のかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.36',u:'https://www.env.go.jp/content/900525295.pdf'},
- {s:'smell',lv:2,la:35.737,lo:137.636,t:'上松 赤沢自然休養林。樹齢約 300 年の木曽ヒノキの天然林。',src:'環境省「かおり風景100選」（2001 年選定）No.39',u:'https://www.env.go.jp/content/900525295.pdf'},
- {s:'smell',lv:2,la:34.455,lo:136.725,t:'伊勢神宮 内宮の参道。神宮スギやヒノキの杜のかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.53',u:'https://www.env.go.jp/content/900525295.pdf'},
- {s:'smell',lv:2,la:34.296,lo:132.320,t:'宮島 厳島神社。満潮で敷地が海になり、潮のかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.74',u:'https://www.env.go.jp/content/900525295.pdf'},
- {s:'smell',lv:2,la:33.080,lo:132.830,t:'四万十川の沈下橋。川面をわたる風と清流のかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.83',u:'https://www.env.go.jp/content/900525295.pdf'},
- {s:'smell',lv:2,la:33.284,lo:131.491,t:'別府八湯。八つの地区の温泉の湯けむり。',src:'環境省「かおり風景100選」（2001 年選定）No.93',u:'https://www.env.go.jp/content/900525295.pdf'},
- {s:'smell',lv:2,la:30.430,lo:130.570,t:'屋久島。集落のすぐそばまで照葉樹林、鯖節づくりのかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.98',u:'https://www.env.go.jp/content/900525295.pdf'},
- {s:'smell',lv:2,la:24.330,lo:124.088,t:'竹富島。島のどこでも潮と花のかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.100',u:'https://www.env.go.jp/content/900525295.pdf'}
-];
+var QS=window.QSRC||{},SEED=(window.QSEED||[]).map(function(r){var s=r[4],src,u;
+  if(s==='X'){src=r[5][0];u=r[5][1]}else{src=QS[s][0]+(typeof r[5]==='number'?' No.'+r[5]:'');u=QS[s][1]+(s==='F'?r[5]:'')}
+  return{s:r[0],lv:2,la:r[1],lo:r[2],t:r[3],src:src,u:u}});
 var KEY='qmap.v1',needMove=false;
 function load(){try{var a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
 function save(a){try{localStorage.setItem(KEY,JSON.stringify(a));return true}catch(e){return false}}
@@ -195,7 +193,7 @@ var map=L.map('map',{renderer:L.canvas({tolerance:14}),preferCanvas:true,zoomCon
 map.fitBounds(innerWidth<768?[[26.1,127.6],[45.5,145.8]]:[[26.0,127.5],[45.6,146.2]],{padding:innerWidth<768?[0,24]:[20,20],animate:false});
 
 L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',{minZoom:2,maxZoom:18,maxNativeZoom:18,attribution:'地図：<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院</a> ・ <a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>'}).addTo(map);
-map.attributionControl.setPrefix(false);
+map.attributionControl.setPrefix(false);window.QMAP=map;
 
 var on={};S.forEach(function(s){on[s.k]=true});
 /* 2026-11-26 痕跡（スティグマジー）：置いた所・読んだ所に淡い痕跡が残り、約 3 日で半分に薄れ、重なると濃くなる。端末の中だけ */
@@ -211,18 +209,18 @@ function draw(){
   var all=[];SEED.forEach(function(p){if(on[p.s])all.push([p,true])});
   load().forEach(function(p){if(on[p.s]&&SM[p.s])all.push([p,false])});
   /* 近い印は一つにまとめる（画面で 34px 以内）。寄ると分かれる */
-  var gs=[],D=innerWidth<768?74:58;   /* PC は「押して寄る」を出さない（札の題で伝える） */
+  var gs=[],D=10;   /* 2026-11-27 印は形と色で一つずつ見せ、ほぼ重なるものだけまとめる */   /* PC は「押して寄る」を出さない（札の題で伝える） */
   if(!document.getElementById('grpCss')){var st=document.createElement('style');st.id='grpCss';st.textContent='@media(min-width:768px){.grp em{display:none}}';document.head.appendChild(st)}   /* 2026-11-22 まとまりの札を大きくしたので、重ならない距離に */
   all.forEach(function(a){var pt=map.latLngToLayerPoint([a[0].la,a[0].lo]),g=null;
     for(var i=0;i<gs.length;i++){if(gs[i].pt.distanceTo(pt)<D){g=gs[i];break}}
     if(g)g.m.push(a);else gs.push({pt:pt,m:[a]})});
   group.max=0;gs.forEach(function(g){if(g.m.length>group.max)group.max=g.m.length});   /* 2026-11-22 「押して寄る」はいちばん大きなまとまりだけに */
-  gs.forEach(function(g){if(g.m.length===1)mark(g.m[0][0],g.m[0][1]);else if(map.getZoom()>=16||tight(g.m))spread(g.m);else group(g.m)});
+  gs.forEach(function(g){if(g.m.length===1)mark(g.m[0][0],g.m[0][1]);else if(map.getZoom()>=12)spread(g.m);else g.m.forEach(function(a){mark(a[0],a[1])})});   /* 2026-11-27 まとめずに一つずつ（全国の分布が見える）。寄って重なるものだけ輪に散らす */
 }
 function group(m){
   var la=0,lo=0,cs=[];m.forEach(function(a){la+=a[0].la;lo+=a[0].lo;var c=SM[a[0].s].c;if(cs.indexOf(c)<0)cs.push(c)});la/=m.length;lo/=m.length;
   var dots=cs.slice(0,4).map(function(c){return'<i style="background:'+c+'"></i>'}).join('');
-  var ic=L.divIcon({className:'grp',html:'<span>'+dots+'</span><b style="font-size:16px">'+m.length+'<small style="font-size:11px;margin-left:1px">か所</small></b>'+(m.length>=group.max?'<em style="font:normal 9px/1 var(--ml-sans,sans-serif);letter-spacing:.04em;opacity:.85">押して寄る</em>':''),iconSize:[66,66]});
+  var ic=L.divIcon({className:'grp',html:'<span>'+dots+'</span><b style="font-size:16px">'+m.length+'<small style="font-size:11px;margin-left:1px">か所</small></b>'+(m.length>=group.max?'<em style="font:normal 9px/1 var(--ml-sans,sans-serif);letter-spacing:.04em;opacity:.85">押して寄る</em>':''),iconSize:[44,44]});
   L.marker([la,lo],{icon:ic,keyboard:true,title:m.length+' 件の印。押すと寄ります'}).addTo(layer).on('click',function(){
     var b=L.latLngBounds(m.map(function(a){return[a[0].la,a[0].lo]}));if(b.getNorthEast().distanceTo(b.getSouthWest())<300)map.setView(b.getCenter(),Math.max(15,map.getZoom()+2));else map.fitBounds(b.pad(.6),{maxZoom:16})});
 }
@@ -236,13 +234,12 @@ function spread(m){var c=map.latLngToLayerPoint([m[0][0].la,m[0][0].lo]),n=m.len
 map.on('popupopen',function(){document.body.classList.add('pop')});map.on('popupclose',function(){document.body.classList.remove('pop')});
 map.on('zoomend',function(){draw();body.classList.toggle('zin',map.getZoom()>=11)});
 function mark(p,seed){
-  var s=SM[p.s],r=4+p.lv*2.5;
-  L.circleMarker([p.la,p.lo],{radius:r+6,color:s.c,weight:1,opacity:.32,fill:false,interactive:false}).addTo(layer);
-  var m=L.circleMarker([p.la,p.lo],{radius:r,color:s.c,weight:seed?1.5:1,opacity:.95,fillColor:s.c,fillOpacity:seed?.25:.7}).addTo(layer);
+  var z=map.getZoom(),s=SM[p.s],r=seed?(z<5.5?4.5:z<8?5.5:7):4+p.lv*2.5;
+  var m=new Shape([p.la,p.lo],{k:p.s,radius:r,color:s.c,weight:1.5,opacity:.95,fillColor:s.c,fillOpacity:seed?.3:.75}).addTo(layer);
   m.on('click',function(){
     var o=p._o||p;if(TR)TR.put(cid(o.la,o.lo),.25,{la:o.la,lo:o.lo,k:o.s});drawTrace();
-    var h='<p class="pk" style="--c:'+s.c+'">'+s.n+' ・ '+LV[p.lv-1]+'</p>';
-    if(seed){h+='<p class="pt">'+esc(p.t)+'</p><p class="pm">出典：<a href="'+p.u+'" target="_blank" rel="noopener">'+esc(p.src)+'</a><br>mitsulab が確かめた印（位置はおおよそ）</p>'+trLine(o.la,o.lo)+'<p class="pq"><span style="display:block;font-size:10px;letter-spacing:.2em;color:var(--ml-ink-3);margin-bottom:2px">外で確かめる</span>'+ASK[p.s]+'</p>'+app(p.s)}
+    var h='<p class="pk" style="--c:'+s.c+'">'+shape(p.s,s.c,5)+' '+s.n+(seed?'':' ・ '+LV[p.lv-1])+'</p>';
+    if(seed){h+='<p class="pt">'+esc(p.t)+'</p><p class="pm">出典：<a href="'+p.u+'" target="_blank" rel="noopener">'+esc(p.src)+'</a><br>出典にある地点（位置は市町村のおおよそ）</p>'+'<p class="pq"><span style="display:block;font-size:10px;letter-spacing:.2em;color:var(--ml-ink-3);margin-bottom:2px">外で確かめる</span>'+ASK[p.s]+'</p>'+app(p.s)}
     else{h+=(p.ph?'<img class="pimg" alt="置いた写真" data-ph="'+p.id+'">':'')+(p.t?'<p class="pt">'+esc(p.t)+'</p>':'')+'<p class="pm">'+esc(p.when)+' ・ この端末の印</p>'+trLine(o.la,o.lo)+'<button class="del" data-del="'+p.id+'">この印を消す</button>'+app(p.s)}
     var pop=L.popup({maxWidth:270,autoPanPadding:[16,120]}).setLatLng([p.la,p.lo]).setContent(h).openOn(map);
     var el=pop.getElement();
@@ -254,8 +251,11 @@ function mark(p,seed){
 }
 /* 絞りこみの札 */
 var sv=document.getElementById('senses');
-S.forEach(function(s){if(s.k==='meas'){var sl=document.createElement('span');sl.className='slab';sl.textContent='機器';sv.appendChild(sl)}var b=document.createElement('button');b.type='button';b.className='chip';b.style.setProperty('--c',s.c);b.setAttribute('aria-pressed','true');b.innerHTML='<i></i><span>'+s.n+'</span>';b.title=s.n+'の印を出す／隠す';
-  b.onclick=function(){on[s.k]=!on[s.k];b.setAttribute('aria-pressed',on[s.k]);draw();toast(on[s.k]?s.n+'の印を出しました':s.n+'の印を隠しました')};sv.appendChild(b)});
+var CNT={};SEED.forEach(function(p){CNT[p.s]=(CNT[p.s]||0)+1});
+function setOn(k){S.forEach(function(s){on[s.k]=!k||s.k===k});[].forEach.call(sv.querySelectorAll('.chip'),function(b){b.setAttribute('aria-pressed',String(b.dataset.k===(k||'all')))});draw()}
+(function(){var b=document.createElement('button');b.type='button';b.className='chip';b.dataset.k='all';b.style.setProperty('--c','#e8f4fa');b.setAttribute('aria-pressed','true');b.innerHTML='<span>すべて</span>';b.dataset.quLabel='すべて';b.title='すべての感覚の印を出す';b.onclick=function(){setOn(null);toast('すべての感覚')};sv.appendChild(b)})();
+S.forEach(function(s){if(s.k==='meas')return;var b=document.createElement('button');b.type='button';b.className='chip';b.dataset.k=s.k;b.style.setProperty('--c',s.c);b.setAttribute('aria-pressed','false');b.dataset.quLabel=s.n;b.innerHTML=shape(s.k,s.c,6,.6)+'<span>'+s.n+'</span><small>'+(CNT[s.k]||0)+'</small>';b.title=s.n+'の印だけを出す';
+  b.onclick=function(){setOn(s.k);toast(s.n+'の印 '+(CNT[s.k]||0)+' か所。押すと説明と出典')};sv.appendChild(b)});
 /* 初めての人へ：指の動きで、地図を動かせること・印に触れられることを一度だけ見せる */
 (function(){var seen=false;try{seen=localStorage.getItem('qmap.hint')==='1'}catch(e){}
   return;/* 11-18：初回の輪は印と見分けにくかったので出さない（地図は触ればそのまま動く） */
@@ -354,6 +354,12 @@ html body button:not([class*="leaflet"]):not(.qyk button){border:1px solid var(-
 html body button[aria-pressed="true"],html body button.on,html body button.is-on,html body button[aria-selected="true"]{border-width:1.5px!important;border-color:var(--qg-line-hi)!important;box-shadow:var(--qg-glow)!important}
 html body button:active{transform:scale(.95);border-color:var(--qg-line-hi)!important;box-shadow:var(--qg-glow)!important}
 html body button:disabled{opacity:.35}
+</style>
+<style id="m1127">/* 2026-11-27 感覚の札：色の線と形を共通部品の上でも残す */
+html body button.chip[data-k],html body #qgPop button.qu-ih[data-k]{display:inline-flex!important;align-items:center;justify-content:center;border-color:color-mix(in srgb,var(--c) 70%,transparent)!important;gap:6px}
+html body button.chip[data-k][aria-pressed="true"],html body #qgPop button.qu-ih.on{border-color:var(--c)!important;background-color:color-mix(in srgb,var(--c) 22%,rgba(3,6,15,.8))!important;box-shadow:0 0 10px color-mix(in srgb,var(--c) 45%,transparent)!important}
+.chip svg,.qu-ih svg{display:inline-block!important;flex:none}.chip small,.qu-ih small{margin-left:4px!important;font:500 11px/1 var(--ml-mono);color:var(--ml-ink-3)}
+.grp{width:44px!important;height:44px!important;margin:-22px 0 0 -22px!important}.grp b{font-size:13px!important}.grp b small{font-size:9px!important}
 </style>
 </body>
 </html>
