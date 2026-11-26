@@ -1820,6 +1820,7 @@ const YO_RE = { shizuku: /湧水|湧き水|湧き|神池|池の水|用水|清水
    碧が近づくと依代は碧へ向いて小さく弾み、碧はそちらへ目をやる。碧が話すと近くの依代は碧へ向き、問いの一行では小さく傾く。 */
 const YO_NM = { shizuku: "しずく", ishi: "石", ki: "木", tsuchi: "土", tori: "鳥", hitsuji: "羊", kitsune: "狐", cho: "蝶", tanuki: "タヌキ", suzume: "スズメ", mitsubachi: "ミツバチ" }, YO_H = { tanuki: .4, suzume: .2, mitsubachi: .06, ki: .8, tsuchi: .42, tori: .36, hitsuji: .5, kitsune: .46, cho: .26 };
 async function startYorishiro() {
+  /* 2026-11-27 本人「omiyaなど依代は全て表示しないで」＝依代・かさねっこは読まない（碧は残す） */ return; 
   if (YO.y || YO.busy) return; YO.busy = true; QW.YO = YO;
   try {
     const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y21");
@@ -2380,6 +2381,7 @@ function kasaRaster(o, val = 1) {   // 歩ける面（歩道・石畳・砂利�
   }
 }
 function loadKasane() {
+  /* 2026-11-27 本人「omiyaなど依代は全て表示しないで」＝依代・かさねっこは読まない（碧は残す） */ return; 
   if (!SHOW_KASANE_FIGURES) return;
   if (KASA.p) return KASA.p;
   return KASA.p = (async () => {
@@ -2469,6 +2471,7 @@ function pickAreaMark(x, y) {
   return best;
 }
 async function areaKasane(Z, J, C) {   // かさねっこ：各エリアに群れ（地点のそばと、道ぞいの数か所）。近くだけ描く
+  /* 2026-11-27 本人「omiyaなど依代は全て表示しないで」＝依代・かさねっこは読まない（碧は残す） */ return; 
   if (!SHOW_KASANE_FIGURES) return;
   if (!J.p.length) return;
   const M = AREA.M ||= await import("../kit/envAgents/kasane.js?v=b1"); if (C.dead) return;
