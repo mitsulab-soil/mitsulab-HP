@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ja" data-mode="try"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Qualia/omiya 音声ガイド</title>
+<meta name="robots" content="noindex,nofollow,noai,noimageai">
+<meta name="tdm-reservation" content="1">
+<meta name="description" content="氷川参道を、一の鳥居から神橋の手前まで、ほかの生き物の受けとり方で歩く 50 分の音声ガイド。">
+<style>
+:root{--bg:#03060f;--bg2:#070d1a;--t1:#eef5fb;--t2:#c3cce0;--t3:#8f9bb4;--aoi:#5cc8e0;--aoi2:#9bdcf0;--line:rgba(155,220,240,.22);--nat:#7fe0b4;--shu:#d9654f;
+--min:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;--mono:ui-monospace,Menlo,monospace}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--t1);font:15px/1.8 "Hiragino Sans",system-ui,sans-serif}
+.wrap{width:min(640px,100% - 32px);margin:0 auto;padding:28px 0 48px}
+header{border-bottom:1px solid var(--line);padding-bottom:12px}
+h1{font:600 20px/1.5 var(--min);margin:0;letter-spacing:.04em}h1 i{display:block;font:italic 12px/1.4 Georgia,serif;letter-spacing:.24em;color:var(--t3);text-transform:uppercase}
+.meta{font:12px/1.7 var(--mono);color:var(--t3);margin:10px 0 0}
+.now{margin:22px 0 8px;padding:20px;border:1px solid var(--line);border-radius:2px;background:var(--bg2)}
+.now .no{font:12px var(--mono);color:var(--aoi)}.now h2{font:600 19px/1.5 var(--min);margin:4px 0 10px}
+.task{color:var(--t2);font-size:14px;border-left:1px solid var(--nat);padding-left:12px;margin:0 0 16px}
+.ctl{display:flex;gap:10px}
+button,.btn{font:15px var(--min);color:var(--t1);background:transparent;border:1px solid var(--aoi);border-radius:2px;min-height:48px;padding:0 18px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+button.main{flex:1;background:rgba(92,200,224,.12)}button:disabled{opacity:.35;cursor:default}
+.bar{height:2px;background:var(--line);margin-top:14px}.bar i{display:block;height:100%;width:0;background:var(--aoi)}
+.away{display:none;margin-top:14px;font:15px/1.7 var(--min);color:var(--aoi2);text-align:center}.playing .away{display:block}
+.buy{display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--t2)}
+[data-mode=try] .buy{display:block}.buy .btn{width:100%;margin-top:10px;background:rgba(92,200,224,.12)}
+svg{display:block;width:100%;max-width:520px;height:auto;margin:22px auto 4px}
+.cap{font:11px/1.6 var(--mono);color:var(--t3);text-align:center;margin:0}
+ol{list-style:none;margin:14px 0 0;padding:0;border-top:1px solid var(--line)}
+li button{width:100%;display:flex;gap:12px;align-items:baseline;border:0;border-bottom:1px solid var(--line);border-radius:0;justify-content:flex-start;text-align:left;padding:10px 4px;min-height:52px;font-size:14.5px}
+li .n{font:12px var(--mono);color:var(--t3);width:1.4em;flex:none}li .d{margin-left:auto;font:12px var(--mono);color:var(--t3);flex:none}
+li.cur button{color:var(--aoi2)}li.cur .n{color:var(--aoi)}li.lock button{color:var(--t3)}li.lock .d::after{content:" · 購入後"}
+.save{margin-top:16px;display:flex;gap:12px;align-items:center;font-size:12.5px;color:var(--t3)}.save button{min-height:44px;font-size:13.5px;flex:none}
+details{margin-top:22px;border-top:1px solid var(--line);padding-top:10px}
+summary{cursor:pointer;font:600 15px/2.4 var(--min);list-style:none}summary::before{content:"＋ ";color:var(--aoi)}details[open] summary::before{content:"－ "}
+details ul{margin:4px 0 10px;padding-left:1.1em;color:var(--t2);font-size:13.5px;line-height:1.85}details li{margin:3px 0}
+.note{margin-top:22px;font-size:12px;color:var(--t3);line-height:1.7}
+</style></head><body>
+<div class="wrap">
+<header><h1>氷川参道を、ほかの生き物の受けとり方で歩く<i>Qualia/omiya · audio walk</i></h1>
+<p class="meta">一の鳥居 → 神橋の手前 · 約 2 km · 約 50 分 · イヤホン（片耳でも）</p></header>
+<section class="now" id="now"><div class="no" id="no">00</div><h2 id="ttl"></h2><p class="task" id="task"></p>
+<div class="ctl"><button class="main" id="play">再生</button><button id="next">次へ</button></div>
+<div class="bar"><i id="prog"></i></div>
+<p class="away">スマホをしまって、景色へ。<br>次の場所に着いたら、また取り出してください。</p>
+<div class="buy">ここまでが無料の試し聴きです。続きの 8 か所（約 20 分の語りと課題）は、有料記事（1,800 円・税込）から聴けます。<a class="btn" id="buy" href="https://note.com/mitsu32_lab/n/n3fb0979705c2">続きを聴く（note）</a></div>
+</section>
+<svg id="map" viewBox="0 0 340 120" role="img" aria-label="道順の模式。南の一の鳥居から北へ、二の鳥居、三の鳥居を経て神橋へ。縮尺は正確ではありません"></svg>
+<p class="cap">道順の模式（南の一の鳥居から北の神橋へ・縮尺は正確ではありません）</p>
+<ol id="list"></ol>
+<div class="save"><button id="save">通信なしでも聴けるようにする</button><span id="saveMsg"></span></div>
+<details><summary>歩く前に</summary><ul>
+<li>参道は車の通る道と何度か交わります。渡るときは音を止め、目を開けて。目を閉じるのは、道の端で立ち止まってからに。</li>
+<li>イヤホンは片耳か、外の音が聞こえる小さな音で。自転車や車いす、ベビーカーの人も通ります。立ち止まるときは道の端へ。</li>
+<li>ここは武蔵一宮 氷川神社の参道です。参拝の人のじゃまにならないように。鳥居の前で一礼するかは自由です。</li>
+<li>並木は市の天然記念物です。植え込みや根の上には入らず、木の皮をはがしたり、枝を折ったりしないでください。</li>
+<li>神橋から先の境内では、再生を止めて静かに。境内の決まりに従ってください。</li>
+<li>雨の日も歩けます（屋根のない所でも、立ち止まって聴くだけ）。足もとが濡れた石は滑ります。雷や強い雨の日は別の日に。</li>
+<li>初詣の時期や、12 月 10 日の十日市（大湯祭）の日などは、とても混みます。混む日は避けるか、立ち止まる所を人の少ない端にずらしてください。</li>
+<li>暗い時間は足もとが見えにくいので、明るいうちに歩くのがおすすめです。</li>
+</ul></details>
+<p class="note">語りの中の生き物の受けとり方は、研究にもとづく模式です。ほかの生き物が「どう感じているか」は、だれにも分かりません。<br>この音声ガイドは mitsulab の作品で、武蔵一宮 氷川神社の公式の案内ではありません。<br>声：VOICEVOX:冥鳴ひまり　© mitsulab. All rights reserved.</p>
+</div>
+<audio id="a" preload="none"></audio>
+<script>
+const DUR=[156,165,145,191,133,97,174,112,179];
+const S=[["はじまり","一の鳥居の前","いちばん遠くから聞こえた音を、覚えておく。"],["足もとの土の中","一の鳥居 → 石の道","ふるえがよく返るのは、石か、土か。"],["犬の受けとり方","丁石「八丁」のあたり","ひざの高さのにおいの元を、目で探し当てる。"],["ミツバチの受けとり方","平成ひろば","赤いものを、三つ見つける。"],["ケヤキの受けとり方","社号碑と嘉永の石燈籠","太い根が、いちばん長く伸びている向き。"],["木の時間の大きさ","二の鳥居","柱の木の筋は、まっすぐか、ねじれているか。"],["小鳥の受けとり方","十七丁の石燈籠のあたり","鳥がいたのは、枝の高い所か、低い所か。"],["土の中の網","三の鳥居","木と木のあいだの地面に、いちばん多いもの。"],["重ねて、戻る","神橋の手前","見つけた答えを、振り返る。"]];
+const TRY=document.documentElement.dataset.mode==="try",OPEN=TRY?[0]:S.map((_,k)=>k),CACHE="qualia-omiya-audio-v1";
+const a=document.getElementById('a'),$=id=>document.getElementById(id),url=k=>"音声/区間"+k+".m4a";let i=0,blob=null;
+const fmt=s=>Math.floor(s/60)+":"+String(s%60).padStart(2,"0");
+$('list').innerHTML=S.map((s,k)=>`<li class="${OPEN.includes(k)?"":"lock"}"><button data-k="${k}"><span class="n">${k}</span><span>${s[1]}</span><span class="d">${fmt(DUR[k])}</span></button></li>`).join("");
+/* 道順の模式：参道は南（一の鳥居）から北（神橋）へほぼまっすぐ。鳥居は 0・5・7 の所 */
+const P=[[30,96],[58,92],[92,86],[124,80],[156,72],[192,62],[234,50],[270,40],[312,28]],TO={0:"一の鳥居",5:"二の鳥居",7:"三の鳥居"};
+let m=`<path d="M${P[0]} ${P.slice(1).map(p=>"L"+p).join(" ")}" fill="none" stroke="#7fe0b4" stroke-opacity=".5" stroke-width="1"/>`;
+P.forEach(([x,y],k)=>{if(TO[k]!==undefined)m+=`<path d="M${x-7} ${y-9}h14M${x-5} ${y-6}h10M${x-4} ${y-6}v12M${x+4} ${y-6}v12" stroke="#d9654f" stroke-width="1.4" fill="none"/><text x="${x}" y="${y-14}" fill="#c3cce0" font-size="10" text-anchor="middle">${TO[k]}</text>`;
+m+=`<circle id="p${k}" cx="${x}" cy="${y}" r="4" fill="#03060f" stroke="#5cc8e0"/><text x="${x}" y="${y+18}" fill="#8f9bb4" font-size="10" font-family="Menlo,monospace" text-anchor="middle">${k}</text>`});
+m+=`<text x="${P[8][0]}" y="${P[8][1]-12}" fill="#c3cce0" font-size="10" text-anchor="middle">神橋</text><text x="334" y="112" fill="#8f9bb4" font-size="9" text-anchor="end">↑ 北</text>`;$('map').innerHTML=m;
+async function src(k){try{const c=await caches.open(CACHE),r=await c.match(url(k));if(r){if(blob)URL.revokeObjectURL(blob);blob=URL.createObjectURL(await r.blob());return blob}}catch(e){}return url(k)}
+async function show(k,auto){if(!OPEN.includes(k)){if(TRY)location.href=$('buy').href;return}i=k;$('no').textContent=String(k).padStart(2,"0");$('ttl').textContent=S[k][1]+" ── "+S[k][0];$('task').textContent="課題　"+S[k][2];
+document.querySelectorAll('#list li').forEach((l,j)=>l.classList.toggle('cur',j===k));S.forEach((_,j)=>$('p'+j).setAttribute('fill',j<=k?'#5cc8e0':'#03060f'));
+$('next').disabled=TRY||k===8;$('prog').style.width="0";a.src=await src(k);if(auto)a.play().catch(()=>{});else{$('play').textContent="再生";$('now').classList.remove('playing')}}
+$('play').onclick=()=>a.paused?a.play().catch(()=>{}):a.pause();$('next').onclick=()=>{if(i<8)show(i+1,true)};
+$('list').onclick=e=>{const b=e.target.closest('button');if(b)show(+b.dataset.k,true)};
+a.onplay=()=>{$('play').textContent="一時停止";$('now').classList.add('playing');pre(i+1)};a.onpause=()=>{$('play').textContent="再生";$('now').classList.remove('playing')};
+a.onended=()=>{$('play').textContent="再生";$('now').classList.remove('playing')};
+a.ontimeupdate=()=>{if(a.duration)$('prog').style.width=(a.currentTime/a.duration*100)+"%"};
+/* 先読み：再生を始めたら次の区間だけを静かに取っておく（起動は重くしない） */
+async function put(k){const c=await caches.open(CACHE);if(await c.match(url(k)))return;const r=await fetch(url(k));if(r.ok)await c.put(url(k),r)}
+function pre(k){if(OPEN.includes(k)&&window.caches)put(k).catch(()=>{})}
+$('save').onclick=async()=>{if(!window.caches){$('saveMsg').textContent="このブラウザでは保存できません";return}$('save').disabled=true;let n=0;
+for(const k of OPEN){$('saveMsg').textContent=`保存中 ${n}/${OPEN.length}`;try{await put(k);n++}catch(e){}}
+$('saveMsg').textContent=n===OPEN.length?"保存しました。このページを開いたままなら、通信なしで聴けます":"一部を保存できませんでした。通信のある所でもう一度";$('save').disabled=false};
+if(TRY)$('save').style.display="none";
+show(0,false);
+</script></body></html>
