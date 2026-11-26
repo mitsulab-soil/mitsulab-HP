@@ -37,10 +37,12 @@
         if (flash && flash.id === e.id) r *= 1 + .6 * k;
         rings.push([p.x, p.y, r * .38, Math.min(1, e.w / 4)]);
         return { x: p.x, y: p.y, r: r, c: col, cap: 4 };
-      }, .6, 'source-over');
+      }, .75, 'source-over');
       /* 芯に細い輪：にじみだけだと景色に溶けて見落とすので、印として読める線を一本 */
-      ctx.strokeStyle = col; ctx.lineWidth = 1.6;
-      rings.forEach(function (q) { ctx.globalAlpha = .35 + .5 * q[3]; ctx.beginPath(); ctx.arc(q[0], q[1], q[2], 0, Math.PI * 2); ctx.stroke(); });
+      /* 明るい景色でも読めるよう、暗いふちの上に色の輪（2026-11-26 夕） */
+      rings.forEach(function (q) { var al = .45 + .5 * q[3];
+        ctx.globalAlpha = al * .7; ctx.strokeStyle = 'rgb(8,22,28)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(q[0], q[1], q[2], 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = al; ctx.strokeStyle = col; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(q[0], q[1], q[2], 0, Math.PI * 2); ctx.stroke(); });
       ctx.globalAlpha = 1;
       if (k === 0) flash = null;
     }
