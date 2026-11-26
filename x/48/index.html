@@ -57,7 +57,7 @@ html,body{background:#2a2624}
 const $ = id => document.getElementById(id);
 let V = null, S = null, f0 = 18000, batT = null, mod = null;
 const sp = $('sp'), g = sp.getContext('2d');
-function draw() { requestAnimationFrame(draw); if (!S) return; const b = S.spectrum(), nyq = S.nyq, W = sp.width, H = sp.height; g.clearRect(0, 0, W, H);
+function draw() { requestAnimationFrame(draw); const lis = !!(S && (S.micOn || batT)); if (lis !== document.body.classList.contains('listening')) document.body.classList.toggle('listening', lis); if (!S) return; const b = S.spectrum(), nyq = S.nyq, W = sp.width, H = sp.height; g.clearRect(0, 0, W, H);
   g.fillStyle = 'rgba(238,243,241,.18)'; g.fillRect(0, H - 1, W, 1); let hi = 0, hn = 0;
   for (let i = 0; i < b.length; i++) { const f = i / b.length * nyq, x = f / nyq * W, h = b[i] / 255 * H; g.fillStyle = f > 20000 ? '#7cd0e4' : f > 15000 ? '#8cc4d2' : 'rgba(238,243,241,.6)'; g.fillRect(x, H - h, Math.max(1, W / b.length), h); if (f > 15000) { hi += b[i]; hn++; } }
   const x20 = 20000 / nyq * W; g.fillStyle = '#c0392b'; g.fillRect(x20, 0, 1.5, H); $('mid').style.marginLeft = Math.max(0, x20 / W * 100 - 30) + '%';
@@ -117,6 +117,10 @@ html body button:active{transform:scale(.95);border-color:var(--qg-line-hi)!impo
 body.ar #arv{display:block}body.ar #c{visibility:hidden}
 body.ar .spec{background:radial-gradient(ellipse 70% 90% at 50% 50%,rgba(0,0,0,.5),rgba(0,0,0,.12) 80%)!important}
 .spec,.cap,.top,#qgEdge,.qg-drawer,.away{z-index:5}
+/* 2026-11-26 夜：音の帯は聴いているあいだだけ出す（聴く前は灰色のぼけた四角だけが空に残っていた）。四角の縁はぼかして消す */
+.spec{opacity:0;transition:opacity .4s;-webkit-mask-image:radial-gradient(ellipse 60% 80% at 50% 50%,#000 55%,transparent 100%);mask-image:radial-gradient(ellipse 60% 80% at 50% 50%,#000 55%,transparent 100%)}
+body.listening .spec{opacity:1}
+html body .spec,html body.ar .spec{background:none!important}.spec canvas{filter:drop-shadow(0 0 3px rgba(6,10,9,.6))}
 /* 2026-11-26 本人「ボタンがおおすぎ」：常に出すのは ≡・AR・マイクだけ。mitsulab へ戻る・気づいた は ≡ の中 */
 .top .back{display:none!important}#dMore a,#dMore .qg-btn{display:inline-flex;align-items:center;min-height:44px;width:auto!important;padding:0 14px!important;border:1px solid var(--qg-line);border-radius:12px;color:var(--qg-ink);text-decoration:none;font-size:13px}
 @media (max-width:767px){html body #cap.cap{bottom:calc(var(--qg-safe-b) + var(--qg-edge) + 4px)!important;left:var(--qg-edge)!important;transform:none!important;max-width:calc(100vw - 100px)!important;text-align:left}}
