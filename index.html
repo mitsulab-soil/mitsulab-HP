@@ -3077,16 +3077,16 @@ all();new MutationObserver(all).observe(document.documentElement,{attributes:tru
 
 <style id="card-clip-1125">.tp-im>span{position:relative}.tp-im video.cc-v{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .6s ease;pointer-events:none}.tp-im video.cc-v.on{opacity:1}@media(prefers-reduced-motion:reduce){.tp-im video.cc-v{display:none}}</style>
 <script>
-/* 道具のカードの短いプレイ動画（2026-11-25）。画面に入ったときだけ読み、外れたら止める。動きを減らす・省データでは出さない。再生できなければ今の画のまま */
+/* 道具のカードの短いプレイ動画（2026-11-25・11-26 高画質：表示幅×画素比が 700 を超える画面は 1024x640 の _hd）。画面に入ったときだけ読み、外れたら止める。動きを減らす・省データでは出さない。再生できなければ今の画のまま */
 (function(){var run=function(){
 if(!('IntersectionObserver' in window))return;
 if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
 var cn=navigator.connection;if(cn&&(cn.saveData||/2g/.test(cn.effectiveType||'')))return;
 var B='img/apps/clip-20261125/';
 var io=new IntersectionObserver(function(es){es.forEach(function(e){var v=e.target._v;if(!v)return;
- if(e.isIntersecting){if(!v.src){v.src=v.dataset.src;}var p=v.play();if(p&&p.catch)p.catch(function(){});}else{v.pause();}});},{rootMargin:'120px 0px'});
+ if(e.isIntersecting){if(!v.src){v.poster=v.dataset.poster;v.src=v.dataset.src;}var p=v.play();if(p&&p.catch)p.catch(function(){});}else{v.pause();}});},{rootMargin:'120px 0px'});
 [].forEach.call(document.querySelectorAll('li.tp-card .tp-im img'),function(im){var m=(im.getAttribute('src')||'').match(/play-20261120\/([a-z]+)_640/);if(!m)return;var n=m[1];
- var v=document.createElement('video');v.className='cc-v';v.muted=true;v.defaultMuted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.setAttribute('muted','');v.preload='none';v.setAttribute('aria-hidden','true');v.poster=B+n+'.jpg';v.dataset.src=B+n+'.mp4';
+ var v=document.createElement('video');v.className='cc-v';v.muted=true;v.defaultMuted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.setAttribute('muted','');v.preload='none';v.setAttribute('aria-hidden','true');var hd=(im.getBoundingClientRect().width||343)*(window.devicePixelRatio||1)>700?'_hd':'';v.dataset.poster=B+n+hd+'.jpg';v.dataset.src=B+n+hd+'.mp4';
  v.addEventListener('playing',function(){v.classList.add('on');});v.addEventListener('error',function(){v.remove();});
  im.parentNode.appendChild(v);var li=im.closest('li');li._v=v;io.observe(li);});
 document.addEventListener('visibilitychange',function(){if(document.hidden)[].forEach.call(document.querySelectorAll('video.cc-v'),function(v){v.pause();});});
