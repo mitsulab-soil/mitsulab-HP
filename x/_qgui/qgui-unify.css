@@ -62,3 +62,73 @@ body.qu-popon .qu-sub,body.qu-popon .qg-sub,body.qu-popon #capText,body.qu-popon
 html body .qu-sub{background:rgba(4,12,14,.62)!important;border-radius:10px!important;padding:6px 12px!important;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 /* 候補の板は中身の幅に合わせる（右下にそろえ、左を空けない） */
 @media (max-width:767px){#qgPop{left:auto!important;width:max-content;max-width:calc(100vw - 2*var(--qg-edge,16px))!important}}
+/* 仮の札：本物が来るまで静かに待つ（押すと淡く息をする） */
+html body #qgBar .qu-pre{opacity:.75!important}
+html body #qgBar .qu-pre.qu-wait{animation:quWait 1.2s ease-in-out infinite}
+@keyframes quWait{50%{opacity:.4}}
+@media (prefers-reduced-motion:reduce){html body #qgBar .qu-pre.qu-wait{animation:none}}
+/* 候補が多いときは同じ幅の札を格子に */
+#qgPop.qu-grid{display:grid!important;grid-template-columns:repeat(5,minmax(84px,1fr));gap:8px}
+#qgPop.qu-grid .qg-u{width:100%!important;padding:0 6px!important}
+@media (max-width:767px){#qgPop.qu-grid{grid-template-columns:repeat(4,minmax(0,1fr));width:calc(100vw - 2*var(--qg-edge,16px))}}
+/* ≡ の中身：全道具で同じ字と札 */
+html body .qu-drawer{color:var(--qg-ink,#e9f6f5);font:400 14px/1.6 var(--qg-font,serif);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2)}
+html body .qu-drawer button,html body .qu-drawer .btn,html body .qu-drawer a.ml-btn{min-height:44px;border-radius:999px;font:500 13px/1.2 var(--qg-font,serif);letter-spacing:.06em}
+html body .qu-drawer h3,html body .qu-drawer .h,html body .qu-drawer summary{font-size:11px;letter-spacing:.16em}
+/* ≡ を開いているあいだは字幕を隠す（引き出しと重ならない） */
+body.qu-menuon .qu-sub,body.qu-menuon .qg-sub{opacity:0!important}
+html body .qu-drawer button:not(.qg-sw){padding:0 14px;white-space:nowrap;height:auto}
+html body .qu-drawer a{color:var(--qg-ink,#e9f6f5)!important}
+/* 道具の側の札も同じ形に（skin） */
+html body .qu-skin{min-height:44px!important;padding:0 16px!important;border:1px solid var(--qg-line,rgba(170,226,236,.55))!important;border-radius:999px!important;background:var(--qg-ground,rgba(6,34,38,.5))!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:var(--qg-ink,#e9f6f5)!important;font:500 13px/1 var(--qg-font,serif)!important;letter-spacing:.08em!important;box-shadow:none!important;white-space:nowrap}
+/* 採点の直し（2026-11-27）：PC は札を少し大きく・スマホは札のあいだを広く・≡ を開いたら端の部品を隠す */
+@media (min-width:768px){:root{--qu-h:52px}html body #qgBar .qg-u{font-size:14px!important}html body #qgBar .qg-u.qu-menu{font-size:22px!important}}
+@media (max-width:767px){:root{--qu-gap:12px}}
+body.qu-menuon .ik-flight,body.qu-popon .ik-flight{opacity:0!important;pointer-events:none!important}
+html body .qu-drawer *{text-shadow:none}
+html body .qu-drawer :is(p,li,dd,dt,span,div,small,b,strong,em,label){color:rgba(233,246,245,.86)!important}
+@media (min-width:768px){#qgPop.qu-grid{grid-template-columns:repeat(5,max-content);max-width:none!important;width:max-content}#qgPop.qu-grid .qg-u{min-width:96px!important}}
+#qgPop{background:rgba(6,20,22,.96)!important}
+body.qu-menuon .qu-mh{opacity:0!important;pointer-events:none!important;transition:opacity .15s}
+/* ≡ で出る札の並びも、引き出しと同じ板に載せる */
+html body .qu-panel{background:rgba(6,20,22,.96)!important;border:1px solid rgba(170,226,236,.4)!important;border-radius:18px!important;padding:10px!important;box-shadow:0 12px 40px rgba(0,0,0,.45)!important}
+html body .qu-panel .qu-skin{opacity:1!important}
+body:not(.qu-menuon) .qu-panel{background:none!important;border:0!important;box-shadow:none!important;padding:0!important}
+html body .qu-drawer button:not(.qg-sw){height:44px!important;min-width:max-content!important;line-height:1!important}
+html body .qu-drawer [role=group]{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;gap:8px!important}
+/* 4 回目の採点の直し */
+@media (min-width:768px){:root{--qu-h:56px}html body #qgBar .qg-u{font-size:15px!important;padding:0 20px!important}html body #qgBar .qg-u.qu-menu{font-size:24px!important;padding:0!important}}
+@media (max-width:767px){html body .qu-panel{left:auto!important;width:max-content!important;max-width:calc(100vw - 32px)!important}}
+html body .qu-drawer.qu-more{-webkit-mask-image:linear-gradient(#000 calc(100% - 36px),rgba(0,0,0,.25));mask-image:linear-gradient(#000 calc(100% - 36px),rgba(0,0,0,.25))}
+html body .qu-drawer.qu-more.qu-end{-webkit-mask-image:none;mask-image:none}
+html body .qu-fold>summary{list-style:none;cursor:pointer;min-height:44px;display:flex;align-items:center;font:500 13px/1 var(--qg-font,serif)!important;letter-spacing:.1em!important;color:var(--qg-ink,#e9f6f5)!important}
+html body .qu-fold>summary::-webkit-details-marker{display:none}
+html body .qu-fold>summary{width:auto!important;height:auto!important;min-width:0!important;border:0!important;border-radius:0!important;background:none!important;padding:8px 0!important;box-shadow:none!important;position:static!important}
+body.qu-menuon .qu-panel,body.qu-menuon .qu-panel>*{opacity:1!important}
+/* 5 回目の採点の直し：引き出しの中の並び */
+html body .qu-drawer .qg-row{display:flex!important;flex-wrap:wrap!important;gap:8px!important}
+html body .qu-drawer .qg-row>*{display:inline-flex!important;width:auto!important;margin:0!important}
+html body .qu-drawer .qg-row button{padding:0 11px!important}
+html body .qu-drawer p,html body .qu-drawer .qu-fold p{font-size:13px!important;line-height:1.75!important}
+html body .qu-panel .qu-skin{height:var(--qu-h)!important;min-height:var(--qu-h)!important;font-size:13px!important;opacity:1!important}
+@media (max-width:767px){html body .qu-drawer{max-height:min(60vh,calc(100vh - 170px))!important}}
+html body #q3Drawer.qu-drawer.on{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;align-items:stretch}
+html body #q3Drawer.qu-drawer.on>*{width:auto!important;min-width:0!important;margin:0!important;justify-content:center}
+html body #q3Drawer.qu-drawer.on>.q3h,html body #q3Drawer.qu-drawer.on>nav{grid-column:1/-1}
+#qgPop.qu-grid{grid-template-columns:repeat(var(--qu-cols,5),max-content)!important}
+@media (max-width:767px){#qgPop.qu-grid{grid-template-columns:repeat(var(--qu-cols-sp,4),minmax(0,1fr))!important}}
+html body .qu-drawer .qg-row button{padding:0 9px!important;font-size:12px!important;letter-spacing:.02em!important}
+/* 6 回目の採点の直し */
+html body .qu-drawer button:not(.qg-sw){display:inline-flex!important;align-items:center!important;justify-content:center!important;padding-top:0!important;padding-bottom:0!important;line-height:1.1!important;vertical-align:middle}
+
+@media (min-width:768px){html body .qu-drawer{max-height:60vh!important}}
+body.qu-popon #sndTag,body.qu-menuon #sndTag{opacity:0!important}
+/* 7 回目：引き出しの小さな札は 1 行に */
+html body #qgDrawer.qu-drawer .qg-row button,html body #qgDrawer.qu-drawer .qg-row .btn,html body #qgDrawer.qu-drawer #dTune button{padding:0 9px!important;min-width:0!important;font-size:12px!important;letter-spacing:.02em!important}
+html body #qgDrawer.qu-drawer #dMore,html body #qgDrawer.qu-drawer #dTune,html body #qgDrawer.qu-drawer #dTune>*{flex-wrap:nowrap!important}
+html body #qgDrawer.qu-drawer #dTune label,html body #qgDrawer.qu-drawer #dTune span{font-size:12px!important;white-space:nowrap}
+body.qu-menuon .qu-mcard{background:rgba(6,20,22,.94)!important;border:1px solid rgba(170,226,236,.4)!important;border-radius:18px!important;box-shadow:0 12px 40px rgba(0,0,0,.45)!important}
+html body #qgDrawer.qu-drawer #dMore{justify-content:flex-start!important;gap:8px!important}html body #qgDrawer.qu-drawer #dMore>*{margin:0!important}
+@media (min-width:768px){body.qu-menuon .qu-mcard{background:none!important;border:0!important;box-shadow:none!important}}
+html body #qgDrawer.qu-drawer #dMore>*{flex:0 0 auto!important;order:0!important;margin-left:0!important}
+html body #qgDrawer.qu-drawer #dMore>*{margin-right:0!important}html body #qgDrawer.qu-drawer #dMore{justify-content:flex-start!important}
