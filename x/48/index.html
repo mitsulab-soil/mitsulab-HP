@@ -8,7 +8,7 @@
 <title>Qualia/hear ── 聞こえない音を聞く</title>
 <meta name="description" content="聞こえない音を聞く。マイクで拾った高い音を、聴こえる高さへ移して聴く。コウモリの声のように録れない高さは、聴こえる高さに移した模式で。スマホではカメラとマイクで、いまの景色と音に重ねて使えます（記録はしません）。">
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js?v=m1","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
-<link rel="modulepreload" href="vendor/three/build/three.module.js?v=m1"><link rel="modulepreload" href="hear.js?v=h13"><link rel="modulepreload" href="forest.js?v=20261123n">
+<link rel="modulepreload" href="vendor/three/build/three.module.js?v=m1"><link rel="modulepreload" href="hear.js?v=h14"><link rel="modulepreload" href="forest.js?v=20261126b">
 <link rel="stylesheet" href="kit/qui.css?v=1">
 <style>
 .spec{position:fixed;left:50%;transform:translateX(-50%);top:calc(max(10px,env(safe-area-inset-top)) + 58px);width:min(460px,calc(100% - 32px));height:76px;pointer-events:none;background:radial-gradient(ellipse 70% 90% at 50% 50%,rgba(240,244,242,.7),rgba(240,244,242,.15) 80%);border-radius:2px;padding:4px 8px}
@@ -80,7 +80,7 @@ document.querySelectorAll('#place button').forEach(b => b.onclick = async () => 
   document.querySelectorAll('#place button').forEach(c => c.setAttribute('aria-pressed', c === b));
   if (!S || (!S.micOn && !batT)) $('cap').textContent = b.dataset.place === 'city' ? '街灯のまわりを飛ぶコウモリも、ずっと声を出している。人の耳には届かない高さで。' : '浜の上を飛ぶコウモリは、ずっと声を出している。人の耳には届かない高さで。'; });
 $('bGo').onclick = () => { $('away').classList.add('on'); navigator.vibrate && navigator.vibrate([12, 80, 12]); }; $('bBack').onclick = () => $('away').classList.remove('on');
-import('./hear.js?v=h13').then(m => { mod = m; V = m.start($('c')); window.__hear = window.__sonic = V; }).catch(e => console.warn(e));
+import('./hear.js?v=h14').then(m => { mod = m; V = m.start($('c')); window.__hear = window.__sonic = V; }).catch(e => console.warn(e));
 </script>
 <link rel="stylesheet" href="kit/qgui.css?v=20261125q">
 <style id="quiet-gui-20261125">/* 2026-11-25 本人「風景がメイン・字幕が多い・GUI を洗練」：字幕を下の端に小さく薄く（中央 6 割を空ける）、ボタンを共通の線と透ける地に */

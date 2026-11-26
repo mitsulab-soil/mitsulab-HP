@@ -8,7 +8,7 @@ import * as THREE from "three";
 import { bitmapTex, texPending } from "./kit/warm.js";   // 2026-11-05 夕：起動 1 秒へ。写真の質感を別の糸でほどく（はじめのこまで 10 枚ほどほどいて約 0.1 秒かかっていた）
 import { makeBody, creaturePortrait, humanPortrait, makeCreature, disposePortraitRenderer } from "./bodies.js?v=20261120r";
 import { makeRing } from "./ring.js?v=20261124d";   // 2026-11-20 回して選ぶ、生きものの 3D の並び
-import { buildForest, shoreWob, riverWob, MEADOW } from "./forest.js?v=20261123n";
+import { buildForestAsync, shoreWob, riverWob, MEADOW } from "./forest.js?v=20261126b";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261105s";
 import { buildZen, YARD, ENGAWA, STONES, crownHook } from "./zen.js";
@@ -404,7 +404,7 @@ const FOG_FOREST=mobile?.03:.026;scene.fog.density=.6;   // 木々の奥が、�
 const forestReady=(async()=>{const nf1=()=>new Promise(r=>requestAnimationFrame(()=>setTimeout(r,0)));
   while(!STARTUP.firstFrameAt)await nf1(); const tw=performance.now(); while(document.querySelector('.mlq:not(.out)')&&performance.now()-tw<700)await nf1(); await nf1();   // 幕が上がって（操作できるようになって）から組む
   STARTUP.forestBuildStartedAt = performance.now();
-  const fg=new THREE.Group();FOREST=buildForest({M,tx,canvasTex,photoTex,forest:fg,pick,sonic,mobile,riverCurve});
+  const fg=new THREE.Group();FOREST=await buildForestAsync({M,tx,canvasTex,photoTex,forest:fg,pick,sonic,mobile,riverCurve});
   STARTUP.forestBuiltAt = performance.now();
 // 庭で作った生きもの（シジュウカラ・ネズミ・蝶・蜂）を、森の草地へ（碧の話に出てくるもの）。人工物の赤い板と、栽培種の実の茂みは森に置かない（2026-10-12）
 {const MW=FOREST.meadow;

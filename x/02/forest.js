@@ -80,7 +80,7 @@ function bake(group) {
 }
 const Mesh = (geo, mat, o = {}) => { const m = new THREE.Mesh(geo, mat); if (o.p) m.position.set(...o.p); if (o.r) m.rotation.set(...o.r, o.order || "XYZ"); return m; };
 
-export function buildForest(ctx) {
+function* buildForestGen(ctx) {
   const { M, tx, canvasTex, photoTex, pick, sonic, mobile, riverCurve } = ctx; let forest = ctx.forest;
   /* 2026-11-03 起動 1 秒：遠くの幹・あとの草花・ヨシ・草と落ち葉は起動のあとに一つずつ組む（out.later）。乱数を使う順はそのまま（配置は同じ） */
   const later = [], defer = fn => later.push(() => { const g = new THREE.Group(), f0 = forest; forest = g; try { fn(); } finally { forest = f0; } return g; });
@@ -121,6 +121,7 @@ export function buildForest(ctx) {
   const hitTrunk = (x, z, pad) => { const cx = Math.floor(x / 3), cz = Math.floor(z / 3); for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) for (const t of tcell.get((cx + i) + "," + (cz + j)) || []) if (Math.hypot(x - t[0], z - t[1]) < t[2] + pad) return true; return false; };
   const free = (x, z, pad = .3) => dPond(x, z) > pad && dRiver(x, z) > .9 + pad && !hitTrunk(x, z, pad);
 
+  yield;
   // ---------------------------------------------------------------- 地面：落ち葉の土・苔・草地・踏み跡（頂点の色で塗り分け、写真の土をかける）
   {
     const S = 150, N = mobile ? 90 : 120, g = new THREE.PlaneGeometry(S, S, N, N); g.rotateX(-Math.PI / 2);
@@ -141,6 +142,7 @@ export function buildForest(ctx) {
     ground.userData.noCast = true; forest.add(ground); pick.push(ground); out.ground = ground;
   }
 
+  yield;
   // ---------------------------------------------------------------- 絵の具（その場で描く）
   const leafCanvas = (w, h, draw) => { const t = canvasTex(w, h, draw); t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; return t; };
   // イロハモミジの小枝：葉は対生、掌状に 5〜7 裂け（ここでは 7）、裂片は細く先がとがり、縁は重鋸歯。葉身 4〜6 cm・葉柄は長め
@@ -180,6 +182,7 @@ export function buildForest(ctx) {
   // 落ち葉（去年の葉）：白っぽい葉の形に主脈。色は一枚ずつ茶・黄土・こげ茶を掛ける
   const litterTex = leafCanvas(64, 64, (g, w, h) => { g.clearRect(0, 0, w, h); g.fillStyle = "#e8e2d6"; g.beginPath(); g.moveTo(32, 60); g.bezierCurveTo(4, 44, 6, 14, 32, 4); g.bezierCurveTo(58, 14, 60, 44, 32, 60); g.fill(); g.strokeStyle = "rgba(90,70,50,.55)"; g.lineWidth = 1.5; g.beginPath(); g.moveTo(32, 60); g.lineTo(32, 6); g.stroke(); for (let k = 1; k < 6; k++) { g.beginPath(); g.moveTo(32, 58 - k * 9); g.lineTo(14, 50 - k * 9); g.moveTo(32, 58 - k * 9); g.lineTo(50, 50 - k * 9); g.stroke(); } });
 
+  yield;
   // ---------------------------------------------------------------- 木
   const spray = tx("leaf_spray.webp", 1, 1), spray2 = tx("leaf_spray2.webp", 1, 1); for (const t of [spray, spray2]) t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
   const leafMat = (map, o = {}) => M(0xffffff, { std: true, map, alphaTest: .45, side: THREE.DoubleSide, rough: o.rough ?? .78, env: .4, uv: o.uv ?? .04, temp: .09, wind: o.wind ?? .05, windH: o.windH ?? 9, key: "crown", hook: crownHook });
@@ -259,13 +262,16 @@ export function buildForest(ctx) {
     const sg = inSugi(x, z), d = sg ? 2.9 : (near(x, z, 0) ? 4.3 : 5.2) * (mobile ? 1.12 : 1); if (!farEnough(x, z, d)) continue;
     put(x, z, sg ? "sugi" : R() < .62 ? "konara" : "keyaki");
   }
-  for (const [x, z, kind] of placed) tree(kind, x, z, near(x, z, 6), kind === "sugi" ? rr(.86, 1.1) : rr(0, 1) < .22 ? rr(.55, .74) : rr(.86, 1.32));   /* 11-10 第9周：樹齢の不揃い（若木を 2 割ほど・大木も）。葉の数は大きさに比例するので平均の重さはほぼ同じ */
+  { let yc = 0; for (const [x, z, kind] of placed) { tree(kind, x, z, near(x, z, 6), kind === "sugi" ? rr(.86, 1.1) : rr(0, 1) < .22 ? rr(.55, .74) : rr(.86, 1.32)); if (++yc % 30 === 0) yield; } }   /* 11-10 第9周：樹齢の不揃い（若木を 2 割ほど・大木も）。葉の数は大きさに比例するので平均の重さはほぼ同じ */
+  yield;
   // 亜高木：イロハモミジ（日陰〜半日陰。高木のあいだ）
   let nM = 0;
+  yield;
   for (let i = 0; i < 3000 && nM < (mobile ? 26 : 44); i++) { const x = rr(-34, 36), z = rr(-32, 34); if (!canopyOK(x, z) || inSugi(x, z) || lightAt(x, z) > .55 || !farEnough(x, z, 3)) continue; put(x, z, "momiji"); tree("momiji", x, z, near(x, z, 2), rr(.8, 1.2)); nM++; }
   // 幹（材ごと・24 m 四方ごとに一つ）
   const wood = (key, gs) => { const mesh = new THREE.Mesh(mergeGeometries(gs.map(g => typeof g === 'function' ? strip(g()) : g)), barkM[key.split(":")[0]]); mesh.castShadow = true; forest.add(mesh); sonic.push(mesh); };
   for (const [key, gs] of woodChunks) if (key.split(":")[1] === "20") wood(key, gs); else defer(() => wood(key, gs));   // 近く（20 m 升）の幹は先に、遠く（48 m 升）はあとで
+  yield;
   // 葉の房
   const cardGeo = L => { const g = new THREE.PlaneGeometry(L, L); g.translate(0, L / 2, 0); return g; };
   const xA = new V3(), yA = new V3(), zA = new V3(), rv = new V3();
@@ -287,6 +293,7 @@ export function buildForest(ctx) {
     out.perch = a.clone().lerp(b, .62); out.perch.y += .05; out.perchDir = dir;
   }
 
+  yield;
   // ---------------------------------------------------------------- 倒木と石（苔は上を向いた面に）
   {
     const logG = [], logM = M(0xffffff, { std: true, map: photoTex("bark_camphor.webp", 1, 1), vc: true, rough: 1, env: .25, uv: .05, temp: .12 });
@@ -309,6 +316,7 @@ export function buildForest(ctx) {
     const rm = new THREE.Mesh(mergeGeometries(rocks), stoneM); rm.castShadow = true; forest.add(rm); sonic.push(rm);
   }
 
+  yield;
   // ---------------------------------------------------------------- 草花の材質（色をつける材質は userData.tint、紫外の音の的は userData.sonic）
   const mat = (hex, o = {}) => { const m = M(hex, { side: THREE.DoubleSide, uv: o.uv ?? .05, temp: o.temp ?? .12, wind: o.wind ?? .03, windH: o.windH ?? 1, map: o.map || null, alphaTest: o.alphaTest || 0 }); m.userData.tint = !!o.tint; m.userData.sonic = !!o.sonic; return m; };
   const stemM = mat(0x5a7f3c), leafM = mat(0x4f7a36), darkLeafM = mat(0x3c5e2c), paleLeafM = mat(0x6a8f48);
@@ -450,6 +458,7 @@ export function buildForest(ctx) {
     for (let k = 0; k < 9; k++) { const a = k * 2.1, y = top.y + .008 + (k % 3) * .012, lp = new THREE.Mesh(bladeGeo(.016, .008, { cup: .4, curl: -.3, seg: 3 }), utsuLipM); lp.position.set(top.x + Math.cos(a) * .009, y, top.z + Math.sin(a) * .009); lp.rotation.set(-1.0, -a + Math.PI / 2, 0, "YXZ"); G.add(lp); }
     return bake(G); };
 
+  yield;
   // ---------------------------------------------------------------- 置く（それぞれの花が育つ場所に、群れで）
   const shade = (x, z) => lightAt(x, z) < .35 && free(x, z) && dPath(x, z) > .9 && !inSugi(x, z);
   const edge = (x, z) => { const L = lightAt(x, z); return L > .3 && L < .85 && free(x, z) && dPath(x, z) > .7; };
@@ -497,6 +506,7 @@ export function buildForest(ctx) {
   for (const l of [lists.aji, lists.bush]) for (const it of l) addTrunk([it.x, it.z, .45 * it.s]);
   out.lists = lists; out.counts = Object.fromEntries(Object.entries(lists).map(([k, l]) => [k, l.length]));  out.counts.trees = placed.length;
 
+  yield;
   // ---------------------------------------------------------------- 水辺のヨシ（池の奥の岸と、川の曲がり）
   defer(() => {
     const reedM = M(0x7f9a54, { side: THREE.DoubleSide, uv: .05, temp: .1, wind: .06, windH: 2 }), plumeM = M(0xa8957e, { uv: .08, temp: .1, wind: .06, windH: 2 }), rg = [], pg = [];
@@ -506,6 +516,7 @@ export function buildForest(ctx) {
     const a = new THREE.Mesh(mergeGeometries(rg), reedM), b = new THREE.Mesh(mergeGeometries(pg), plumeM); a.userData.noCast = b.userData.noCast = mobile; forest.add(a, b);
   });
 
+  yield;
   // ---------------------------------------------------------------- 草（草地は密に、林の中はまばら）と落ち葉
   /* 2026-11-04 動いている間のコマ落ち：草と落ち葉を一つの仕事で組むと 0.1〜0.2 秒止まった → 4 つに分ける（乱数の順・配置は同じ） */
   const GL = {};
@@ -532,6 +543,7 @@ export function buildForest(ctx) {
   });
   defer(() => { const G = GL.l; litterTo(G, G.n); G.im.count = G.k; G.im.userData.noCast = true; G.im.raycast = () => {}; forest.add(G.im); });
 
+  yield;
   // ---------------------------------------------------------------- 木もれ日の光の筋（すき間に。人・犬の受けとり方の昼だけ）
   {
     const t = canvasTex(32, 128, (g, w, h) => { const gx = g.createLinearGradient(0, 0, w, 0); gx.addColorStop(0, "rgba(255,255,255,0)"); gx.addColorStop(.5, "rgba(255,255,255,1)"); gx.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gx; g.fillRect(0, 0, w, h); g.globalCompositeOperation = "destination-in"; const gy = g.createLinearGradient(0, 0, 0, h); gy.addColorStop(0, "rgba(0,0,0,0)"); gy.addColorStop(.35, "rgba(0,0,0,1)"); gy.addColorStop(.9, "rgba(0,0,0,.7)"); gy.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gy; g.fillRect(0, 0, w, h); });
@@ -544,9 +556,14 @@ export function buildForest(ctx) {
       const sh = new THREE.Mesh(mergeGeometries(gs), m); sh.userData.noCast = true; sh.raycast = () => {}; grp.add(sh); };
   }
 
+  yield;
   // ---------------------------------------------------------------- 歩けるところ（幹・藪・石・倒木はよける）
   out.blocked = (x, z, pad = .25) => { if (hitTrunk(x, z, pad)) return true;
     for (const [a, b, r] of out.logs || []) { const dx = b.x - a.x, dz = b.z - a.z, u = clamp(((x - a.x) * dx + (z - a.z) * dz) / (dx * dx + dz * dz), 0, 1); if (Math.hypot(x - a.x - dx * u, z - a.z - dz * u) < r + pad) return true; } return false; };
   out.lightAt = lightAt; out.dRiver = dRiver; out.later = later;
   return out;
 }
+
+/* 2026-11-26 夜：起動 1 秒（案 B）。森の組み立てを区切りごとに一こまずつ進める（乱数の順・形・配置は同じ）。buildForest は前と同じく一度に組む */
+export function buildForest(ctx) { const it = buildForestGen(ctx); let r; while (!(r = it.next()).done); return r.value; }
+export async function buildForestAsync(ctx) { const it = buildForestGen(ctx); let r, t0 = performance.now(); while (!(r = it.next()).done) { if (performance.now() - t0 > 40) { await new Promise(res => requestAnimationFrame(() => setTimeout(res, 0))); t0 = performance.now(); } } return r.value; }

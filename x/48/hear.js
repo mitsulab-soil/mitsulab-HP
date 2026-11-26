@@ -4,7 +4,7 @@
    場：Qualia/sight の森（forest.js・nature.js・tex＝CC0 の写真の質感）をそのまま写して使う（2026-11-23 本人「sight の環境の 3D データをコピーして準用」）。
    時刻は夕方（日の入りのころ・模式）。コウモリは sight の造形（creatures.js の makeBat）。 */
 import * as THREE from "three";
-import { buildForest, SPAWN, MEADOW } from "./forest.js?v=20261123n";
+import { buildForestAsync, SPAWN, MEADOW } from "./forest.js?v=20261126b";
 import { photoTex } from "./nature.js?v=20261105s";
 import { makeBat } from "./creatures.js?v=20261120r";
 import { bitmapTex } from "./kit/warm.js";
@@ -87,7 +87,7 @@ export function start(canvas) {
   let FOREST = null, SHORE = null, fadeT0 = 0; const FOG_D = mobile ? .03 : .026; S.fog.density = .6;
   const nextFrame = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
   const built = (async () => { await nextFrame(); await nextFrame();
-    FOREST = buildForest({ M, tx, canvasTex, photoTex, forest, pick, sonic, mobile, riverCurve });
+    FOREST = await buildForestAsync({ M, tx, canvasTex, photoTex, forest, pick, sonic, mobile, riverCurve });
     forest.traverse(o => { if (!o.isMesh) return; o.receiveShadow = true; let nc = false; for (let q = o; q; q = q.parent) if (q.userData.noCast) nc = true; o.castShadow = !nc && !(mobile && o.isInstancedMesh && o.count > 300); });
     { const env = new THREE.Scene(); env.add(new THREE.Mesh(skyG, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false })));
     const band = new THREE.Mesh(new THREE.CylinderGeometry(60, 60, 30, 32, 1, true), new THREE.MeshBasicMaterial({ color: 0x24301f, side: THREE.BackSide, fog: false })); band.position.y = 4; env.add(band);

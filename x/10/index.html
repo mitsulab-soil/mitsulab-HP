@@ -10,7 +10,7 @@
 <link rel="icon" href="favicon/icon.svg" type="image/svg+xml">
 <script>if (/[?&](ws|plate)=/.test(location.search)) location.replace("studio.html" + location.search);</script>
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
-<link rel="modulepreload" href="vendor/three/build/three.module.js"><link rel="modulepreload" href="touch.js?v=t6"><link rel="modulepreload" href="forest.js?v=20261123n"><link rel="modulepreload" href="nature.js?v=20261105s"><link rel="modulepreload" href="creatures.js?v=20261120r"><link rel="modulepreload" href="zen.js"><link rel="modulepreload" href="kit/warm.js"><link rel="modulepreload" href="haptics.js?v=20261105f"><link rel="modulepreload" href="sounds.js?v=20261021"><link rel="modulepreload" href="objects.js?v=20261121r"><link rel="modulepreload" href="kit/shore.js?v=20261124d"><link rel="modulepreload" href="kit/surface.js?v=1"><link rel="modulepreload" href="vendor/three/examples/jsm/utils/BufferGeometryUtils.js">
+<link rel="modulepreload" href="vendor/three/build/three.module.js"><link rel="modulepreload" href="touch.js?v=t8"><link rel="modulepreload" href="forest.js?v=20261126b"><link rel="modulepreload" href="nature.js?v=20261105s"><link rel="modulepreload" href="creatures.js?v=20261120r"><link rel="modulepreload" href="zen.js"><link rel="modulepreload" href="kit/warm.js"><link rel="modulepreload" href="haptics.js?v=20261105f"><link rel="modulepreload" href="sounds.js?v=20261021"><link rel="modulepreload" href="objects.js?v=20261121r"><link rel="modulepreload" href="kit/shore.js?v=20261124d"><link rel="modulepreload" href="kit/surface.js?v=1"><link rel="modulepreload" href="vendor/three/examples/jsm/utils/BufferGeometryUtils.js">
 <link rel="stylesheet" href="kit/qui.css?v=1">
 <style>
 .pick{position:fixed;left:0;right:0;bottom:calc(66px + env(safe-area-inset-bottom));display:flex;gap:6px;justify-content:center;padding:0 16px;flex-wrap:nowrap}
@@ -93,7 +93,7 @@ $('bStl').onclick = () => { const r = V && V.stl(); if (!r) return; const d = ne
   a.href = u; a.download = `qualia-touch_${r.id}_${d.getFullYear()}${z(d.getMonth() + 1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.stl`; a.click(); setTimeout(() => URL.revokeObjectURL(u), 4000);
   cap.textContent = 'この表面の 10 cm 四方の凹凸を、STL で保存した（この端末の中だけ）。'; };
 $('bGo').onclick = () => { $('away').classList.add('on'); navigator.vibrate && navigator.vibrate([12, 80, 12]); }; $('bBack').onclick = () => $('away').classList.remove('on');
-import('./touch.js?v=t6').then(m => { THINGS = m.THINGS; V = m.start($('c'), ui); window.__touchApp = V;
+import('./touch.js?v=t8').then(m => { THINGS = m.THINGS; V = m.start($('c'), ui); window.__touchApp = V;
   const AWAY = { forest: '画面を閉じて、近くの木の幹に、手のひらを当ててみてください。<br>それから、石にも。<br>どちらが、ひんやりしますか。', shore: '海や川の近くに行ったら、乾いた砂と、濡れた砂を、指で押してみてください。<br>どちらが、指を押し返しますか。', city: '画面を閉じて、歩道の敷石と、植えこみの土を、手のひらで比べてみてください。<br>日の当たる所と、影の所では、どう違いますか。' };
   const CAP = { forest: '森と浜のものに、近づいて指でなぞる。', shore: '海辺のものに、近づいて触れる。', city: '歩道を歩きながら、まちの面に触れる。' };
   const pick = p => { list = THINGS.filter(t => p === 'city' ? t.place === 'city' : t.place !== 'city'); idx = 0; setName(list[0]); cap.textContent = CAP[p]; walkCap = CAP[p]; $('away').querySelector('p').innerHTML = AWAY[p]; };
