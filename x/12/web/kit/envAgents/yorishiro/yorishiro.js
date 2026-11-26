@@ -57,7 +57,7 @@ const NATURAL = {
   kitsune: [[/^body/, "#a8805e", .9], [/^tail/, "#b08b68", .9], [/^paw/, "#4a3a30", .9], [/^ear/, "#8a5a38", .9], [/^nose/, "#2b2420", .7]],
   hitsuji: [[/^w\d/, "#e6ddcc", .95], [/^m\d/, "#d9cfbc", .95], [/^face/, "#4a423b", .9], [/^legm/, "#4a423b", .9], [/^hoof/, "#2f2925", .85], [/^(horn|hg)/, "#b3a283", .85]],
   tori:    [[/^body/, "#8e7c64", .9], [/^ch/, "#ddd3bf", .9], [/^fe/, "#6c5c48", .9], [/^bl/, "#5a4c3c", .9], [/^branch/, "#6a5240", .95]],
-  cho:     [[/^w-?1/, "#5f9a8e", .8], [/^wl/, "#2f3a36", .85], [/^pan/, "#e9e4d6", .85], [/^vn/, "#3a3a34", .85], [/^bfly/, "#2a2a26", .85]],
+  cho:     [[/^w-?1/, "#5f9a8e", .8], [/^wl/, "#3f7f76", .85], [/^pan/, "#e9e4d6", .85], [/^vn/, "#e8f3ef", .85], [/^bfly/, "#6a6558", .85]],
   ishi:    [[/^Icosphere/, "#8b8578", .95], [/^peb/, "#9a9284", .95]],
   shizuku: [[/^(drop|body|water)/, "#cfe6ea", .2]],
 };
@@ -83,6 +83,32 @@ function patch(mat, U, kind) {
   mat.needsUpdate = true;
 }
 
+/* 2026-11-26 本人「依代をもっと可愛くして」→ 顔だけを足す（形の glb は変えない・頂点は増やさない）：
+   点の目を姿ごとに少し大きく（小さな姿ほど）、目に小さな光（白い点）、目の下に淡い頬（碧の衣に合う薄い桃色・半透明）。
+   正面＝形の +z。目は瞬きの軸（pv）の子に光を置く＝一緒に閉じる。光と頬は共有の形と材質 2 つだけ（重さはほぼ増えない）。 */
+const EYE_GROW = { ki: 1.45, ishi: 3.4, tsuchi: 1.5, shizuku: 1.35, tori: 1.1, cho: .85, tanuki: 1.2, suzume: 1.15, mitsubachi: 1.15, hitsuji: 1.2 };
+const NO_CHEEK = new Set(["cho", "mitsubachi"]);
+let _hlG, _hlM, _ckG, _ckM;
+function cuteFace(body, eyes, kind) {
+  const main = eyes.filter(e => !/^hl/.test(e.material?.name || "")); if (!main.length || main.length > 2) return;
+  const hasHl = eyes.length > main.length, g = EYE_GROW[kind] || 1;
+  _hlG ||= new THREE.SphereGeometry(1, 10, 8); _hlM ||= new THREE.MeshBasicMaterial({ color: "#ffffff" });
+  _ckG ||= new THREE.CircleGeometry(1, 20); _ckM ||= new THREE.MeshBasicMaterial({ color: "#f1a9a0", transparent: true, opacity: .5, depthWrite: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2 });
+  for (const e of (main.length === 1 ? eyes : main)) { e.parent.scale.multiplyScalar(main.length === 1 ? Math.sqrt(g) : g); }
+  for (const e of main) { if (e.material) { e.material = e.material.clone(); e.material.color.set("#231f1c"); e.material.roughness = .35; e.material.needsUpdate = true; } }
+  body.updateMatrixWorld(true);
+  let W = main.map(e => { const b = new THREE.Box3().setFromObject(e); return { e, c: b.getCenter(new THREE.Vector3()), r: Math.max(1e-4, (b.max.x - b.min.x) / 2) }; });
+  if (W.length === 1) { const b = new THREE.Box3().setFromObject(main[0]), r = Math.max(1e-4, (b.max.y - b.min.y) / 2), cy = (b.min.y + b.max.y) / 2, z = b.max.z - r;   // 両目が一つの形のとき：左右の端を目とみなす（頬だけ・光は hl がある）
+    W = [{ e: main[0], c: new THREE.Vector3(b.min.x + r, cy, z), r, one: 1 }, { e: main[0], c: new THREE.Vector3(b.max.x - r, cy, z), r, one: 1 }]; }
+  const mid = W[0].c.clone().add(W[1].c).multiplyScalar(.5);
+  for (const w of W) {
+    const pv = w.e.parent;
+    if (!hasHl && !w.one) { const h = new THREE.Mesh(_hlG, _hlM), p = w.c.clone().add(new THREE.Vector3(.3 * w.r, .35 * w.r, .75 * w.r)); pv.worldToLocal(p); h.position.copy(p);
+      const s = .3 * w.r / pv.getWorldScale(new THREE.Vector3()).x; h.scale.setScalar(s); h.raycast = () => {}; pv.add(h); }
+    if (!NO_CHEEK.has(kind)) { const out = Math.sign(w.c.x - mid.x) || 1, ck = new THREE.Mesh(_ckG, _ckM), par = pv.parent, p = w.c.clone().add(new THREE.Vector3(out * .95 * w.r, -1.15 * w.r, .3 * w.r));
+      par.worldToLocal(p); ck.position.copy(p); const sc = par.getWorldScale(new THREE.Vector3()).x; ck.scale.set(.95 * w.r / sc, .5 * w.r / sc, 1); ck.raycast = () => {}; ck.renderOrder = 2; par.add(ck); }
+  }
+}
 export class Yorishiro {
   constructor({ scene, camera, groundAt = () => 0 } = {}) {
     this.scene = scene; this.camera = camera; this.groundAt = groundAt; this.items = []; this.t = 0;
@@ -115,6 +141,7 @@ export class Yorishiro {
       pv.position.copy(o.position).add(c.clone().multiply(o.scale).applyQuaternion(o.quaternion)); pv.quaternion.copy(o.quaternion); pv.scale.copy(o.scale);
       par.add(pv); pv.add(o); o.position.set(0, 0, 0); o.quaternion.identity(); o.scale.set(1, 1, 1); eyes.push(o);
     }
+    cuteFace(body, eyes, kind);   // 11-26 可愛く（目・光・頬）
     if (height) { body.updateMatrixWorld(true); const bb = new THREE.Box3().setFromObject(body), hh = bb.max.y - bb.min.y; if (hh > 1e-4) scale = height / hh; body.position.y -= bb.min.y; }   // 高さ（m）で大きさを決め、足を地面に
     root.position.set(x, y ?? this.groundAt(x, z), z); root.rotation.y = yaw; root.scale.setScalar(scale);
     root.userData.yorishiro = kind; this.scene.add(root);
