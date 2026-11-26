@@ -2,11 +2,11 @@
    川（R）と低い湿った土地（G：田・湿地など）を、いまの地面に重ねる。見る人のまわり（目の高さ）だけに浮かび、立ち止まると濃く、歩くと薄く。
    形は地図の線をなぞった模式（川幅・水の色は描きかえ）。 */
 export function buildMeiji(THREE, { terrain, world, camera, mode, mobile, onFirst, aoi }) {
-  const U = { tex: { value: null }, t: { value: 0 }, k: { value: 0 }, eye: { value: new THREE.Vector3() }, R: { value: mobile ? 75 : 95 }, aoi: { value: new THREE.Vector4(0, 0, 0, 0) } };
+  const U = { tex: { value: null }, t: { value: 0 }, k: { value: 0 }, eye: { value: new THREE.Vector3() }, R: { value: mobile ? 75 : 95 }, bk: { value: 0 }, aoi: { value: new THREE.Vector4(0, 0, 0, 0) } };
   const mat = new THREE.ShaderMaterial({ uniforms: U, transparent: true, depthWrite: false, toneMapped: true, fog: false,
     polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4,
     vertexShader: "uniform vec4 aoi; varying vec2 vU; varying vec3 vW; void main(){ vU = uv; vec4 w = modelMatrix * vec4(position, 1.); w.y += .22; if (aoi.w > .5) w.y = mix(min(w.y, aoi.y + .015), w.y, smoothstep(.8, 2.2, distance(w.xz, aoi.xz))); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }",
-    fragmentShader: `uniform sampler2D tex; uniform float t, k, R; uniform vec3 eye; uniform vec4 aoi; varying vec2 vU; varying vec3 vW;
+    fragmentShader: `uniform sampler2D tex; uniform float t, k, R, bk; uniform vec3 eye; uniform vec4 aoi; varying vec2 vU; varying vec3 vW;
       float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
       float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.-2.*f); return mix(mix(h(i), h(i+vec2(1,0)), f.x), mix(h(i+vec2(0,1)), h(i+1.), f.x), f.y); }
       float aoiHide(vec3 E, vec3 W, vec4 A){ if (A.w < .5) return 0.; vec3 D = W - E; float L = length(D); D /= L; vec2 dh = D.xz; float dd = dot(dh, dh); if (dd < 1e-5) return 0.; float s = dot(A.xz - E.xz, dh) / dd; if (s < L) return 0.; vec2 c = E.xz + dh * s - A.xz; float r = length(c); float y = E.y + D.y * s; float hw = mix(.30, .19, smoothstep(.0, .5, y - A.y)); return (1. - smoothstep(hw, hw + .09, r)) * smoothstep(A.y - .12, A.y - .02, y) * step(y, A.y + 1.8); }
@@ -27,13 +27,16 @@ export function buildMeiji(THREE, { terrain, world, camera, mode, mobile, onFirs
         float edge = smoothstep(.0, .25, m.r) * (1. - wtr);   // 岸の湿った縁
         vec3 col = water * wtr + paddy * low + vec3(.24, .27, .2) * edge;
         float a = (wtr * (.72 + fr * .2) + low * .34 + edge * .3) * a0;
-        a *= .75 + .25 * n(p * .08 + t * .02);   // 縁を霞のようにゆらがせる
+        a *= .75 + .25 * n(p * .08 + t * .02); a *= mix(.35, 1., smoothstep(3., 22., d)) * (1. - .65 * bk);   /* 11-26 採点：手前とふり返ったときは淡く（道と碧を覆わない） */   // 縁を霞のようにゆらがせる
         gl_FragColor = vec4(mix(col, vec3(.03, .04, .04), sh / max(a + sh, 1e-3)), max(a, sh) * (1. - aH)); }` });
   const mesh = new THREE.Mesh(terrain.geometry, mat); mesh.name = "meiji"; mesh.renderOrder = 7; mesh.frustumCulled = false; mesh.visible = false; world.add(mesh);
   new THREE.TextureLoader().load("web/geo/meiji_lowland.webp?v=1", tx => { tx.colorSpace = THREE.NoColorSpace; tx.minFilter = THREE.LinearFilter; tx.generateMipmaps = false; U.tex.value = tx; mesh.visible = true; });
-  const last = new THREE.Vector3(), _a = new THREE.Vector3(); let still = 0, shown = false, inWater = 0;
+  const last = new THREE.Vector3(), _a = new THREE.Vector3(); let still = 0, shown = false, inWater = 0; const mvP = new THREE.Vector2(NaN, 0), mvD = new THREE.Vector2(), _d = new THREE.Vector3();
   return { mesh, update(dt) { if (!U.tex.value) return; U.t.value += dt; camera.getWorldPosition(U.eye.value); { const r = aoi?.(); if (r && r.visible && mode() === "walk") { r.getWorldPosition(_a); U.aoi.value.set(_a.x, _a.y, _a.z, 1); } else U.aoi.value.w = 0; }
-      const sp = U.eye.value.distanceTo(last) / Math.max(dt, 1e-3); last.copy(U.eye.value); still = sp < .4 ? Math.min(1, still + dt / 2.5) : Math.max(0, still - dt * 1.5);
+      const sp = U.eye.value.distanceTo(last) / Math.max(dt, 1e-3); last.copy(U.eye.value);
+      { const e = U.eye.value; if (isNaN(mvP.x)) mvP.set(e.x, e.z); const ex = e.x - mvP.x, ez = e.z - mvP.y, ml = Math.hypot(ex, ez); if (ml > .6) { mvD.set(ex / ml, ez / ml); mvP.set(e.x, e.z); }   // 進んできた向き
+        camera.getWorldDirection(_d); const fl = Math.hypot(_d.x, _d.z), bt = mvD.lengthSq() > .5 && fl > .05 && (_d.x * mvD.x + _d.z * mvD.y) / fl < -.3 ? 1 : 0; U.bk.value += (bt - U.bk.value) * Math.min(1, dt / .8); }   // ふり返った＝進んできた向きと逆を見る
+      still = sp < .4 ? Math.min(1, still + dt / 2.5) : Math.max(0, still - dt * 1.5);
       const on = mode() === "walk" ? 1 : 0; const tgt = on * (.22 + .4 * still);   // 11-13 採点：地面が灰緑の水の膜に見える＝明治の川と田の層を控えめに（立ち止まると少し濃く） U.k.value += (tgt - U.k.value) * Math.min(1, dt * 1.6);
       if (!shown && on && still > .8) { shown = true; onFirst?.(); } } };
 }

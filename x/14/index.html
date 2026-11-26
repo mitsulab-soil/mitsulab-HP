@@ -25,7 +25,7 @@ const v = setInterval(() => { if (window.__qw) { clearInterval(v); const l = doc
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/utils/BufferGeometryUtils.js": "./web/kit/BufferGeometryUtils.js"}}
 </script>
 <!-- 2026-10-26 起動 5 秒：本体と部品・中身の表を HTML と同時に読みはじめる（回線の往復を 2 段へらす） -->
-<link rel="modulepreload" href="web/app/app.js?v=20261123w">
+<link rel="modulepreload" href="web/app/app.js?v=20261126v">
 <!-- 2026-11-05 起動 2 秒（大宮と同じ）：本体が読む部品をすべて HTML と同時に・版は本体の import とそろえる -->
 <link rel="modulepreload" href="web/app/layers.js?v=k5">
 <link rel="modulepreload" href="web/app/qmarks.js?v=k19s7">
@@ -34,7 +34,7 @@ const v = setInterval(() => { if (window.__qw) { clearInterval(v); const l = doc
 <link rel="modulepreload" href="web/app/kura.js?v=k9">
 <link rel="modulepreload" href="web/app/bell.js?v=k1">
 <link rel="modulepreload" href="web/app/herewalk.js?v=2">
-<link rel="modulepreload" href="web/kit/nav.js?v=n12">
+<link rel="modulepreload" href="web/kit/nav.js?v=n13">
 <link rel="modulepreload" href="web/app/soundwalk.js?v=1">
 <link rel="modulepreload" href="web/app/ambience.js?v=1">
 <link rel="modulepreload" href="web/app/sounds.js?v=s1">
@@ -765,7 +765,7 @@ html:not(.qmap) #qEye{display:none}
 <script>if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/app/app.js?v=20261123w").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/app/app.js?v=20261126v").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 /* 11-04 本人：環世界に入るのはリアルな生き物だけ（変身はやめた）＝右の 4 つを押すと、その生き物の目のまま歩ける（kit/ikimono.js・大宮と同じ） */
 { const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=20261123q").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/app/senses6.js?v=16")).then(s6 => { q.S6 = s6.mountSenses(q); }).catch(e => console.warn("ikimono", e)); } }, 300); }
 </script>
@@ -777,7 +777,7 @@ body:not(.q4used)[data-mode="walk"] #qS6 button:nth-child(2){animation:q4l 2.2s 
 <style id="q-1121a">/* 11-21 P2：①スマホの下の一列が窮屈＝「＋ 足もと」に縮め、写真の札をその右へ寄せる ②足もとの高さの板が碧の胴にかかる＝スマホは碧と反対の側に細く出す ③出典の行を … で切らない（折り返す） */@media (max-width:640px){html body .icm{left:calc(98px + env(safe-area-inset-left))!important}html body .qck{padding:0 11px!important}html body .qckp{max-width:min(212px,56vw)!important}html body[data-aoi="l"] .qckp{left:auto!important;right:calc(12px + env(safe-area-inset-right))!important}html body #caption #capTag{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.5!important;-webkit-line-clamp:none!important;line-clamp:none!important;max-height:none!important}html body[data-mode="walk"] #caption#caption{max-height:min(190px,30vh)!important}}/* ④現実へ向ける問いを見やすく＝問いのあいだは字幕・写真の板を消し、字を大きく、地を少し濃く */html body #qKao{background:rgba(3,6,12,.9)}html body #qKao div{font-size:19px;line-height:1.95;max-width:460px}html body:has(#qKao.on) #caption,html body:has(#qKao.on) .tsg,html body:has(#qKao.on) .qckp{opacity:0!important;transition:opacity .6s}</style>
 <script>addEventListener("DOMContentLoaded",()=>setTimeout(()=>{if(!matchMedia("(max-width:640px)").matches)return;const b=document.querySelector(".qck");if(b){b.textContent="＋ 足もと";b.setAttribute("aria-label","足もとの高さ");}},0));</script>
 <script>addEventListener("pointerdown",e=>{if(e.target.closest&&e.target.closest("#qS6"))document.body.classList.add("q4used")},true);addEventListener("keydown",e=>{if(e.target.closest&&e.target.closest("#qS6"))document.body.classList.add("q4used")},true);</script>
-<script src="kit/jidai.js?v=14" data-box="-825.786,-1547.061,1628.056,2275.090" data-imgs="web/geo/photo_1936.webp?v=2|足もとの窓は、1936 年ごろの空から。／明治の地図では、すぐそばが渋谷川。|1936 年ごろ;web/geo/photo_1947.webp?v=2|窓は、1945〜50 年ごろの空から。|1945〜50 年ごろ;web/geo/photo_1960s.webp?v=2|窓は、1960 年代の空から。／上流は、このころ暗渠に。|1960 年代" data-hi="web/geo/photo_1936_river.webp?v=3|web/geo/photo_1947_river.webp?v=2|web/geo/photo_1960s_river.webp?v=2,-120,-120,680,540" data-snd="web/snd/ogawa.m4a" data-tex="web/tex/grass_ground_c.webp,web/tex/grass_ground_n.webp,web/tex/farm_soil_c.webp,web/tex/farm_soil_n.webp" defer></script>
+<script src="kit/jidai.js?v=16" data-box="-825.786,-1547.061,1628.056,2275.090" data-imgs="web/geo/photo_1936.webp?v=2|足もとの窓は、1936 年ごろの空から。／明治の地図では、すぐそばが渋谷川。|1936 年ごろ;web/geo/photo_1947.webp?v=2|窓は、1945〜50 年ごろの空から。|1945〜50 年ごろ;web/geo/photo_1960s.webp?v=2|窓は、1960 年代の空から。／上流は、このころ暗渠に。|1960 年代" data-hi="web/geo/photo_1936_river.webp?v=3|web/geo/photo_1947_river.webp?v=2|web/geo/photo_1960s_river.webp?v=2,-120,-120,680,540" data-snd="web/snd/ogawa.m4a" data-tex="web/tex/grass_ground_c.webp,web/tex/grass_ground_n.webp,web/tex/farm_soil_c.webp,web/tex/farm_soil_n.webp" defer></script>
 <script src="kit/chikei.js?v=3" data-left="12" data-bottom="17" defer></script>
 <script src="kit/kaoage.js?v=6" data-pts="6,4,顔を上げて、まわりの人の流れを見てみて。どちらへ多く向かっている？;136,-58,足もとの坂を感じてみて。坂の上と下で、空の広さはどう違う？;208,150,顔を上げて、渋谷川の水面を見てみて。水はどちらへ流れている？;-381,152,足もとの坂を感じてみて。この道はどちらへ下っている？;520,150,近くの桜の木を探して、枝ぶりを見てみて。;161,-425,足もとは、坂の上？ 谷の底？ 低い音に耳をすませて、足で確かめてみて。" data-end="画面を閉じたら、いつもの道で一つだけ、さっきの受けとり方で見てみて。" defer></script>
 <script src="kit/tsugi.js" data-bottom="220" data-href="../09/" data-name="Qualia/omiya" data-line="氷川参道の杜を歩く" defer></script>
@@ -808,7 +808,9 @@ new MutationObserver(function(){if(me)return;if(t.dataset.sf==="1"&&!t.querySele
 <link rel="stylesheet" href="web/kit/qsite.css?v=1"><script src="web/kit/qsite.js?v=1" defer></script><script src="web/kit/qmini.js?v=1" defer></script><link rel="stylesheet" href="web/kit/qgui.css?v=20261125q"><link rel="stylesheet" href="web/kit/qsite-quiet.css?v=20261126b"><script defer src="web/kit/qsite-quiet.js?v=20261126a"></script>
 <script>(function(){var r=document.getElementById('qRing');if(!r)return;var t=0;function o(){clearTimeout(t);r.classList.add('open')}function c(d){clearTimeout(t);t=setTimeout(function(){if(!r.matches(':hover')&&!r.contains(document.activeElement))r.classList.remove('open')},d)}
 r.addEventListener('pointerenter',o);r.addEventListener('pointerdown',o);r.addEventListener('focusin',o);r.addEventListener('pointerleave',function(){c(600)});r.addEventListener('click',function(){c(1600)});addEventListener('pointerup',function(){if(r.classList.contains('open'))c(1800)});})();</script>
-<style id="shibuya-375-quiet">/* 2026-11-26 採点：375 で 1936 年の小窓が字幕に重なる・中身のない小さな地図の箱 → 地図はしまい、字幕は小窓の下へ、年代の札は字幕の下の左へ */@media (max-width:767px){html body #qMini{display:none!important}html body #caption{translate:0 64px!important}html body #qJidaiTag#qJidaiTag{top:226px!important;bottom:auto!important;transform:translate(12px,0)!important}}</style>
+<style id="shibuya-375-quiet">/* 2026-11-26 採点：375 で 1936 年の小窓が字幕に重なる・中身のない小さな地図の箱 → 地図はしまい、字幕は小窓の下へ、年代の札は字幕の下の左へ */@media (max-width:767px){html body #qMini{display:none!important}html body #caption{translate:0 64px!important}html body #qJidaiTag#qJidaiTag{top:182px!important;bottom:auto!important;transform:translate(14px,0)!important}}</style>
 <style id="qmini-legible">/* 2026-11-26 採点：小さな地図の注記が景色に溶けて読めない → 暗い下地 */html body #qMini{background:rgba(6,12,18,.66)!important;padding:4px 4px 3px!important;border-radius:3px}</style>
 <style id="s6-label">/* 2026-11-26 採点 P1：五感のボタンの字が出ていない → いつも出す */html body #qS6 button[aria-pressed] span{opacity:.86!important}html body #qS6 button[aria-pressed=true] span{opacity:1!important}</style>
+<script src="web/kit/trace.js?v=1" defer></script><script src="web/kit/qtrace.js?v=8" defer></script>
+<script src="web/kit/qmin3.js?v=11" defer></script>
 </body></html>

@@ -18,7 +18,7 @@ const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基�
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k9";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
-import { installNav } from "../kit/nav.js?v=n12";   // 10-29 操作の設計（3 版共通）
+import { installNav } from "../kit/nav.js?v=n13";   // 10-29 操作の設計（3 版共通）
 import { makeSoundWalk } from "./soundwalk.js?v=1";
 import { makeAmbience } from "./ambience.js?v=1";
 import { SPOTS } from "./sounds.js?v=s1";
@@ -457,14 +457,19 @@ function mergeIdx(gs) {   // 11-05 起動：配列への push をやめ、はじ
   const P = new Float32Array(nv * 3), U = new Float32Array(nv * 2), N = new Float32Array(nv * 3), I = nv > 65535 ? new Uint32Array(ni) : new Uint16Array(ni); let v = 0, k = 0;
   for (const g of gs) { const ix = g.index.array; P.set(g.attributes.position.array, v * 3); U.set(g.attributes.uv.array, v * 2); N.set(g.attributes.normal.array, v * 3); for (let i = 0; i < ix.length; i++) I[k + i] = ix[i] + v; k += ix.length; v += g.attributes.position.count; g.dispose(); }
   const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(P, 3)); g.setAttribute("uv", new THREE.BufferAttribute(U, 2)); g.setAttribute("normal", new THREE.BufferAttribute(N, 3)); g.setIndex(new THREE.BufferAttribute(I, 1)); return g; }
+const RIVU = { bk: { value: 0 }, ep: { value: camera.position } };
 function buildWater() {   // 渋谷：空の下の渋谷川（稲荷橋から下）は水の帯、暗渠（渋谷川・宇田川ほか。OSM の線）は足もとを流れる光の線（Qualia/nature の色・模式）
   const open = G.water.filter(w => !/暗渠/.test(w.nm) && w.k === "river").map(w => ribbon(densify(w.p, 3), 6, .2));
-  if (open.length) { const m = new THREE.Mesh(mergeIdx(open), new THREE.MeshStandardMaterial({ color: "#22343a", roughness: .45, metalness: 0, envMapIntensity: .3, transparent: true, opacity: .9 })); m.name = "river"; world.add(m); }
-  const ug = G.water.filter(w => /暗渠/.test(w.nm)).map(w => ribbon(densify(w.p, 3), 1.8, .14, 1));
+  if (open.length) { const rm = new THREE.MeshStandardMaterial({ color: "#22343a", roughness: .45, metalness: 0, envMapIntensity: .3, transparent: true, opacity: .9 });
+    rm.onBeforeCompile = sh => { sh.uniforms.rbk = RIVU.bk; sh.uniforms.rep = RIVU.ep;   /* 11-26 採点：手前に来たとき・ふり返ったときは川の帯を淡く（道と碧を覆わない） */
+      sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vRW;").replace("#include <project_vertex>", "#include <project_vertex>\nvRW = (modelMatrix * vec4(transformed, 1.)).xyz;");
+      sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vRW; uniform float rbk; uniform vec3 rep;").replace("#include <dithering_fragment>", "#include <dithering_fragment>\ngl_FragColor.a *= mix(.4, 1., smoothstep(3., 24., distance(vRW.xz, rep.xz))) * (1. - .6 * rbk);"); };
+    const m = new THREE.Mesh(mergeIdx(open), rm); m.name = "river"; world.add(m); }
+  const ug = G.water.filter(w => /暗渠/.test(w.nm)).map(w => ribbon(densify(w.p, 3), 2.4, .14, 1));
   if (!ug.length) return;
   const mat = new THREE.ShaderMaterial({ uniforms: { t: BLDU.t, c: { value: new THREE.Color("#7fe0b4") } }, transparent: true, depthWrite: false, toneMapped: false, fog: false,
     vertexShader: "varying vec2 vU; void main(){ vU = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }",
-    fragmentShader: "uniform float t; uniform vec3 c; varying vec2 vU; void main(){ float x = abs(vU.x / 1.8 - .5) * 2.; float edge = 1. - smoothstep(.55, 1., x); float flow = .35 + .65 * pow(.5 + .5 * sin(vU.y * .55 - t * 2.2), 6.); gl_FragColor = vec4(c, edge * flow * .55); }" });
+    fragmentShader: "uniform float t; uniform vec3 c; varying vec2 vU; void main(){ float x = abs(vU.x / 2.4 - .5) * 2.; float edge = 1. - smoothstep(.55, 1., x); float flow = .35 + .65 * pow(.5 + .5 * sin(vU.y * .55 - t * 2.2), 6.); gl_FragColor = vec4(c, edge * (.45 + .55 * flow) * .95); }   /* 11-26 採点「暗渠の位置がつかみにくい」：光の線をいつも少し見えるように */" });
   const m = new THREE.Mesh(mergeIdx(ug), mat); m.renderOrder = 4; m.name = "ankyo"; world.add(m); QW.ankyo = ug.length;
 }
 let ROUTE = null;
@@ -1373,7 +1378,7 @@ function stepAoi(dt) {
 /* ---------- カメラと動き ---------- */
 const RM_SL = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const EYE = 1.55;   // 11-03 本人「視点は sight の方がリアリティ」＝sight の人の目の高さ   // 11-02 大宮と同じ：やや低めの目線
-const CAM = { pos: new THREE.Vector3(), yaw: 0, look: 0, pitch: -.05, lastDrag: 0 };
+const CAM = { pos: new THREE.Vector3(), yaw: 0, look: 0, pitch: -.05, lastDrag: 0, rest: innerWidth / innerHeight < .8 ? -.2 : -.1 };   /* 11-26 採点：起動の直後に空とビルばかり → 歩くときの目線は少し下（道と交差点が見える）。スマホは縦長なのでもう少し下 */
 const SKY = { az: -.35, el: .95, dist: 1100, tAz: -.35, tEl: .95, tDist: 1100, c: new THREE.Vector3(-40, 20, 420) };
 const WALK = { speed: 2.4,   // 2026-10-27 本人「移動の速さを 1.5〜2 倍に」（1.35→2.4）
   moving: false, auto: false, hold: false, goal: null, ring: null };
@@ -1462,7 +1467,7 @@ function selectStart(i) { START.sel = i; /* 印の選択（札と 2 回目で歩
   START.pins.forEach((p, k) => { const on = k === i; p.ring.material.color.set(on ? PICK : "#7fe3f7"); p.ring.material.opacity = on ? 1 : .4; p.ring.scale.setScalar(on ? 1.8 : .8); p.beam.material.color.set(on ? PICK : "#7fe3f7"); p.beam.material.opacity = on ? .9 : .18; p.beam.scale.set(on ? 1.8 : 1, 1, on ? 1.8 : 1); });   // 選んでいる所は濃く、ほかは薄く
   setTimeout(() => { const box = $("#starts"), bb = box?.querySelectorAll(".stBtn")[i]; if (bb && START.sel === i) { box.scrollLeft = Math.max(0, bb.offsetLeft - box.offsetLeft - 8); syncStMeter(); } }, 400);   // 選んだ場所のボタンを列の中に見せる
   const a = stAt(C.starts[i]); SKY.c.set(a.x, groundY(a.x, a.z), a.z); SKY.tDist = MOBILE ? 520 : 420; }
-function openYaw() {   // 11-13 採点：降りた目の前と右手が壁で埋まらないよう、開けた向きへ（視野の左右 ±0.5 も見る）
+function openYaw() { if (CAM.fixYaw) return;   // 11-13 採点：降りた目の前と右手が壁で埋まらないよう、開けた向きへ（視野の左右 ±0.5 も見る）
   const free = y0 => { let d = 0; for (; d < 30; d += 1.5) if (inBld(CAM.pos.x - Math.sin(y0) * d, CAM.pos.z - Math.cos(y0) * d, .3)) break; return d; }, view = y => Math.min(free(y), free(y - .5) * 1.4, free(y + .5) * 1.4);
   const v0 = view(CAM.yaw); if (v0 >= 20) { if (innerWidth / innerHeight < .8) tallYaw(); return; } let best = CAM.yaw, bd = v0; for (let k = 1; k < 16; k++) { const y1 = CAM.yaw + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * Math.PI / 8, f1 = view(y1); if (f1 > bd + 3) { bd = f1; best = y1; } } CAM.yaw = best; if (innerWidth / innerHeight < .8) tallYaw(); }
 function tallYaw() {   /* 11-17 採点 P1：縦長の画面は横の視野が狭く、正面に建物が一つもなかった＝開けた手前（15 m 以上）の先 40〜220 m に建物のある向きへ、±90° の中でいちばん近く回す */
@@ -1472,10 +1477,10 @@ function descendTo(i, at, dur) {   // at＝現在地（GPS）の位置
   const s = C.starts[i], xz = !at && s.x != null, d = xz ? 0 : Math.min(at ? at.d : s.d, G.lineD[G.lineD.length - 1] - 3), a = at ? { x: at.x, z: at.z } : xz ? stAt(s) : atD(d), y = groundY(a.x, a.z) + EYE;
   const wait = AREAS.ensureAt(a.x, a.z);   // 広げたエリアの中なら、そのエリアの道と建物を読みながら降りる
   hideSkyUI(); exitSight(true); hideFlyUI(); setMode("descend"); hidePanel(); stopVoice();   // 前の場所の語りを、降りた先へ持ちこまない
-  CAM.pos.set(a.x, y, a.z); CAM.yaw = xz ? stYaw(s) : /菓子屋/.test(s.name) ? yawAlong(d) + Math.PI : yawAlong(d); CAM.look = 0; CAM.pitch = -.04;
+  CAM.pos.set(a.x, y, a.z); CAM.yaw = xz ? stYaw(s) : /菓子屋/.test(s.name) ? yawAlong(d) + Math.PI : yawAlong(d); CAM.look = 0; CAM.pitch = innerWidth / innerHeight < .8 ? -.27 : -.15; CAM.fixYaw = false; if (!at && /ハチ公/.test(s.name)) { const c = atD(672); CAM.yaw = Math.atan2(-(c.x - a.x), -(c.z - a.z)); CAM.fixYaw = true; }   /* 11-26 採点：起動は渋谷の目印（スクランブル交差点）の見える向きで。開けた向きへ回す処理は通さない */   /* 11-26 採点：起動の直後に空とビルばかり → 目の高さのまま少し下を向け、道が見える */
   if (!at && /時の鐘/.test(s.name) && G.bell) { const b = atD(1196); CAM.pos.set(b.x, groundY(b.x, b.z) + EYE, b.z); CAM.yaw = Math.atan2(-(G.bell.x - b.x), -(G.bell.z - b.z)); CAM.pitch = .12; }   // 鐘つき通りの入口から、鐘を見上げる
   const yB = CAM.yaw; openYaw();
-  if (!at && /稲荷橋/.test(s.name)) CAM.yaw = yB + (innerWidth / innerHeight < .8 ? 9.2 : 8) * Math.PI / 24;   /* 11-22 本人「スマホでビルの壁が画面の上半分をふさぐ」：縦長の画面では、稲荷橋から空と通りの奥（約 300 m 開けた向き）が見える向きで始める（建物の読み込みを待たずに決める） */
+  if (!at && /稲荷橋/.test(s.name)) CAM.yaw = .26;   /* 11-26 採点「渋谷の目印が見えない」：駅（高架のホーム）と明治通りの横断歩道が見える北へ（PC・スマホとも壁でふさがれない） */   /* 11-22 本人「スマホでビルの壁が画面の上半分をふさぐ」：縦長の画面では、稲荷橋から空と通りの奥（約 300 m 開けた向き）が見える向きで始める（建物の読み込みを待たずに決める） */
   tweenTo(CAM.pos, CAM.yaw, CAM.pitch, dur || 2.6, () => (dur && dur < .05 ? Promise.resolve() : wait).then(() => {   /* 11-22 起動 1 秒：最初の目の高さは、広げたエリアの読み込みを待たない */ openYaw(); setMode("walk"); showWalkUI(); aoiArrive(); }));
 }
 function corridorClamp(p) {   // 道筋 A のまわり 14 m か、歩ける道（裏路地ほか）の幅の中へ
@@ -1537,6 +1542,9 @@ function stepWalk(dt, eye = EYE, speed = WALK.speed) {
   if (WALK.turnTo != null) { const tgt = WALK.turnTo - CAM.look, dy = wrap(tgt - CAM.yaw); CAM.yaw += dy * Math.min(1, dt * 3); if (Math.abs(dy) < .02) WALK.turnTo = null; }
   if (performance.now() - CAM.lastDrag > 2600 && WALK.moving) CAM.look *= Math.pow(.25, dt);   // 歩きだすと、見回した向きがゆっくり前へ戻る
   camera.position.copy(CAM.pos); if (!RM_SL && eye === EYE) camera.position.y += sightBob(performance.now() / 1000, WALK.moving); camera.quaternion.setFromEuler(new THREE.Euler(CAM.pitch, CAM.yaw + CAM.look, 0, "YXZ"));
+  if (!MOBILE) { const h = CAM.yaw + CAM.look, sx = -Math.sin(h), sz = -Math.cos(h); let w = 99; for (let d = 1; d <= 7; d += 1) if (inBld(CAM.pos.x + sx * d, CAM.pos.z + sz * d, .2)) { w = d; break; }   /* 11-26 採点：PC でふり返ると、すぐ前の壁が画面をふさぐ → 壁が近いときは目の位置を後ろへ少し引く（引いた先が建物の中なら引かない） */
+    let back = w < 7 ? Math.min(3, 7 - w) : 0; while (back > .3 && inBld(CAM.pos.x - sx * back, CAM.pos.z - sz * back, .3)) back -= .5; back = Math.max(0, back);
+    CAM.pull = (CAM.pull || 0) + (back - (CAM.pull || 0)) * .08; if (CAM.pull > .02) { camera.position.x -= sx * CAM.pull; camera.position.z -= sz * CAM.pull; } }
 }
 const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
 function safetyNote() { if (WALK.safety) return; if (!AOI.greeted || voiceQ || !$("#caption").hidden) { setTimeout(safetyNote, 1500); return; }   // 2026-10-26 降りた直後は名乗りを先に、案内はそのあと
@@ -2042,7 +2050,7 @@ function meijiTalk() {   /* 11-12：昔の川が浮かんだとき、字幕で�
     const watch = () => { if (fin) return; if (voiceQ === me) { k0 = me.i; setTimeout(watch, 500); return; } L.splice(0, k0 + (k0 < L.length ? 0 : 0)); SR.splice(0, k0); if (L.length) setTimeout(go, 1500); }; setTimeout(watch, 500); }; go(); }   /* 割りこまれたら、残りの行をあとで続ける */
 function frame0() {
   const dt = Math.min(.05, clock.getDelta());
-  QW.meiji?.update(dt);
+  QW.meiji?.update(dt); if (QW.meiji) RIVU.bk.value = QW.meiji.mesh.material.uniforms.bk.value;
   if (QW.bldLines) QW.bldLines.visible = QW.mode !== "walk";   // 11-02 採点 P1：歩くときは建物の輪郭の線（地面を横切る細い線に見える）を出さない
   if ((QW.mode === "descend" || QW.mode === "walk") && !QW._pre) { QW._pre = 1; setTimeout(preShaders, 300); }   // 降りる動きのあいだに組む（歩きだしてからは組まない）   // 11-02：歩きはじめに影絵を前もって組み立てる（歩く途中の 100〜300 ms の 1 コマをなくす）
   if (QW.ready) (QW.fliers ||= makeFliers(world, camera, { mobile: MOBILE, groundY, onTouch: touchBird, natural: true })).update(dt, QW.mode === "walk");   // 11-03：鳥は操作できるようになってから
@@ -2104,7 +2112,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     document.body.classList.add("ready"); QW.ready = true; QW.tReady = performance.now() - T0; window.MLLoader?.done();   /* 11-05 起動：読み込み画面は ready のその場で閉じる（index.html の 60 ms ごとの見回りを待つと、あとの組み立てに先を越されて 1 秒あまり遅れていた） */ setTimeout(() => import("../kit/startbirds.js?v=3").then(m => m.startBirds({ THREE, scene, camera, renderer })).catch(() => { }), 500);   // 2026-11-03 起動の鳥（sight と同じ考え方）
     setTimeout(() => QW.late?.(), 30);
-    setTimeout(() => import("./meiji.js?v=7").then(m => { QW.meiji = m.buildMeiji(THREE, { terrain: QW.terrain, world, camera, mode: () => QW.mode, mobile: MOBILE, onFirst: meijiTalk, aoi: () => AOI.root }); }).catch(e => console.warn("meiji", e)), 2200);   /* 11-12 渋谷川の昔の姿（明治の地図の川と低い湿った土地）を足もとに重ねる */
+    setTimeout(() => import("./meiji.js?v=9").then(m => { QW.meiji = m.buildMeiji(THREE, { terrain: QW.terrain, world, camera, mode: () => QW.mode, mobile: MOBILE, onFirst: meijiTalk, aoi: () => AOI.root }); }).catch(e => console.warn("meiji", e)), 2200);   /* 11-12 渋谷川の昔の姿（明治の地図の川と低い湿った土地）を足もとに重ねる */
     (async () => { await new Promise(r => setTimeout(r, 60)); for (const L of STAGE) { try { await renderer.compileAsync(L[0][0], camera, scene); } catch { } for (const [c, m] of L) c.layers.mask = m; await new Promise(r => requestAnimationFrame(r)); } QW.tm.staged = performance.now() - T0; })();
     setTimeout(() => { buildBuildings().catch(e => console.warn("bld", e)); buildKura(); }, 60);   // エリアの輪郭（zones.json・1 KB）は buildBuildings の中で一緒に読む
     setTimeout(loadKasane, 3000); setTimeout(loadMyLayer, 3600);

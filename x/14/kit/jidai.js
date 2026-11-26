@@ -37,9 +37,9 @@
     function tx0() { return { value: null }; }
     var U = { mk: { value: mtex }, gc: tx0(), gn: tx0(), sc: tx0(), sn: tx0(), o0: tx0(), o1: tx0(), o2: tx0(), h0: tx0(), h1: tx0(), h2: tx0(),
       box: { value: new T.Vector4(BOX[0], BOX[1], BOX[2], BOX[3]) }, hiR: { value: new T.Vector4(+HI[1], +HI[2], +HI[3], +HI[4]) },
-      k: { value: 0 }, e: { value: 0 }, t: { value: 0 }, eye: { value: new T.Vector3() }, fw: { value: new T.Vector2(0, -1) }, wx: { value: innerWidth > 700 ? 1.0 : .66 }, wd: { value: innerWidth > 700 ? 3.3 : 3.7 }, wh: { value: innerWidth > 700 ? .95 : .52 }, wz: { value: innerWidth > 700 ? 30 : 52 }, R: { value: 8 }, aoi: { value: new T.Vector4(0, 0, 0, 0) } };
+      k: { value: 0 }, e: { value: 0 }, t: { value: 0 }, eye: { value: new T.Vector3() }, fw: { value: new T.Vector2(0, -1) }, wx: { value: innerWidth > 700 ? 1.0 : .66 }, wd: { value: innerWidth > 700 ? 3.3 : 3.7 }, wh: { value: innerWidth > 700 ? .95 : .52 }, wz: { value: innerWidth > 700 ? 30 : 52 }, R: { value: 8 }, bk: { value: 0 }, aoi: { value: new T.Vector4(0, 0, 0, 0) } };
     var FS = [
-      "uniform sampler2D mk, gc, gn, sc, sn, o0, o1, o2, h0, h1, h2; uniform vec4 box, hiR; uniform float k, e, t, R, wx, wd, wh, wz; uniform vec3 eye; uniform vec2 fw; varying vec3 vW;",
+      "uniform sampler2D mk, gc, gn, sc, sn, o0, o1, o2, h0, h1, h2; uniform vec4 box, hiR; uniform float k, e, t, R, wx, wd, wh, wz, bk; uniform vec3 eye; uniform vec2 fw; varying vec3 vW;",
       "float h(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); } float n(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*(3.-2.*f); return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+1.),f.x),f.y); }",
       "vec2 wuv(vec2 p){ return vec2((p.x-box.x)/box.z, 1.-(p.y-box.y)/box.w); }",
       "float lum(vec3 c){ return dot(c, vec3(.3,.59,.11)); }",
@@ -63,7 +63,7 @@
       "  vec3 V = normalize(eye - vW); float fr = pow(1. - clamp(V.y,0.,1.), 4.);",
       "  vec2 fl = vec2(n(p*.07), n(p*.07+7.)) - .5; float rip = n(p*vec2(1.3,.5) + fl*3. - vec2(0.,t*1.1))*.6 + n(p*3.2 - t*.8)*.4;",
       "  float r2 = n(p*vec2(7.,2.6) + fl*4. - vec2(0.,t*1.6)); vec3 deep = vec3(.05,.12,.11) + soil*.08; vec3 sky = vec3(.66,.77,.86); float gl = pow(n(p*9. + vec2(t*1.1, -t*.6)), 10.); vec3 water = mix(deep, sky, clamp(.08 + fr*.9 + (rip-.5)*.22 + (r2-.5)*.14, 0., 1.)) + pow(rip*.6 + r2*.4, 7.)*.3 + gl*.3; water = mix(water, soil*.5, (1.-fr)*.25*(1.-smoothstep(.5,.95,texture2D(mk, wuv(p)).r)));",
-      "  vec3 col = water*wtr + soil*bank*.85 + landc*low; float a = (wtr*.93 + bank*.9 + low*.97) * smoothstep(0., .25, a0) * min(1., a0*3.);",
+      "  vec3 col = water*wtr + soil*bank*.85 + landc*low; float a = (wtr*.93 + bank*.9 + low*.97) * smoothstep(0., .25, a0) * min(1., a0*3.); a *= mix(.15, 1., smoothstep(3., 22., d)) * (1. - .6*bk);",
       "  gl_FragColor = vec4(col / max(wtr + bank + low, 1e-3), a * (1. - aH)); }"
     ].join("\n");
     var mat = new T.ShaderMaterial({ uniforms: U, transparent: true, depthWrite: false, fog: false, polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -6,
@@ -112,7 +112,7 @@
     var ac = null, gn = null, au = null;
     function sound() { if (ac || !SND) return; try { ac = new (window.AudioContext || window.webkitAudioContext)(); au = new Audio(SND); au.loop = true;
       var s = ac.createMediaElementSource(au), lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 1400; gn = ac.createGain(); gn.gain.value = 0; s.connect(lp).connect(gn).connect(ac.destination); } catch (e) { ac = null; } }
-    var jdB = false, t00 = performance.now(), inside = 0, said = 0, k = 0, tgt = 0, held = 0, eTgt = 0, last = performance.now(), chk = 0, _f = new T.Vector3();
+    var mvP = new T.Vector2(), mvD = new T.Vector2(), jdB = false, t00 = performance.now(), inside = 0, said = 0, k = 0, tgt = 0, held = 0, eTgt = 0, last = performance.now(), chk = 0, _f = new T.Vector3();
     function say(L) { if (q.speak) q.speak(L.map(function (o) { return { t: o.t, src: o.src, lay: "x.memory" }; })); }
     function sayEra(i) { var o = ERA[i]; var Ls = o.t.split("／").map(function (t) { if (mob()) t = t.replace("足もとの窓は", "上の小さな窓は"); return { t: kind === "g" ? t.replace("すぐそばが渋谷川。", "ここは田や湿地などの低い土地。") : t, src: GSI + o.src + KAKO }; });
       if (i === 0) Ls.push({ t: "水と草は、明治の地図の川と低地の模式。", src: "国土地理院「明治期の低湿地データ」" }); say(Ls); }
@@ -125,6 +125,8 @@
       var mb = mob(); U.wh.value = mb ? 0 : .95; U.wx.value = 1; U.wd.value = 3.3; U.wz.value = 44;   // 足もとの窓は広い画面だけ（スマホは大きさ 0＝描かない）
       board.visible = mb && k > .003 && q.mode === "walk"; if (board.visible !== jdB) { jdB = board.visible; document.body.classList.toggle("jdB", jdB); } if (board.visible) U.br.value.set((BX + BW / 2) / innerWidth * 2 - 1, 1 - (BY + BH / 2) / innerHeight * 2, BW / innerWidth, BH / innerHeight);
       cam.getWorldDirection(_f); if (Math.hypot(_f.x, _f.z) > .05) U.fw.value.set(_f.x, _f.z).normalize();
+      { if (!mvP.x && !mvP.y) mvP.set(U.eye.value.x, U.eye.value.z); var ex = U.eye.value.x - mvP.x, ez = U.eye.value.z - mvP.y, ml = Math.hypot(ex, ez); if (ml > .6) { mvD.set(ex / ml, ez / ml); mvP.set(U.eye.value.x, U.eye.value.z); }   /* 11-26 採点：ふり返った（進んできた向きと逆を見る）ときは川の層を淡く */
+        var bt = mvD.lengthSq() > .5 && U.fw.value.dot(mvD) < -.3 ? 1 : 0; U.bk.value += (bt - U.bk.value) * Math.min(1, rdt / .8); }
       if ((chk += rdt) > .5) { chk = 0; capFit();
         var dist = walking ? riverNear(U.eye.value.x, U.eye.value.z, inside ? R_OUT : R_IN) : 1e9;
         if (!inside && dist < R_IN) { inside = 1; tgt = 1; if (q.holdTalk) q.holdTalk(1);   /* v7：見ているあいだは町の語りを止める */ eTgt = 0; held = 0; U.e.value = 0; sound(); if (ac) { ac.resume(); au.play().catch(function () {}); }

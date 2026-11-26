@@ -37,6 +37,15 @@
     /* 音の出典の札は左下（≡ の上）へ。生き物の列と重ねない */
     'html body #sndTag{top:auto!important;right:auto!important;left:16px!important;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 120px)!important;max-width:min(360px,60vw)!important;text-align:left!important;transform:none!important;translate:none!important}' +
     'html body #qRing .rg-row{padding-left:44px!important;padding-right:44px!important;box-sizing:border-box}' +
+    (WIDE ? 'html body #qJidaiTag{font-size:14px!important}html body #qJidaiTag span,html body #qJidaiTag div{font-size:12px!important}' : '') +
+    /* 11-26 採点：生き物の名前は空やビルの上でも読めるよう、薄い下地を敷く */
+    'html body #qRing .rg-it span{background:rgba(4,8,14,.58)!important;border-radius:10px!important;padding:1px 8px 3px!important}' +
+    /* 11-26 採点：起動の案内の字幕のあいだは、写真の窓（空中写真の小窓）を出さない＝窓は一度に 1 つ／「この先」の札は字幕と重ねない */
+    'body.q3Guide #qMini{opacity:0!important;visibility:hidden!important}' +
+    'html body .arNear{bottom:calc(max(16px,env(safe-area-inset-bottom)) + 124px)!important}' +
+    'html body #qRing .rg-it span{background:rgba(4,10,16,.6)!important;padding:1px 7px!important;border-radius:3px!important;color:#eef4f6!important}' +
+    /* 起動の案内などの字幕が出ているあいだは、小さな地図（空中写真）をしまう＝窓は一度に 1 つ */
+    'body.q3cap #qMini,body:has(#qKao.on) #qMini{opacity:0!important}' +
     'html body #qKao div{background:rgba(3,6,12,.92)!important;opacity:1!important}';
   document.head.appendChild(css);
   function btnByText(re, root) { return [].slice.call((root || document).querySelectorAll('a,button')).filter(function (e) { return re.test((e.getAttribute('aria-label') || '') + ' ' + (e.textContent || '')) && !e.closest('#q3Drawer'); })[0]; }
@@ -69,12 +78,19 @@
       else { var a = document.getElementById('autoBtn'); if (a) a.click(); else if (window.__qw && __qw.autoWalk) __qw.autoWalk(!walking()); }
       setTimeout(label, 60); setTimeout(label, 600);
     });
-    new MutationObserver(label).observe(document.body, { attributes: true, attributeFilter: ['data-mode', 'class'] });
+    new MutationObserver(function () { label(); cap(); }).observe(document.body, { attributes: true, attributeFilter: ['data-mode', 'class'] });
     var a = document.getElementById('autoBtn'); a && new MutationObserver(label).observe(a, { childList: true, characterData: true, subtree: true });
     function cap() { var c = document.getElementById('caption'); if (!c) return; var b = 'calc(max(16px, env(safe-area-inset-bottom)) + 70px)';
       if (c.style.getPropertyValue('bottom') !== b) { c.style.setProperty('top', 'auto', 'important'); c.style.setProperty('bottom', b, 'important'); c.style.setProperty('translate', 'none', 'important'); c.style.setProperty('transform', 'none', 'important'); }
       var g = document.getElementById('sndTag'); if (g && g.style.getPropertyValue('left') !== '16px') { [['top', 'auto'], ['right', 'auto'], ['left', '16px'], ['bottom', 'calc(max(16px, env(safe-area-inset-bottom)) + 120px)'], ['text-align', 'left'], ['max-width', 'min(340px, 60vw)'], ['transform', 'none']].forEach(function (p) { g.style.setProperty(p[0], p[1], 'important'); }); }
-      var t = document.getElementById('capText'); c.style.setProperty('visibility', t && t.textContent.trim() ? 'visible' : 'hidden', 'important'); }
+      var t = document.getElementById('capText'); var one = document.body.classList.contains('jdB') || !!document.querySelector('#qKao.on');   /* 窓は一度に 1 つ：ここで visible を !important で付けると、上の CSS の「窓のあいだは隠す」が効かない（shibuya）ので、窓のあいだは hidden */
+      var capOn = !one && !!(t && t.textContent.trim()); c.style.setProperty('visibility', capOn ? 'visible' : 'hidden', 'important'); document.body.classList.toggle('q3cap', capOn && !c.hidden);
+      var gd = !one && t && /行きたい所|指でさして|わたしは碧/.test(t.textContent); document.body.classList.toggle('q3Guide', !!gd);
+      /* 昔の写真の窓のあいだは、音の出典の札も窓の札の中へ一行で（権利の表示は残し、出す枠は 1 つ） */
+      var jt = document.getElementById('qJidaiTag'); if (jt && g) { var jd = document.body.classList.contains('jdB'), ln = document.getElementById('q3SndLn');
+        if (!ln) { ln = document.createElement('span'); ln.id = 'q3SndLn'; ln.style.cssText = (WIDE ? 'margin-left:8px;' : 'display:block;') + 'font:400 10px/1.5 "Hiragino Sans",sans-serif;color:rgba(225,236,241,.78)'; var sp0 = jt.querySelector('span'); WIDE && sp0 ? sp0.after(ln) : jt.appendChild(ln); }   /* スマホは幅が足りないので 3 行目に */
+        var sx = jd && !g.hidden && g.textContent.trim() ? g.textContent.replace(/[＋+]/g, '').replace(/\s+/g, ' ').trim() : ''; var mm = sx.match(/音[：:]\s*([A-Za-z0-9_.\- ]+?)\s*[／（(][^（(]*[（(]?(CC[^）)]*)/); if (sx) sx = mm ? '音：' + mm[1] + '（' + mm[2] + '）' : sx.slice(0, 40); if (ln.textContent !== sx) ln.textContent = sx; ln.style.display = sx ? (WIDE ? '' : 'block') : 'none';
+        g.style.setProperty('visibility', jd ? 'hidden' : '', jd ? 'important' : ''); } }
     label(); cap(); setInterval(function () { label(); cap(); var s = document.getElementById('qS6'); if (s && !s.closest('#q3Drawer')) take(s, '五感'); }, 1000);
   }
   var h = setInterval(function () { var q = window.__qw; if (q && q.ready && document.getElementById('hud')) { clearInterval(h); setTimeout(build, 1600); } }, 200);
