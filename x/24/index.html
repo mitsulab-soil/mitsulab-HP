@@ -414,7 +414,7 @@ if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=docu
 </script>
 <noscript><p style="padding:20px">この体験は JavaScript で動きます。</p></noscript>
 <style id="s1124a">/* 2026-11-24 「次へ」の札は外した（字幕とかぶり、画面に引き留めるため）。上の札の字に影 */#ring .rg-it span{text-shadow:0 1px 3px rgba(0,0,0,.85)}</style>
-<script src="kit/ichimai.js" data-name="Qualia/sight" data-right="12" data-bottom="140" defer></script>
+<script src="kit/ichimai.js" data-name="Qualia/sight" data-right="12" data-bottom="196" defer></script>
 <style id="pc18">/* 2026-11-18 PC はキーと押した場所で歩けるので、右の矢印の盤は出さない（文字と操作を減らす） */@media (hover:hover) and (pointer:fine) and (min-width:900px){#bodyControls{display:none!important}#moveNote{font-size:15px!important;color:#f4f8f2!important}}@media (max-width:700px){#where b,#where small{text-shadow:0 0 1px #000,0 0 1px #000,0 0 1px #000!important;font-weight:700}#where{top:74px!important}#moveNote{font-weight:600;text-shadow:0 0 2px #000,0 0 1px #000}}</style>
 <style id="ring20">/* 2026-11-20 生きものの 3D の並び（選んでいる体をまん中に、前後の体を左右に。回して選ぶ） */
 #ring{position:fixed;left:50%;transform:translateX(-50%);top:calc(max(8px,env(safe-area-inset-top)) + 46px);width:min(620px,100vw);height:132px;z-index:5;touch-action:pan-y;user-select:none;-webkit-user-select:none}
@@ -529,6 +529,14 @@ body.kes-ar #acts{display:none!important}   /* AR 中は碧の話の ⏸（止�
 @media (max-width:767px){#qgEdge{right:auto;left:var(--qg-edge);bottom:calc(var(--qg-safe-b) + var(--qg-edge) + 72px)}}
 </style>
 <script src="kit/qgui.js?v=20261126a"></script>
+<script src="kit/trace.js?v=20261126c"></script><script src="kit/kizuki.js?v=20261126c"></script>
+<script>/* 2026-11-26 痕跡（スティグマジー）：「気づいた」で見ている先に痕跡。重なると濃く、数日で薄れる。この端末の中だけ */
+(function(){var n=0;(function w(){var c=window.__um&&__um.camera;if(!c){if(n++<200)setTimeout(w,150);return}
+var V=c.position.constructor,v=new V(),d=new V();
+Kizuki.start({key:'sight.kizuki',mount:document.getElementById('qgEdge'),place:function(){return __um.habitat},
+ visible:function(){var a=document.getElementById('qgAr');return !(a&&a.getAttribute('aria-pressed')==='true')},
+ aim:function(){c.getWorldDirection(d);return{x:c.position.x+d.x*6,y:c.position.y+d.y*6,z:c.position.z+d.z*6}},
+ project:function(p){v.set(p.x,p.y,p.z);var dist=v.distanceTo(c.position);v.project(c);return{x:(v.x+1)/2*innerWidth,y:(1-v.y)/2*innerHeight,d:dist,ok:v.z<1&&v.z>-1&&dist<60}}})})()})();</script>
 <script>
 (function(){var $=function(i){return document.getElementById(i)};
 $('dPlace').appendChild($('habitats'));$('dSee').append($('kurBtn'),$('whyBtn'));$('menuBtn').textContent='設定と出典';$('dMore').appendChild($('menuBtn'));

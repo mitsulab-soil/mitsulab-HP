@@ -125,7 +125,7 @@ export function start(canvas) {
     (place === "city" ? city : forest).add(aoi); if (place === "city") standAoi(); window.__aoi = { v, aoi, AM }; window.__hearAoiAt = performance.now();
   } catch (e) { console.warn("碧の姿を読み込めませんでした", e?.message ?? e); } })();
   // ── 場所の切りかえ（自然／都市。2026-11-23 本人）。都市の場（kit/city.js）は切りかえたときに読む。森の先の海辺（kit/shore.js）は森が出てから組む
-  const city = new THREE.Group(); city.visible = false; S.add(city); let CITY = null, cityP = null, SHORE = null, place = "forest";
+  const city = new THREE.Group(); city.visible = false; S.add(city); let CITY = null, cityP = null, SHORE = null, place = "forest"; window.__hearKz = { cam, get place() { return place; } };   // 2026-11-26 気づいた痕跡（kit/kizuki.js）が見る
   const VIEW = { forest: { eye: eye.clone(), look: look.clone() } };
   // 森の先の海辺（kit/shore.js）。この場所は浜から見るので、はじめから組む
   try { clearForest(forest, FOREST.trunks, [FOREST.ground]);
