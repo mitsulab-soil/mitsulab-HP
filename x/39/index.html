@@ -135,6 +135,7 @@ html.seen .hd p{display:none}.hd a{display:inline-flex;align-items:center;min-he
 <div class="toast" id="toast" role="status"></div>
 
 <script src="vendor/leaflet/leaflet.js"></script>
+<script src="trace.js"></script>
 <script>
 (function(){
 'use strict';
@@ -197,10 +198,16 @@ L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',{minZoom
 map.attributionControl.setPrefix(false);
 
 var on={};S.forEach(function(s){on[s.k]=true});
+/* 2026-11-26 痕跡（スティグマジー）：置いた所・読んだ所に淡い痕跡が残り、約 3 日で半分に薄れ、重なると濃くなる。端末の中だけ */
+var TR=window.Trace?Trace.create({key:'qmap.trace',halfLife:3*864e5,cap:4}):null;
+function cid(la,lo){var g=snap(la,lo);return g[0].toFixed(5)+','+g[1].toFixed(5)}
+var tlayer=L.layerGroup().addTo(map);
 var layer=L.layerGroup().addTo(map);
+function drawTrace(){tlayer.clearLayers();if(!TR)return;var z=map.getZoom(),R=z<8?10:z<12?16:26;TR.all().forEach(function(e){if(!e.m||!SM[e.m.k]||!on[e.m.k])return;var k=Math.min(1,e.w/TR.cap);L.circleMarker([e.m.la,e.m.lo],{radius:R*(0.7+0.7*k),stroke:false,fillColor:SM[e.m.k].c,fillOpacity:.1+.32*k,interactive:false}).addTo(tlayer)})}
+function trLine(la,lo){if(!TR)return'';var id=cid(la,lo),w=TR.strength(id);if(w<.05)return'';var k=Math.min(4,Math.max(1,Math.round(w))),d=TR.daysLeft(id);return'<p class="pm" style="margin-top:4px">痕跡 '+'●●●●'.slice(0,k)+'<span style="opacity:.35">'+'●●●●'.slice(k)+'</span> ・ 約 '+d+' 日で薄れる</p>'}
 function esc(t){return String(t).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function draw(){
-  layer.clearLayers();
+  layer.clearLayers();drawTrace();
   var all=[];SEED.forEach(function(p){if(on[p.s])all.push([p,true])});
   load().forEach(function(p){if(on[p.s]&&SM[p.s])all.push([p,false])});
   /* 近い印は一つにまとめる（画面で 34px 以内）。寄ると分かれる */
@@ -233,9 +240,10 @@ function mark(p,seed){
   L.circleMarker([p.la,p.lo],{radius:r+6,color:s.c,weight:1,opacity:.32,fill:false,interactive:false}).addTo(layer);
   var m=L.circleMarker([p.la,p.lo],{radius:r,color:s.c,weight:seed?1.5:1,opacity:.95,fillColor:s.c,fillOpacity:seed?.25:.7}).addTo(layer);
   m.on('click',function(){
+    var o=p._o||p;if(TR)TR.put(cid(o.la,o.lo),.25,{la:o.la,lo:o.lo,k:o.s});drawTrace();
     var h='<p class="pk" style="--c:'+s.c+'">'+s.n+' ・ '+LV[p.lv-1]+'</p>';
-    if(seed){h+='<p class="pt">'+esc(p.t)+'</p><p class="pm">出典：<a href="'+p.u+'" target="_blank" rel="noopener">'+esc(p.src)+'</a><br>mitsulab が確かめた印（位置はおおよそ）</p><p class="pq"><span style="display:block;font-size:10px;letter-spacing:.2em;color:var(--ml-ink-3);margin-bottom:2px">外で確かめる</span>'+ASK[p.s]+'</p>'+app(p.s)}
-    else{h+=(p.ph?'<img class="pimg" alt="置いた写真" data-ph="'+p.id+'">':'')+(p.t?'<p class="pt">'+esc(p.t)+'</p>':'')+'<p class="pm">'+esc(p.when)+' ・ この端末の印</p><button class="del" data-del="'+p.id+'">この印を消す</button>'+app(p.s)}
+    if(seed){h+='<p class="pt">'+esc(p.t)+'</p><p class="pm">出典：<a href="'+p.u+'" target="_blank" rel="noopener">'+esc(p.src)+'</a><br>mitsulab が確かめた印（位置はおおよそ）</p>'+trLine(o.la,o.lo)+'<p class="pq"><span style="display:block;font-size:10px;letter-spacing:.2em;color:var(--ml-ink-3);margin-bottom:2px">外で確かめる</span>'+ASK[p.s]+'</p>'+app(p.s)}
+    else{h+=(p.ph?'<img class="pimg" alt="置いた写真" data-ph="'+p.id+'">':'')+(p.t?'<p class="pt">'+esc(p.t)+'</p>':'')+'<p class="pm">'+esc(p.when)+' ・ この端末の印</p>'+trLine(o.la,o.lo)+'<button class="del" data-del="'+p.id+'">この印を消す</button>'+app(p.s)}
     var pop=L.popup({maxWidth:270,autoPanPadding:[16,120]}).setLatLng([p.la,p.lo]).setContent(h).openOn(map);
     var el=pop.getElement();
     var im=el&&el.querySelector('[data-ph]');
@@ -295,7 +303,8 @@ bPut.onclick=function(){
   var p={id:'p'+Math.random().toString(36).slice(2,12),s:st.s,lv:st.lv,la:+g[0].toFixed(5),lo:+g[1].toFixed(5),t:t,when:band(),ph:!!st.ph};
   var a=load();a.push(p);
   if(!save(a)){err.textContent='この端末では保存できませんでした';return}
-  var fin=function(){close();draw();toast('置きました。顔を上げて、もう一つ探してみて。',4200)};
+  var was=TR?TR.strength(cid(p.la,p.lo)):0;if(TR)TR.put(cid(p.la,p.lo),1,{la:p.la,lo:p.lo,k:p.s});
+  var fin=function(){close();draw();toast(was>.3?'前の痕跡に重なり、濃くなりました。数日で薄れていきます。':'置きました。痕跡は数日で薄れます。顔を上げて、もう一つ探してみて。',4200)};
   if(st.ph)phPut(p.id,st.ph).then(fin,function(){p.ph=false;var b=load().map(function(x){return x.id===p.id?p:x});save(b);fin()});else fin();
 };
 bCancel.onclick=close;
