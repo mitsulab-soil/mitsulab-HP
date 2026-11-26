@@ -227,5 +227,7 @@ h.onclick=function(){on=!on;document.body.classList.toggle("qg-help",on);h.setAt
 n.appendChild(h);var m=document.createElement("button");m.type="button";m.className="ml-btn ml-btn--quiet qg-menu";m.setAttribute("aria-label","メニュー");m.setAttribute("aria-expanded","false");m.textContent="≡";
 m.onclick=function(){var o=document.body.classList.toggle("qg-open");m.setAttribute("aria-expanded",o);m.textContent=o?"×":"≡"};n.appendChild(m);
 n.addEventListener("click",function(e){if(e.target!==m&&e.target!==h&&e.target.closest("button,a")){document.body.classList.remove("qg-open");m.textContent="≡";m.setAttribute("aria-expanded","false")}});})();</script>
+<style>/* 2026-11-26 本人「ボタンがおおすぎ」：持ち帰りの一枚も ≡ の中へ */header nav.tools .icm{position:static!important;width:auto!important;padding:0 12px;gap:6px;font-size:13px;opacity:1}</style>
+<script>(function m(n){var i=document.querySelector("body>.icm"),t=document.querySelector("header nav.tools");if(!i||!t){if((n||0)<80)setTimeout(function(){m((n||0)+1)},100);return}i.insertAdjacentHTML("beforeend","<span>一枚を保存</span>");t.insertBefore(i,t.querySelector(".qg-menu"))})();</script>
 </body>
 </html>

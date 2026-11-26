@@ -101,6 +101,7 @@ html body button:active{transform:scale(.95);border-color:var(--qg-line-hi)!impo
   <div id="dTune"></div>
   <h3>表示</h3><button class="qg-sw" id="qgTxt" role="switch" aria-checked="false">説明と字幕</button>
   <p class="qg-note">AR＝スマホのカメラとマイクで、いまの景色と音に重ねて聴けます。端末の中だけで計算し、録音・録画・保存・送信はしません。</p>
+  <div class="qg-row" id="dMore" style="margin-top:10px"></div>
   <div id="dFold"></div>
 </aside>
 <style id="qg-min-20261126">
@@ -116,6 +117,8 @@ html body button:active{transform:scale(.95);border-color:var(--qg-line-hi)!impo
 body.ar #arv{display:block}body.ar #c{visibility:hidden}
 body.ar .spec{background:radial-gradient(ellipse 70% 90% at 50% 50%,rgba(0,0,0,.5),rgba(0,0,0,.12) 80%)!important}
 .spec,.cap,.top,#qgEdge,.qg-drawer,.away{z-index:5}
+/* 2026-11-26 本人「ボタンがおおすぎ」：常に出すのは ≡・AR・マイクだけ。mitsulab へ戻る・気づいた は ≡ の中 */
+.top .back{display:none!important}#dMore a,#dMore .qg-btn{display:inline-flex;align-items:center;min-height:44px;width:auto!important;padding:0 14px!important;border:1px solid var(--qg-line);border-radius:12px;color:var(--qg-ink);text-decoration:none;font-size:13px}
 @media (max-width:767px){html body #cap.cap{bottom:calc(var(--qg-safe-b) + var(--qg-edge) + 4px)!important;left:var(--qg-edge)!important;transform:none!important;max-width:calc(100vw - 100px)!important;text-align:left}}
 @media (min-width:768px){html body #cap.cap{bottom:calc(var(--qg-safe-b) + var(--qg-edge) + 8px)!important}}
 </style>
@@ -124,14 +127,14 @@ body.ar .spec{background:radial-gradient(ellipse 70% 90% at 50% 50%,rgba(0,0,0,.
 <script>/* 2026-11-26 痕跡（スティグマジー）：「気づいた」で見ている先に痕跡。重なると濃く、数日で薄れる。この端末の中だけ */
 (function(){var n=0;(function w(){var c=window.__hearKz&&__hearKz.cam;if(!c){if(n++<200)setTimeout(w,150);return}
 var V=c.position.constructor,v=new V(),d=new V();
-Kizuki.start({key:'hear.kizuki',mount:document.getElementById('qgEdge'),place:function(){return __hearKz.place},
+Kizuki.start({key:'hear.kizuki',mount:document.getElementById('dMore'),place:function(){return __hearKz.place},
  visible:function(){var a=document.getElementById('qgAr');return !(a&&a.getAttribute('aria-pressed')==='true')},
  aim:function(){c.getWorldDirection(d);return{x:c.position.x+d.x*6,y:c.position.y+d.y*6,z:c.position.z+d.z*6}},
  project:function(p){v.set(p.x,p.y,p.z);var dist=v.distanceTo(c.position);v.project(c);return{x:(v.x+1)/2*innerWidth,y:(1-v.y)/2*innerHeight,d:dist,ok:v.z<1&&v.z>-1&&dist<60}}})})()})();</script>
 
 <script>
 (function(){var $=function(i){return document.getElementById(i)};
-$('qgEdge').appendChild($('bMic'));$('bMic').textContent='マイク';
+$('qgEdge').appendChild($('bMic'));(function(){var a=document.querySelector('.top .back').cloneNode(true);a.className='';$('dMore').prepend(a)})();$('dMore').addEventListener('click',function(){setTimeout(function(){dr.set(false)},0)});$('bMic').textContent='マイク';
 $('dPlace').appendChild($('place'));$('dListen').append($('bBat'),$('bGo'));$('dTune').appendChild(document.querySelector('.tune'));$('dFold').appendChild(document.querySelector('.fold'));
 var dr=qg.drawer($('qgDrawer'),$('qgMenu'));qg.txt($('qgTxt'));$('bGo').addEventListener('click',function(){dr.set(false)});
 new MutationObserver(function(){var t=$('cap').textContent;if(/ひらけなかった|拾っていない|カメラ/.test(t)){$('cap').classList.add('force');clearTimeout(window.__capT);window.__capT=setTimeout(function(){$('cap').classList.remove('force')},6000)}}).observe($('cap'),{childList:true,characterData:true,subtree:true});
