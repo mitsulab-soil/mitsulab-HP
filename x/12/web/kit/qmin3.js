@@ -30,6 +30,10 @@
     /* 生き物の列はいつも見える */
     'html body:not(:has(#qKao.on)) #qRing{opacity:1!important;visibility:visible!important}' +
     'html body #capText:empty{display:none!important}' +
+    /* 生き物の名前はいつも出し、景色に溶けないよう影を付ける */
+    'html body #qRing .rg-it span{opacity:1!important;text-shadow:0 0 2px #000,0 0 6px rgba(0,0,0,.9)!important}' +
+    /* 窓は一度に 1 つ：昔の写真の窓（渋谷）か問いの窓が出ているあいだは、字幕と年代の札をしまう */
+    'body.jdB #caption,body:has(#qKao.on) #caption,body:has(#qKao.on) #qJidaiTag,body:has(#qKao.on) #sndTag{visibility:hidden!important}' +
     /* 音の出典の札は左下（≡ の上）へ。生き物の列と重ねない */
     'html body #sndTag{top:auto!important;right:auto!important;left:16px!important;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 120px)!important;max-width:min(360px,60vw)!important;text-align:left!important;transform:none!important;translate:none!important}' +
     'html body #qRing .rg-row{padding-left:44px!important;padding-right:44px!important;box-sizing:border-box}' +
@@ -39,7 +43,7 @@
   function walking() { var a = document.getElementById('autoBtn'); return !!(a && /止ま/.test(a.textContent)); }
   function label() {
     if (!main) return; var walk = document.body.dataset.mode === 'walk' || (window.__qw && __qw.mode === 'walk');
-    main.textContent = !walk ? '歩く' : walking() ? '止まる' : '歩きつづける';
+    main.textContent = walk && walking() ? '止まる' : '歩く';
   }
   function take(el, h) { if (!el || el.closest('#q3Drawer')) return; if (h) { var t = document.createElement('span'); t.className = 'q3h'; t.textContent = h; dr.appendChild(t); } dr.appendChild(el); moved++; }
   function build() {
@@ -69,6 +73,7 @@
     var a = document.getElementById('autoBtn'); a && new MutationObserver(label).observe(a, { childList: true, characterData: true, subtree: true });
     function cap() { var c = document.getElementById('caption'); if (!c) return; var b = 'calc(max(16px, env(safe-area-inset-bottom)) + 70px)';
       if (c.style.getPropertyValue('bottom') !== b) { c.style.setProperty('top', 'auto', 'important'); c.style.setProperty('bottom', b, 'important'); c.style.setProperty('translate', 'none', 'important'); c.style.setProperty('transform', 'none', 'important'); }
+      var g = document.getElementById('sndTag'); if (g && g.style.getPropertyValue('left') !== '16px') { [['top', 'auto'], ['right', 'auto'], ['left', '16px'], ['bottom', 'calc(max(16px, env(safe-area-inset-bottom)) + 120px)'], ['text-align', 'left'], ['max-width', 'min(340px, 60vw)'], ['transform', 'none']].forEach(function (p) { g.style.setProperty(p[0], p[1], 'important'); }); }
       var t = document.getElementById('capText'); c.style.setProperty('visibility', t && t.textContent.trim() ? 'visible' : 'hidden', 'important'); }
     label(); cap(); setInterval(function () { label(); cap(); var s = document.getElementById('qS6'); if (s && !s.closest('#q3Drawer')) take(s, '五感'); }, 1000);
   }

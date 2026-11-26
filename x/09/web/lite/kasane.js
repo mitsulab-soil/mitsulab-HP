@@ -107,7 +107,7 @@ function barkGeo() {   // touch：樹皮のうねりの板（触れると波が�
 }
 const FORMS = { time: [clockGeo, 0xe0c98a, 7], scale: [boxesGeo, 0x9ad0c4, 8], touch: [barkGeo, 0xc9b8a0, 9], jikan: [ringsGeo, 0xb48a62, 5], chikei: [contourGeo, 0xc8d0a8, 6], literature: [leafGeo, 0xd9b26a, 0], sound: [waveGeo, 0x9fc6d8, 1], keyaki: [ringsGeo, 0xc89a72, 2], leaf: [chainGeo, 0xb8d6a8, 3], trace: [traceGeo, 0xa9c9e6, 4] };
 
-const BIG = { time: 2.6, scale: 2.8, touch: 1.45 };   // 11-18：time（Qualia/scale の時間の桁）・scale は人の背丈ほどに
+const BIG = { time: 1.3, scale: 2.8, touch: 1.45 };   // 11-18：time（Qualia/scale の時間の桁）・scale は人の背丈ほどに
 const VS = `varying vec3 vW; varying vec3 vN; varying vec3 vL;
 void main(){ vL=position; vec4 w=modelMatrix*vec4(position,1.); vW=w.xyz; vN=normalize(mat3(modelMatrix)*normal); gl_Position=projectionMatrix*viewMatrix*w; }`;
 const FS = `uniform vec3 uC; uniform float uA; uniform float uT; uniform float uK; uniform float uOn; varying vec3 vW; varying vec3 vN; varying vec3 vL;
