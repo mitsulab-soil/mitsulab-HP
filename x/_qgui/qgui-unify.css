@@ -1,0 +1,64 @@
+/* qgui-unify.css — 全道具の GUI の決まり（2026-11-26 本人「ボタンが多い・個別でなく全体で統一・洗練」）。決まりの本文＝README.md
+   置き場：右下の一列＝［切りかえ］［主な操作］［≡］（≡ がいちばん右下の角）。左上＝道具名の札。下の中央＝字幕（列の上）。ほかはすべて ≡ か、選ぶ札（▾）の中。 */
+:root{--qu-gap:10px;--qu-h:48px}
+html body #qgBar{position:fixed!important;right:var(--qg-edge,24px);bottom:calc(env(safe-area-inset-bottom,0px) + var(--qg-edge,24px));left:auto;top:auto;z-index:60;display:flex;gap:var(--qu-gap);align-items:flex-end;flex-direction:row;pointer-events:none;margin:0;transform:none}
+html body #qgBar>*{pointer-events:auto}
+html body #qgBar .qg-u,html body #qgPop .qg-u{position:static!important;inset:auto!important;transform:none!important;margin:0!important;float:none!important;
+  min-width:var(--qu-h)!important;height:var(--qu-h)!important;min-height:var(--qu-h)!important;width:auto!important;max-width:none!important;padding:0 16px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px;
+  border:1px solid var(--qg-line,rgba(170,226,236,.55))!important;border-radius:999px!important;background:var(--qg-ground,rgba(6,34,38,.38))!important;
+  -webkit-backdrop-filter:blur(10px) saturate(1.2)!important;backdrop-filter:blur(10px) saturate(1.2)!important;box-shadow:none!important;
+  color:var(--qg-ink,#e9f6f5)!important;font:500 13px/1 var(--qg-font,"Shippori Mincho",serif)!important;letter-spacing:.08em!important;white-space:nowrap!important;
+  opacity:1!important;visibility:visible!important;text-shadow:none!important;transition:border-color 80ms,background 80ms,transform 80ms!important;-webkit-tap-highlight-color:transparent;overflow:visible!important}
+html body #qgBar .qg-u:active,html body #qgPop .qg-u:active{transform:scale(.96)!important;background:var(--qg-ground-hi,rgba(10,52,58,.55))!important}
+html body #qgBar .qg-u.on,html body #qgBar .qg-u[aria-pressed="true"],html body #qgBar .qg-u[aria-expanded="true"],html body #qgPop .qg-u.on,html body #qgPop .qg-u[aria-pressed="true"]{border:1.5px solid var(--qg-line-hi,#bff3fb)!important;color:#fff!important;box-shadow:0 0 0 1px rgba(191,243,251,.3),0 0 14px rgba(120,220,235,.3)!important}
+html body #qgBar .qg-u.qu-menu{width:var(--qu-h)!important;padding:0!important;font-size:20px!important;letter-spacing:0!important}
+html body #qgBar .qg-u.qu-main{padding:0 22px!important;background:rgba(10,52,58,.62)!important;border-color:var(--qg-line-hi,#bff3fb)!important}
+html body #qgBar .qg-u *{pointer-events:none}
+html body #qgBar .qg-u svg{width:18px;height:18px}
+/* 選ぶ札の開く列（列の上・右ぞろえ） */
+#qgPop{pointer-events:auto;position:fixed;right:var(--qg-edge,24px);bottom:calc(env(safe-area-inset-bottom,0px) + var(--qg-edge,24px) + var(--qu-h) + 12px);z-index:61;display:flex;flex-direction:column;align-items:flex-end;gap:8px;
+  max-height:calc(100vh - 160px);overflow:auto;padding:2px;visibility:hidden;opacity:0;transform:translateY(8px);transition:opacity .18s,transform .18s,visibility 0s .18s}
+#qgPop.on{visibility:visible;opacity:1;transform:none;transition:opacity .18s,transform .18s}
+#qgPop .qu-hide{display:none!important}
+/* 列に入れたもの・たたんだものの元の入れ物は消す */
+.qu-gone{display:none!important}
+/* 道具名の札：左上に 1 行・小さく */
+html body .qu-name{position:fixed!important;left:var(--qg-edge,24px)!important;top:calc(max(8px,env(safe-area-inset-top)) + 12px)!important;right:auto!important;bottom:auto!important;transform:none!important;z-index:41;margin:0!important;padding:0!important;
+  font:500 12px/1.3 var(--qg-font,serif)!important;letter-spacing:.14em!important;color:rgba(233,246,245,.82)!important;text-shadow:0 0 2px #000,0 1px 6px rgba(0,0,0,.7)!important;background:none!important;border:0!important;pointer-events:none;white-space:nowrap}
+/* 字幕：下の中央・列の上に 1 段 */
+html body .qu-sub{position:fixed!important;left:50%!important;right:auto!important;top:auto!important;transform:translateX(-50%)!important;bottom:calc(env(safe-area-inset-bottom,0px) + var(--qg-edge,24px) + var(--qu-h) + 14px)!important;
+  max-width:min(620px,calc(100vw - 2*var(--qg-edge,24px)))!important;width:auto!important;text-align:center!important;z-index:39}
+@media (max-width:767px){:root{--qu-gap:8px}
+  html body #qgBar .qg-u.qu-main{padding:0 18px!important}
+  #qgPop{left:var(--qg-edge,16px);right:var(--qg-edge,16px);flex-direction:row;flex-wrap:wrap;justify-content:flex-end;align-items:flex-end}}
+@media (prefers-reduced-motion:reduce){#qgPop{transition:none}}
+/* たたんだ入れ物の中身は、どの道具でも同じ札の並びに */
+#qgPop .qu-moved,#qgPop .qu-moved>div,#qgPop .qu-moved>nav{display:flex!important;flex-wrap:wrap!important;justify-content:flex-end!important;align-items:flex-end!important;gap:8px!important;position:static!important;transform:none!important;inset:auto!important;width:auto!important;height:auto!important;max-width:100%!important;background:none!important;border:0!important;padding:0!important;margin:0!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;overflow:visible!important}
+#qgPop .qu-moved>:not(div):not(nav):not(button){display:none!important}
+/* 道具の側の「選んでいないものを隠す」に勝つ（開いた列では全部を見せる） */
+html body #qgPop#qgPop .qu-moved .qg-u:not(.qu-hide){display:inline-flex!important;opacity:1!important;visibility:visible!important;transform:none!important;position:static!important;width:auto!important;height:var(--qu-h)!important;pointer-events:auto!important;cursor:pointer}
+html body #qgPop#qgPop .qu-moved .qg-u span{position:static!important;transform:none!important;opacity:1!important;background:none!important;padding:0!important}
+/* ≡ で出る中身（道具ごとの入れ物）を、どの道具でも列の上の同じ場所に出す */
+html body .qu-panel{position:fixed!important;top:auto!important;left:auto!important;right:var(--qg-edge,24px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + var(--qg-edge,24px) + var(--qu-h) + 12px)!important;transform:none!important;
+  z-index:59!important;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;max-width:min(360px,calc(100vw - 2*var(--qg-edge,24px)))!important;width:auto!important;margin:0!important;padding:0!important;background:none!important;border:0!important}
+html body .qu-panel>button,html body .qu-panel>a{min-height:44px!important;border-radius:999px!important;border:1px solid var(--qg-line,rgba(170,226,236,.55))!important;background:var(--qg-ground,rgba(6,34,38,.5))!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  color:var(--qg-ink,#e9f6f5)!important;font:500 13px/1 var(--qg-font,serif)!important;letter-spacing:.08em!important;padding:0 16px!important;display:inline-flex!important;align-items:center;text-decoration:none!important}
+@media (max-width:767px){html body .qu-panel{left:var(--qg-edge,16px)!important;max-width:none!important}}
+/* 字が箱からはみ出さない（引き出しの中の札など） */
+html body .qu-fit{width:auto!important;min-width:max-content!important;max-width:none!important;white-space:nowrap!important;overflow:visible!important;box-sizing:border-box!important;padding-left:14px!important;padding-right:14px!important;flex:0 0 auto!important}
+/* 並びの順は決まりで固定（道具の側の order に左右されない） */
+html body #qgBar .qu-sw{order:1!important}html body #qgBar .qu-grp{order:2!important}html body #qgBar .qu-main{order:3!important}html body #qgBar .qu-menu{order:4!important}
+/* 列の札は 1 行だけ（添えの小さな字は列では出さない） */
+html body #qgBar .qg-u small:not(:only-child),html body #qgBar .qg-u br{display:none!important}
+html body #qgBar .qu-main small:only-child{display:inline!important}
+html body #qgBar .qg-u::before,html body #qgBar .qg-u::after{content:none!important;display:none!important}
+html body #qgBar .qg-u.qu-menu{max-width:var(--qu-h)!important;min-width:var(--qu-h)!important;flex:0 0 var(--qu-h)!important}
+html body #qgBar .qg-u:disabled,html body #qgBar .qg-u[aria-disabled="true"]{opacity:.42!important}
+/* 採点 P1「候補が字幕に重なって読めない」：開いた候補は暗い板の上に並べ、開いているあいだ字幕は隠す */
+#qgPop{background:rgba(6,20,24,.82);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);border:1px solid var(--qg-line,rgba(170,226,236,.55));border-radius:18px;padding:12px!important;max-width:min(420px,calc(100vw - 2*var(--qg-edge,24px)));flex-direction:row!important;flex-wrap:wrap!important;justify-content:flex-end!important;align-items:center!important}
+@media (max-width:767px){#qgPop{max-width:none}html body #qgPop .qg-u{height:44px!important;min-height:44px!important;padding:0 14px!important}}
+body.qu-popon .qu-sub,body.qu-popon .qg-sub,body.qu-popon #capText,body.qu-popon #cap,body.qu-popon #q3Cap,body.qu-popon #say,body.qu-popon #sub,body.qu-popon #caption,body.qu-popon #capTag,body.qu-popon #q1122cap,body.qu-popon #q11cap,body.qu-popon #guide,body.qu-popon #moveNote{opacity:0!important;transition:opacity .15s}
+/* 字幕は暗い下地で 1 段（地図の縮尺などに重なっても読める） */
+html body .qu-sub{background:rgba(4,12,14,.62)!important;border-radius:10px!important;padding:6px 12px!important;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+/* 候補の板は中身の幅に合わせる（右下にそろえ、左を空けない） */
+@media (max-width:767px){#qgPop{left:auto!important;width:max-content;max-width:calc(100vw - 2*var(--qg-edge,16px))!important}}
