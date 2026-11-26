@@ -40,10 +40,10 @@ window.WHY = {
     refs: ["Goris, R. C. (2011) Infrared organs of snakes: an integral part of vision. Journal of Herpetology 45(1): 2–14", "Gracheva et al. (2010) Nature 464: 1006–1011", "Bullock & Diecke (1956) J. Physiol. 134: 47–87", "Bakken & Krochmal (2007) J. Exp. Biol. 210: 2801–2810", "Hartline, Kass & Loop (1978) Science 199: 1225–1229", "Heinrich, B. (1993) The Hot-Blooded Insects. Harvard University Press（虫の体温）"],
   },
   koumori: {
-    body: ["のどで、人には聞こえない高い声を出し、はね返ってくる音を耳で聞いて、まわりの形をとらえます（エコーロケーション）。●", "アブラコウモリの声は、およそ 90 キロヘルツから 40 キロヘルツへ下がる声と報告されています。●"],
+    body: ["のどで、人には聞こえない高い声を出し、はね返ってくる音を耳で聞いて、まわりの形をとらえます（エコーロケーション）。●", "アブラコウモリの声は、およそ 90 キロヘルツから 40 キロヘルツへ下がる声と報告されています。●", "花の蜜を吸うコウモリ（グロッソファガ）は色の見分けはないとされますが、目の感度は緑（510 ナノメートル）と紫外（365 ナノメートルより短い光）の二か所で高いと報告されています。反響だけでなく目も使います。◐"],
     how: ["1793 年、スパランツァーニは、目が使えないようにしたコウモリでも、部屋の障害物をよけて飛べることを示しました。のちに、耳をふさぐと、ぶつかるようになることも示されました。●", "1941 年、グリフィンとガランボスは、人に聞こえない高い声を機械で聞きとり、口や耳をふさぐと障害物をよけられなくなることを確かめました。1944 年、グリフィンが「エコーロケーション」と名づけました。●"],
     unknown: ["哲学者のネーゲル（1974）は、反響で世界をとらえるのがコウモリにとってどんなことなのかは、外からは分からないのではないか、と問いました。"],
-    refs: ["Griffin & Galambos (1941) J. Exp. Zool. 86: 481–506", "Griffin (1944) Science 100: 589–590", "Luo et al. (2007) Zoological Studies 46(5)（アブラコウモリの声）", "Nagel (1974) Philosophical Review 83: 435–450", "Spallanzani の実験（1793）：コウモリの研究史の記載"],
+    refs: ["Griffin & Galambos (1941) J. Exp. Zool. 86: 481–506", "Griffin (1944) Science 100: 589–590", "Luo et al. (2007) Zoological Studies 46(5)（アブラコウモリの声）", "Nagel (1974) Philosophical Review 83: 435–450", "Winter, López & von Helversen (2003) Nature 425: 612–614（花の蜜を吸うコウモリの紫外の視覚）", "Spallanzani の実験（1793）：コウモリの研究史の記載"],
   },
   mimizu: {
     body: ["目はありません。体の表面に光を感じる細胞があり、明るさを受けとります。●", "体にふれる震えを感じとります。●"],
