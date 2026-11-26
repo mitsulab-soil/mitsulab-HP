@@ -99,6 +99,7 @@ body.placing .toast{bottom:auto;top:calc(110px + env(safe-area-inset-top))}
 @media (min-width:768px){.hd h1{font-size:32px}.senses{bottom:calc(88px + env(safe-area-inset-bottom))}}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
 html.seen .hd p{display:none}.hd a{display:inline-flex;align-items:center;min-height:44px;padding:0 10px;margin:-16px -10px}
+@media (max-width:767px){.toast{bottom:calc(82px + env(safe-area-inset-bottom))}}@media (min-width:768px){.toast{left:auto;right:24px;transform:none;bottom:calc(92px + env(safe-area-inset-bottom))}}.grp span{gap:1px!important;flex-wrap:wrap;justify-content:center;max-width:40px}.grp span svg{display:block}
 /* 2026-11-27 */.qm{background:none;border:0}.chip svg{flex:none}.chip small{font:500 11px/1 var(--ml-mono);color:var(--ml-ink-3);margin-left:2px}.pk svg{vertical-align:-3px}
 </style>
 <style id="m1122b">/* 2026-11-22 札の on/off が分かりにくい → on は色を敷き、off は薄く。スマホは札を詰めて右で切れにくく */.chip[aria-pressed="true"]{background:color-mix(in srgb,var(--c) 24%,rgba(3,6,15,.72))}.chip[aria-pressed="false"]{opacity:.42;background:rgba(3,6,15,.35)}@media (max-width:767px){.chip{padding:0 9px;gap:5px;font-size:12.5px;letter-spacing:.02em}}</style>
@@ -137,7 +138,7 @@ html.seen .hd p{display:none}.hd a{display:inline-flex;align-items:center;min-he
 
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="trace.js"></script>
-<script src="seeds.js?v=20261127"></script>
+<script src="seeds.js?v=20261127b"></script>
 <script>
 (function(){
 'use strict';
@@ -177,7 +178,7 @@ function app(k){var a=APP[k];return a?'<a class="pa" href="../'+a[0]+'/"><span s
 /* mitsulab が出典で確かめた印（位置はおおよそ） */
 var QS=window.QSRC||{},SEED=(window.QSEED||[]).map(function(r){var s=r[4],src,u;
   if(s==='X'){src=r[5][0];u=r[5][1]}else{src=QS[s][0]+(typeof r[5]==='number'?' No.'+r[5]:'');u=QS[s][1]+(s==='F'?r[5]:'')}
-  return{s:r[0],lv:2,la:r[1],lo:r[2],t:r[3],src:src,u:u}});
+  var mu=r[r.length-1];return{s:r[0],lv:2,la:r[1],lo:r[2],t:r[3],src:src,u:u,mu:(typeof mu==='string'&&!/\.html$/.test(mu))?mu:''}});
 var KEY='qmap.v1',needMove=false;
 function load(){try{var a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
 function save(a){try{localStorage.setItem(KEY,JSON.stringify(a));return true}catch(e){return false}}
@@ -190,7 +191,7 @@ function phDel(id){return db().then(function(d){d.transaction('ph','readwrite').
 
 /* 地図 */
 var map=L.map('map',{renderer:L.canvas({tolerance:14}),preferCanvas:true,zoomControl:false,attributionControl:true,minZoom:3.5,maxZoom:17,zoomSnap:0.25,zoomDelta:0.5,worldCopyJump:false,maxBounds:[[18,118],[50,160]]});
-map.fitBounds(innerWidth<768?[[26.1,127.6],[45.5,145.8]]:[[26.0,127.5],[45.6,146.2]],{padding:innerWidth<768?[0,24]:[20,20],animate:false});
+map.fitBounds(innerWidth<768?[[24.2,123.7],[45.5,145.8]]:[[26.0,127.5],[45.6,146.2]],{paddingTopLeft:innerWidth<768?[28,130]:[20,100],paddingBottomRight:innerWidth<768?[28,150]:[20,100],animate:false});
 
 L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',{minZoom:2,maxZoom:18,maxNativeZoom:18,attribution:'地図：<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院</a> ・ <a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>'}).addTo(map);
 map.attributionControl.setPrefix(false);window.QMAP=map;
@@ -209,20 +210,23 @@ function draw(){
   var all=[];SEED.forEach(function(p){if(on[p.s])all.push([p,true])});
   load().forEach(function(p){if(on[p.s]&&SM[p.s])all.push([p,false])});
   /* 近い印は一つにまとめる（画面で 34px 以内）。寄ると分かれる */
-  var gs=[],D=10;   /* 2026-11-27 印は形と色で一つずつ見せ、ほぼ重なるものだけまとめる */   /* PC は「押して寄る」を出さない（札の題で伝える） */
+  var z0=map.getZoom(),gs=[],D=z0<8?54:10;   /* 2026-11-27b 全国の縮尺では近い印をまとめ（スマホ 44px）、寄ると一つずつ */   /* 2026-11-27 印は形と色で一つずつ見せ、ほぼ重なるものだけまとめる */   /* PC は「押して寄る」を出さない（札の題で伝える） */
   if(!document.getElementById('grpCss')){var st=document.createElement('style');st.id='grpCss';st.textContent='@media(min-width:768px){.grp em{display:none}}';document.head.appendChild(st)}   /* 2026-11-22 まとまりの札を大きくしたので、重ならない距離に */
   all.forEach(function(a){var pt=map.latLngToLayerPoint([a[0].la,a[0].lo]),g=null;
     for(var i=0;i<gs.length;i++){if(gs[i].pt.distanceTo(pt)<D){g=gs[i];break}}
     if(g)g.m.push(a);else gs.push({pt:pt,m:[a]})});
+  if(z0<8){var cen=function(g){var x=0,y=0;g.m.forEach(function(a){var q=map.latLngToLayerPoint([a[0].la,a[0].lo]);x+=q.x;y+=q.y});return L.point(x/g.m.length,y/g.m.length)},mg=true;   /* 2026-11-27b まとまりの中心どうしが近ければさらにまとめ、丸が重ならないように */
+    while(mg){mg=false;gs.forEach(function(g){g.c=cen(g)});for(var i=0;i<gs.length&&!mg;i++)for(var j=i+1;j<gs.length;j++){if(gs[i].c.distanceTo(gs[j].c)<52){gs[i].m=gs[i].m.concat(gs[j].m);gs.splice(j,1);mg=true;break}}}}
   group.max=0;gs.forEach(function(g){if(g.m.length>group.max)group.max=g.m.length});   /* 2026-11-22 「押して寄る」はいちばん大きなまとまりだけに */
-  gs.forEach(function(g){if(g.m.length===1)mark(g.m[0][0],g.m[0][1]);else if(map.getZoom()>=12)spread(g.m);else g.m.forEach(function(a){mark(a[0],a[1])})});   /* 2026-11-27 まとめずに一つずつ（全国の分布が見える）。寄って重なるものだけ輪に散らす */
+  gs.forEach(function(g){if(g.m.length===1)mark(g.m[0][0],g.m[0][1]);else if(z0<8)group(g.m);else if(tight2(g.m))spread(g.m);else g.m.forEach(function(a){mark(a[0],a[1])})});   /* 2026-11-27 まとめずに一つずつ（全国の分布が見える）。寄って重なるものだけ輪に散らす */
 }
+function tight2(m){var b=L.latLngBounds(m.map(function(a){return[a[0].la,a[0].lo]}));return b.getNorthEast().distanceTo(b.getSouthWest())<1500}
 function group(m){
   var la=0,lo=0,cs=[];m.forEach(function(a){la+=a[0].la;lo+=a[0].lo;var c=SM[a[0].s].c;if(cs.indexOf(c)<0)cs.push(c)});la/=m.length;lo/=m.length;
-  var dots=cs.slice(0,4).map(function(c){return'<i style="background:'+c+'"></i>'}).join('');
-  var ic=L.divIcon({className:'grp',html:'<span>'+dots+'</span><b style="font-size:16px">'+m.length+'<small style="font-size:11px;margin-left:1px">か所</small></b>'+(m.length>=group.max?'<em style="font:normal 9px/1 var(--ml-sans,sans-serif);letter-spacing:.04em;opacity:.85">押して寄る</em>':''),iconSize:[44,44]});
+  var ks=[];m.forEach(function(a){if(ks.indexOf(a[0].s)<0)ks.push(a[0].s)});var dots=ks.slice(0,5).map(function(k){return shape(k,SM[k].c,2.7,.85)}).join('');
+  var ic=L.divIcon({className:'grp',html:'<span>'+dots+'</span><b>'+m.length+'</b>',iconSize:[50,50]});
   L.marker([la,lo],{icon:ic,keyboard:true,title:m.length+' 件の印。押すと寄ります'}).addTo(layer).on('click',function(){
-    var b=L.latLngBounds(m.map(function(a){return[a[0].la,a[0].lo]}));if(b.getNorthEast().distanceTo(b.getSouthWest())<300)map.setView(b.getCenter(),Math.max(15,map.getZoom()+2));else map.fitBounds(b.pad(.6),{maxZoom:16})});
+    var b=L.latLngBounds(m.map(function(a){return[a[0].la,a[0].lo]}));if(b.getNorthEast().distanceTo(b.getSouthWest())<300)map.setView(b.getCenter(),Math.max(15,map.getZoom()+2));else map.fitBounds(b.pad(.3),{maxZoom:11,paddingTopLeft:[20,120],paddingBottomRight:[20,innerWidth<768?150:100]})});
 }
 /* ほぼ同じ場所の印（寄っても重なるもの）は、輪にして少し散らす */
 function tight(m){var b=L.latLngBounds(m.map(function(a){return[a[0].la,a[0].lo]}));return map.getZoom()>=13&&b.getNorthEast().distanceTo(b.getSouthWest())<300}
@@ -239,7 +243,7 @@ function mark(p,seed){
   m.on('click',function(){
     var o=p._o||p;if(TR)TR.put(cid(o.la,o.lo),.25,{la:o.la,lo:o.lo,k:o.s});drawTrace();
     var h='<p class="pk" style="--c:'+s.c+'">'+shape(p.s,s.c,5)+' '+s.n+(seed?'':' ・ '+LV[p.lv-1])+'</p>';
-    if(seed){h+='<p class="pt">'+esc(p.t)+'</p><p class="pm">出典：<a href="'+p.u+'" target="_blank" rel="noopener">'+esc(p.src)+'</a><br>出典にある地点（位置は市町村のおおよそ）</p>'+'<p class="pq"><span style="display:block;font-size:10px;letter-spacing:.2em;color:var(--ml-ink-3);margin-bottom:2px">外で確かめる</span>'+ASK[p.s]+'</p>'+app(p.s)}
+    if(seed){h+='<p class="pt">'+esc(p.t)+'</p><p class="pm">出典：<a href="'+p.u+'" target="_blank" rel="noopener">'+esc(p.src)+'</a><br>印の位置：'+esc(p.mu||'市町村')+'の中心（国土数値情報「行政区域」から計算）</p>'+'<p class="pq"><span style="display:block;font-size:10px;letter-spacing:.2em;color:var(--ml-ink-3);margin-bottom:2px">外で確かめる</span>'+ASK[p.s]+'</p>'+app(p.s)}
     else{h+=(p.ph?'<img class="pimg" alt="置いた写真" data-ph="'+p.id+'">':'')+(p.t?'<p class="pt">'+esc(p.t)+'</p>':'')+'<p class="pm">'+esc(p.when)+' ・ この端末の印</p>'+trLine(o.la,o.lo)+'<button class="del" data-del="'+p.id+'">この印を消す</button>'+app(p.s)}
     var pop=L.popup({maxWidth:270,autoPanPadding:[16,120]}).setLatLng([p.la,p.lo]).setContent(h).openOn(map);
     var el=pop.getElement();
@@ -359,7 +363,7 @@ html body button:disabled{opacity:.35}
 html body button.chip[data-k],html body #qgPop button.qu-ih[data-k]{display:inline-flex!important;align-items:center;justify-content:center;border-color:color-mix(in srgb,var(--c) 70%,transparent)!important;gap:6px}
 html body button.chip[data-k][aria-pressed="true"],html body #qgPop button.qu-ih.on{border-color:var(--c)!important;background-color:color-mix(in srgb,var(--c) 22%,rgba(3,6,15,.8))!important;box-shadow:0 0 10px color-mix(in srgb,var(--c) 45%,transparent)!important}
 .chip svg,.qu-ih svg{display:inline-block!important;flex:none}.chip small,.qu-ih small{margin-left:4px!important;font:500 11px/1 var(--ml-mono);color:var(--ml-ink-3)}
-.grp{width:44px!important;height:44px!important;margin:-22px 0 0 -22px!important}.grp b{font-size:13px!important}.grp b small{font-size:9px!important}
+.grp b{font:600 15px/1 var(--ml-mono)!important}.grp{width:50px!important;height:50px!important;margin:-25px 0 0 -25px!important}.grp b{font-size:15px!important}.grp b small{font-size:9px!important}
 </style>
 </body>
 </html>
