@@ -8,7 +8,7 @@ import * as THREE from "three";
 import { bitmapTex, texPending } from "./kit/warm.js";   // 2026-11-05 夕：起動 1 秒へ。写真の質感を別の糸でほどく（はじめのこまで 10 枚ほどほどいて約 0.1 秒かかっていた）
 import { makeBody, creaturePortrait, humanPortrait, makeCreature, disposePortraitRenderer } from "./bodies.js?v=20261120r";
 import { makeRing } from "./ring.js?v=20261124d";   // 2026-11-20 回して選ぶ、生きものの 3D の並び
-import { buildForest, shoreWob, riverWob } from "./forest.js?v=20261123n";
+import { buildForest, shoreWob, riverWob, MEADOW } from "./forest.js?v=20261123n";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261105s";
 import { buildZen, YARD, ENGAWA, STONES, crownHook } from "./zen.js";
@@ -376,7 +376,7 @@ const city=new THREE.Group();city.visible=false;scene.add(city);let CITY=null,ci
 function initCity(){return cityP||(cityP=import('./kit/city.js?v=20261123p').then(({buildCity})=>{CITY=buildCity({M,tx,canvasTex,group:city,pick,sonic,mobile});{const seen=new Set();city.traverse(o=>{const m=o.material;if(!m)return;for(const k of['map','normalMap','roughnessMap','alphaMap'])if(m[k]&&!seen.has(m[k])){seen.add(m[k]);try{renderer.initTexture(m[k]);}catch(e){}}});}city.visible=true;const p=renderer.compileAsync?renderer.compileAsync(city,camera,scene):Promise.resolve();city.visible=false;return p.catch(()=>{}).then(()=>CITY);}));}   // 形の色の書き方（シェーダー）は、見せる前に別の糸で用意する（切りかえの止まりを減らす）
 window.__city=()=>CITY;
 // 森の先の海辺（2026-11-23 本人「自然の中に、海辺の要素を」）。森が出てから組む（起動 1 秒を守る）
-let SHORE=null;function initShore(){if(SHORE)return;import('./kit/shore.js?v=20261124d').then(({buildShore,clearForest})=>{clearForest(forest,FOREST.trunks,[FOREST.ground]);{const add0=forest.add.bind(forest);forest.add=(...a)=>{add0(...a);try{clearForest(forest,FOREST.trunks,[FOREST.ground,aoi],a);}catch(e){}return forest;};}SHORE=buildShore({M,tx,canvasTex,group:forest,pick,sonic,mobile});window.__echoList=null;renderer.shadowMap.needsUpdate=true;}).catch(e=>console.warn('海辺',e?.message??e));}
+let SHORE=null;function initShore(){if(SHORE)return;forestReady.then(()=>import('./kit/shore.js?v=20261124d').then(({buildShore,clearForest})=>{clearForest(forest,FOREST.trunks,[FOREST.ground]);{const add0=forest.add.bind(forest);forest.add=(...a)=>{add0(...a);try{clearForest(forest,FOREST.trunks,[FOREST.ground,aoi],a);}catch(e){}return forest;};}SHORE=buildShore({M,tx,canvasTex,group:forest,pick,sonic,mobile});window.__echoList=null;renderer.shadowMap.needsUpdate=true;}).catch(e=>console.warn('海辺',e?.message??e)));}
 window.__shore=()=>SHORE;
 // Water is a dielectric; retain the existing shape and lens cues without metallic reflection.
 // 2026-11-20 2 周目：水面を、林の中の水らしく（前は明るい青緑の平らな面に見えた）。色を深い緑褐色に落とし、空と木立の映りこみを主に、さざ波の細かな凹凸を足す（模式）
@@ -396,17 +396,28 @@ const riverCurve=new THREE.CatmullRomCurve3([[-8,-7],[-5,-13],[1,-15],[9,-12],[1
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(C, 4)); g.setIndex(I); g.computeVertexNormals();
   const wetM = M(0xffffff, { std: true, vc: true, transparent: true, rough: .38, env: .5, uv: .04, temp: .12, echo: .15 }); wetM.depthWrite = false; wetM.polygonOffset = true; wetM.polygonOffsetFactor = -2; wetM.side = THREE.DoubleSide;
   const shore = new THREE.Mesh(g, wetM); shore.userData.noCast = true; shore.receiveShadow = true; shore.renderOrder = 1; forest.add(shore); }
-STARTUP.forestBuildStartedAt = performance.now();
-const FOREST=buildForest({M,tx,canvasTex,photoTex,forest,pick,sonic,mobile,riverCurve});
-STARTUP.forestBuiltAt = performance.now();
+/* 2026-11-26 夜：起動 1 秒（案 A）。森は最初のこまを出して操作できるようにしてから組み、霞の中から約 0.8 秒で浮かべる（組み上がった姿は前と同じ）。
+   組み上がるまでの FOREST は、空の控え（幹なし・草地の位置だけ）。森を使う所は控えのまま動き、組み上がったら本物に替わる */
+let FOREST={trunks:[],meadow:MEADOW,blocked:()=>false,whiteFlower:{pos:new THREE.Vector3(MEADOW.x,.6,MEADOW.z)},lists:{},later:[],shafts:null,stub:true};
 for(const m of moths)forest.add(m);   // 夜の蛾は森に（2026-10-12）
-scene.fog.density=mobile?.03:.026;   // 木々の奥が、かすみに溶ける
+const FOG_FOREST=mobile?.03:.026;scene.fog.density=.6;   // 木々の奥が、かすみに溶ける（はじめは濃い霞から晴れていく）
+const forestReady=(async()=>{const nf1=()=>new Promise(r=>requestAnimationFrame(()=>setTimeout(r,0)));
+  while(!STARTUP.firstFrameAt)await nf1(); const tw=performance.now(); while(document.querySelector('.mlq:not(.out)')&&performance.now()-tw<700)await nf1(); await nf1();   // 幕が上がって（操作できるようになって）から組む
+  STARTUP.forestBuildStartedAt = performance.now();
+  const fg=new THREE.Group();FOREST=buildForest({M,tx,canvasTex,photoTex,forest:fg,pick,sonic,mobile,riverCurve});
+  STARTUP.forestBuiltAt = performance.now();
 // 庭で作った生きもの（シジュウカラ・ネズミ・蝶・蜂）を、森の草地へ（碧の話に出てくるもの）。人工物の赤い板と、栽培種の実の茂みは森に置かない（2026-10-12）
 {const MW=FOREST.meadow;
  bird.position.copy(FOREST.perch);bird.userData.ry0=Math.atan2(FOREST.perchDir.x,FOREST.perchDir.z)+Math.PI/2;bird.rotation.y=bird.userData.ry0;forest.add(bird);
  mouse.position.set(MW.x-2.1,.06,MW.z+2.9);mouse.userData.x0=mouse.position.x;mouse.rotation.y=2.4;forest.add(mouse);
  for(const b of [...butterflies,ageha])forest.add(b);
  const wf=FOREST.whiteFlower.pos;bee.position.set(wf.x+.18,wf.y,wf.z+.12);bee.lookAt(wf);forest.add(bee);}
+
+  FOREST.aimShafts?.(SUNDIR);
+  forestShadows(fg);
+  try{if(renderer.compileAsync){fg.visible=true;await renderer.compileAsync(fg,camera,scene);}}catch(e){}
+  forest.add(...fg.children.slice()); STARTUP.forestShownAt=performance.now();
+  return FOREST;})();
 const FSPOT={
   hachi:()=>{const w=FOREST.whiteFlower.pos;return [w.x+.4,w.z+1.6,w.clone().add(new THREE.Vector3(0,-.25,0))];},
   chou:()=>[FOREST.meadow.x-.6,FOREST.meadow.z+4.2,new THREE.Vector3(FOREST.meadow.x+.4,.7,FOREST.meadow.z)],
@@ -1337,7 +1348,8 @@ function frame(now=0) {
 
 // ---------------------------------------------------------------- 影と映りこみ（2026-10-09 よりリアルに）
 setDay(LIT.base); FOREST.aimShafts?.(SUNDIR);
-forest.traverse(o => { if (!o.isMesh) return; o.receiveShadow = true; let nc = false; for (let q = o; q; q = q.parent) if (q.userData.noCast) nc = true; if (!nc && o.castShadow !== true) o.castShadow = !(mobile && o.isInstancedMesh && o.count > 300); if (nc) o.castShadow = false; });
+function forestShadows(root) { root.traverse(o => { if (!o.isMesh) return; o.receiveShadow = true; let nc = false; for (let q = o; q; q = q.parent) if (q.userData.noCast) nc = true; if (!nc && o.castShadow !== true) o.castShadow = !(mobile && o.isInstancedMesh && o.count > 300); if (nc) o.castShadow = false; }); }
+forestShadows(forest);
 garden.traverse(o => { if (!o.isMesh || o === sky || o.userData.noShadow) return; o.receiveShadow = true; o.castShadow = !o.userData.noCast && !(mobile && o.userData.smallCast); });
 { // 空の映りこみ（水面・縁側の床・瓦・石の艶）：いつもの時刻の空と、塀の向こうの木々の暗い帯を、映りこみの地図に焼く
   const env = new THREE.Scene(), sk = new THREE.Mesh(sky.geometry, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false })); env.add(sk);
@@ -1363,7 +1375,7 @@ STARTUP.sceneBuiltAt = performance.now();
     if (vrm && A.sayOnShow && !started) { $("say").classList.remove("sub-gone"); $("say").textContent = A.sayOnShow; }   // 碧が現れてから「となりに立っているのが…」を出す
     if (vrm) { STARTUP.aoiAppearAt = performance.now(); A.late = !!$("boot").hidden; if (A.late) { A.shadowOn = false; aoi.traverse(o => { if (o.isMesh) o.castShadow = false; }); } A.hold = false; A.appear = true; if (!started) A.intro = true; if (AM) AM.calm = 2.4; }   // 幕のあとに届いたときは、1 秒かけて静かに現れる
   });
-  await Promise.race([preCompile, new Promise(r => setTimeout(r, 120))]); prog(100);   // 2026-11-18 起動 1 秒：材質の組み立ては待ちきらず、残りは霞の中で（下の幕上げ後のかすみ）   // 2026-11-03：PC も碧を待たない（森と操作を先に出す・起動 2 秒）
+  await Promise.race([preCompile, new Promise(r => setTimeout(r, 40))]);   /* 2026-11-26 夜：森はあとから組むので、ここで組む材質は少ない（120→40 ms） */ prog(100);   // 2026-11-18 起動 1 秒：材質の組み立ては待ちきらず、残りは霞の中で（下の幕上げ後のかすみ）   // 2026-11-03：PC も碧を待たない（森と操作を先に出す・起動 2 秒）
   // 右の ↑ ↓ ↶ ↷（2026-10-13）：押しているあいだ進む・向きを変える。短く押したときは一歩（1.2 m）・一ふり（約 17°）
   const hold = (btn, key, tapFn) => { let t0 = 0;
     btn.onpointerdown = e => { first(); if (LENS[lens].under) return; t0 = performance.now(); keys.add(key); btn.setPointerCapture?.(e.pointerId); };
@@ -1380,14 +1392,14 @@ STARTUP.sceneBuiltAt = performance.now();
   STARTUP.controlsReadyAt = performance.now();
   /* 2026-11-03 起動 1 秒：遠くの幹・あとの草花・ヨシ・草と落ち葉を、一こまに一つずつ組み、材質を場面の外で組んでから森へ入れる（見た目・配置は前と同じ） */
   (async () => { const nf = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
-    for (const [ji, job] of (FOREST.later || []).entries()) { await nf(); const t0 = performance.now(); const g = job(); slow('later:' + ji, t0);
+    await forestReady; for (const [ji, job] of (FOREST.later || []).entries()) { await nf(); const t0 = performance.now(); const g = job(); slow('later:' + ji, t0);
       g.traverse(o => { if (!o.isMesh) return; o.receiveShadow = true; for (const mt of [].concat(o.material)) worldMats.add(mt); let nc = !!o.userData.noCast; if (!nc && o.castShadow !== true) o.castShadow = !(mobile && o.isInstancedMesh && o.count > 300); if (nc) o.castShadow = false; });
       if (renderer.compileAsync) { for (const c of g.children) { try { await renderer.compileAsync(c, camera, scene); } catch (e) {} await nf(); } }   // 2026-11-04 一つの仕事で材質を 7〜10 まとめて組むと 0.12〜0.3 秒止まった → 一こまに一つずつ
       for (const c of [...g.children]) forest.add(c); }
     STARTUP.forestRestAt = performance.now(); })();
   /* 2026-11-04 コマ落ち：影の材質は前もって組めない（three の作り）→ 起動画面の裏で一こま描き、影の材質と絵を先に用意してから幕を上げる（はじめのこまの 0.2〜0.35 秒の止まりを幕の裏へ） */ if (texPending.size) await Promise.race([Promise.all([...texPending]), new Promise(r => setTimeout(r, 60))]);   /* 2026-11-18 起動 1 秒：400→60（あとは霞から現れる）。2026-11-05 夕：ほどいている質感がそろってから（幕を上げたあとに絵が入れかわらないように） */ try { renderer.render(scene, camera); } catch (e) {}
   requestAnimationFrame(frame); { const t0 = performance.now(); let lt = t0, n = 0; while (true) { await new Promise(r => requestAnimationFrame(r)); const t = performance.now(), dt = t - lt; lt = t; n++; if ((n >= 2 && dt < 50) || t - t0 > 160) break; } }   // 幕の裏で数こま回し、こまが落ち着いてから幕を上げる
-  { const f = scene.fog, D = f.density, t0 = performance.now(); f.density = D * 3.2; const st = () => { const k = Math.min(1, (performance.now() - t0) / 2800); f.density = D * (3.2 - 2.2 * k * k * (3 - 2 * k)); if (k < 1) requestAnimationFrame(st); }; requestAnimationFrame(st); }   // 2026-11-18 幕を上げたら、濃い霞からゆっくり晴れる（あとから入る遠くの木・質感が急に入れかわって見えない）
+  forestReady.then(() => { if (habitat !== 'forest') return; const f = scene.fog, D = FOG_FOREST, S0 = f.density, t0 = performance.now(); const st = () => { if (habitat !== 'forest') return; const k = Math.min(1, (performance.now() - t0) / 2400), e = 1 - Math.pow(1 - k, 3); f.density = Math.exp(Math.log(S0) + (Math.log(D) - Math.log(S0)) * e); if (k < 1) requestAnimationFrame(st); }; requestAnimationFrame(st); });   /* 2026-11-26 夜：森が組み上がってから、濃い霞（.6）から晴れる（はじめの 0.8 秒で森が浮かび、残りでゆっくり） */   // 2026-11-18 幕を上げたら、濃い霞からゆっくり晴れる（あとから入る遠くの木・質感が急に入れかわって見えない）
   window.__muBoot = true; bootOpen(); $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 180);
   { const T0 = "となりは案内の碧。画面を押すと、はじまる。"; if (A.hold) A.sayOnShow = T0; else $("say").textContent = T0; }
   setActs([]);
@@ -1414,4 +1426,4 @@ function kurMarks() {
 }
 /* 2026-11-23 本人「uv・heat を sight の機能に」＝?eye=hachi（紫外）・?eye=hebi（赤外）などで、その目から始める（x/47・x/49 からの案内） */
 { const EYE = new URLSearchParams(location.search).get("eye"); if (EYE && LENS[EYE] && EYE !== "hito") { const go = () => (STARTUP.interactiveAt || STARTUP.fallbackAt) ? setLens(EYE) : setTimeout(go, 120); setTimeout(go, 0); } }
-window.__um = {FPS,get habitat(){return habitat;},bodies,forest,FOREST,setHabitat, NAT, renderer, get lens() { return lens; }, get chapter() { return chapter; }, setLens, setChapter, setLang, talk, iroMine, me, A, SP, LENS, G, walkTo, onTap, camera, IRO, get tunT() { return tunT; } };
+window.__um = {FPS,get habitat(){return habitat;},bodies,forest,get FOREST(){return FOREST;},setHabitat, NAT, renderer, get lens() { return lens; }, get chapter() { return chapter; }, setLens, setChapter, setLang, talk, iroMine, me, A, SP, LENS, G, walkTo, onTap, camera, IRO, get tunT() { return tunT; } };
