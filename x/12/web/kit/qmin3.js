@@ -24,7 +24,7 @@
     /* 字幕と問いを景色の上でも読めるように：淡い下地・1 行 */
     /* 字幕は下の中央（主な操作の上）。どの道具の古い置き場より強く */
     'html body #caption#caption{top:auto!important;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 70px)!important;left:0!important;right:0!important;translate:none!important;transform:none!important;text-align:center!important}' +
-    'html body #caption#caption #capText#capText{background:rgba(4,10,16,.66)!important;padding:4px 12px!important;border-radius:4px!important;white-space:nowrap!important;display:inline-block!important;max-width:calc(100vw - 32px)!important;overflow:hidden!important;text-overflow:ellipsis!important}' +
+    'html body #caption#caption #capText#capText{background:rgba(4,10,16,.66)!important;padding:4px 12px!important;border-radius:4px!important;white-space:normal!important;display:inline-block!important;max-width:min(640px,calc(100vw - 32px))!important;overflow:visible!important;text-overflow:clip!important;line-height:1.55!important;text-align:left!important;box-sizing:border-box!important}' +
     /* 次の地点への向きと距離（押せない印）は淡く小さく */
     'html body #qDir{opacity:.38!important;pointer-events:none!important;transform:scale(.8)}' +
     /* 生き物の列はいつも見える */
