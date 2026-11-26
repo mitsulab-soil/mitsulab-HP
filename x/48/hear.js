@@ -58,7 +58,7 @@ function canvasTex(w, h, draw, srgb = true) {
 }
 
 // 碧の 3D（約 2 MB）は、Qualia/sight と同じ物を読む（先に sight を開いた人は、ブラウザの控えから出る）。手元で開いたときは、このフォルダの写し
-const AOI_BUF = (() => { let p = null; return () => p || (p = fetch("../02/assets/aoi/aoi.vrm").then(r => r.ok ? r.arrayBuffer() : Promise.reject(r.status)).catch(() => fetch("assets/aoi/aoi.vrm").then(r => r.arrayBuffer()))); })();
+const AOI_BUF = (() => { let p = null; return () => p || (p = (/\/x\/\d+\//.test(location.pathname) ? fetch("../02/assets/aoi/aoi.vrm") : Promise.resolve({ ok: false, status: "local" })).then(r => r.ok ? r.arrayBuffer() : Promise.reject(r.status)).catch(() => fetch("assets/aoi/aoi.vrm").then(r => r.arrayBuffer()))); })();
 export function start(canvas) {
   AOI_BUF();   // 森を組むあいだに読み始める
   const mobile = matchMedia("(max-width:760px)").matches;
@@ -83,13 +83,23 @@ export function start(canvas) {
   const riverCurve = new THREE.CatmullRomCurve3([[-8, -7], [-5, -13], [1, -15], [9, -12], [18, -7], [30, -2], [44, 4]].map(([x, z]) => new THREE.Vector3(x, .035, z)));
   const water = M(0x3a584a, { std: true, rough: .09, metal: .42, env: 1.3 });
     const pool = new THREE.Mesh(new THREE.CircleGeometry(4.8, 72), water); pool.rotation.x = -Math.PI / 2; pool.position.set(-8, .025, -7); forest.add(pool);
-  const FOREST = buildForest({ M, tx, canvasTex, photoTex, forest, pick, sonic, mobile, riverCurve });
-  forest.traverse(o => { if (!o.isMesh) return; o.receiveShadow = true; let nc = false; for (let q = o; q; q = q.parent) if (q.userData.noCast) nc = true; o.castShadow = !nc && !(mobile && o.isInstancedMesh && o.count > 300); });
-  { const env = new THREE.Scene(); env.add(new THREE.Mesh(skyG, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false })));
+  // 2026-11-26 夜：起動を 1 秒以内に。最初のこまは空と霞だけ出し、森・浜・映り込みは次のこまから組んで、霞の中から約 0.8 秒で浮かべる
+  let FOREST = null, SHORE = null, fadeT0 = 0; const FOG_D = mobile ? .03 : .026; S.fog.density = .6;
+  const nextFrame = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
+  const built = (async () => { await nextFrame(); await nextFrame();
+    FOREST = buildForest({ M, tx, canvasTex, photoTex, forest, pick, sonic, mobile, riverCurve });
+    forest.traverse(o => { if (!o.isMesh) return; o.receiveShadow = true; let nc = false; for (let q = o; q; q = q.parent) if (q.userData.noCast) nc = true; o.castShadow = !nc && !(mobile && o.isInstancedMesh && o.count > 300); });
+    { const env = new THREE.Scene(); env.add(new THREE.Mesh(skyG, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false })));
     const band = new THREE.Mesh(new THREE.CylinderGeometry(60, 60, 30, 32, 1, true), new THREE.MeshBasicMaterial({ color: 0x24301f, side: THREE.BackSide, fog: false })); band.position.y = 4; env.add(band);
     const pm = new THREE.PMREMGenerator(R); S.environment = pm.fromScene(env, .02).texture; pm.dispose(); }
-  // あとの草花・落ち葉は、起動のあとに一こまずつ（sight と同じ）
-  (async () => { for (const job of FOREST.later || []) { await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0))); const g = job(); g.traverse(o => { if (o.isMesh) { o.receiveShadow = true; o.castShadow = !mobile; } }); forest.add(g); } })();
+    // あとの草花・落ち葉は、起動のあとに一こまずつ（sight と同じ）
+    (async () => { for (const job of FOREST.later || []) { await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0))); const g = job(); g.traverse(o => { if (o.isMesh) { o.receiveShadow = true; o.castShadow = !mobile; } }); forest.add(g); } })();
+  try { clearForest(forest, FOREST.trunks, [FOREST.ground]);
+    const add0 = forest.add.bind(forest); forest.add = (...a) => { add0(...a); try { clearForest(forest, FOREST.trunks, [FOREST.ground, aoi], a); } catch { } return forest; };
+    SHORE = buildShore({ M, tx, canvasTex, group: forest, pick, sonic, mobile }); SHORE.root.traverse(o => { if (o.isMesh) o.receiveShadow = true; });
+  } catch (e) { console.warn("海辺", e?.message ?? e); }
+    try { if (R.compileAsync) await R.compileAsync(forest, cam, S); } catch { }
+    fadeT0 = performance.now(); window.__hearSceneAt = fadeT0; })();
   // 立つ所：森の草地（明るいすき間）の縁から、空の開けた方を見上げる
   // 立つ所（2026-11-23 本人「自然の中に海辺の要素を」）：森のはし、川が海へ出る入り江の砂浜から、夕方の海と空を見る。うしろは森
   const eye = new THREE.Vector3(37.6, 1.55, 6.5), look = innerWidth / innerHeight < .8 ? new THREE.Vector3(53, 3.6, -12) : new THREE.Vector3(50, 3.6, -16);   // スマホは少し海へ向ける（画面の左のはしに森の枝先だけが切れて入らない）   // 左に森のはし、右に海
@@ -105,7 +115,7 @@ export function start(canvas) {
   // 碧（sight と同じ 3D・共通部品 AoiMotion。2026-11-23 本人「hear にも碧を表示して」）。森と操作を先に出し、碧はあとから読む。組み終えてから場面に入れる（透けて出ない）
   let AM = null, aoi = null; const AOI_H = 1.62;
   (async () => { try {
-    await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));   // 森の最初のこまを先に出す
+    await built;   // 森が組み上がってから
     const [buf, { GLTFLoader }, { MeshoptDecoder }, V, { AoiMotion }] = await Promise.all([AOI_BUF(), import("three/addons/loaders/GLTFLoader.js"), import("three/addons/libs/meshopt_decoder.module.js"), import("@pixiv/three-vrm"), import("./kit/aoi_motion.js")]);
     const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder); loader.register(p => new V.VRMLoaderPlugin(p));
     const g = await loader.parseAsync(buf, ""), v = g.userData.vrm;
@@ -125,24 +135,20 @@ export function start(canvas) {
     (place === "city" ? city : forest).add(aoi); if (place === "city") standAoi(); window.__aoi = { v, aoi, AM }; window.__hearAoiAt = performance.now();
   } catch (e) { console.warn("碧の姿を読み込めませんでした", e?.message ?? e); } })();
   // ── 場所の切りかえ（自然／都市。2026-11-23 本人）。都市の場（kit/city.js）は切りかえたときに読む。森の先の海辺（kit/shore.js）は森が出てから組む
-  const city = new THREE.Group(); city.visible = false; S.add(city); let CITY = null, cityP = null, SHORE = null, place = "forest"; window.__hearKz = { cam, get place() { return place; } };   // 2026-11-26 気づいた痕跡（kit/kizuki.js）が見る
+  const city = new THREE.Group(); city.visible = false; S.add(city); let CITY = null, cityP = null, place = "forest"; window.__hearKz = { cam, get place() { return place; } };   // 2026-11-26 気づいた痕跡（kit/kizuki.js）が見る
   const VIEW = { forest: { eye: eye.clone(), look: look.clone() } };
   // 森の先の海辺（kit/shore.js）。この場所は浜から見るので、はじめから組む
-  try { clearForest(forest, FOREST.trunks, [FOREST.ground]);
-    const add0 = forest.add.bind(forest); forest.add = (...a) => { add0(...a); try { clearForest(forest, FOREST.trunks, [FOREST.ground, aoi], a); } catch { } return forest; };
-    SHORE = buildShore({ M, tx, canvasTex, group: forest, pick, sonic, mobile }); SHORE.root.traverse(o => { if (o.isMesh) o.receiveShadow = true; });
-  } catch (e) { console.warn("海辺", e?.message ?? e); }
   setTimeout(() => import("./kit/city.js?v=20261123p").catch(() => { }), 4000);
   function standAoi() { if (!aoi || !AM) return; const nar = innerWidth / innerHeight < .8, fw = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw)), rt = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
     const P = eye.clone().setY(0).addScaledVector(fw, place === "city" ? (nar ? 9 : 5.5) : (nar ? 5.5 : 4.5)).addScaledVector(rt, place === "city" ? (nar ? .2 : .1) : (nar ? .3 : .9)); if (place === "city" && CITY && nar) { for (const d of [7.5, 6.5, 8.5, 5.5]) { const Q = eye.clone().setY(0).addScaledVector(fw, d).addScaledVector(rt, .2); Q.x = Math.max(Q.x, 5.6); if (!CITY.blocked(Q.x, Q.z, .5)) { P.copy(Q); break; } } }   // 2026-11-24：植え込み（x＝±4.35 の列）より建物側の歩道に立たせ、スマホで植え込みに隠れない
     aoi.position.copy(P); AM.place(P.x, P.z, Math.atan2(eye.x - P.x, eye.z - P.z)); }
   async function setPlace(p) {
-    if (p === place) return;
+    if (p === place) return; await built;
     if (p === "city" && !CITY) { cityP = cityP || import("./kit/city.js?v=20261123p").then(({ buildCity }) => { CITY = buildCity({ M, tx, canvasTex, group: city, pick, sonic, mobile }); city.traverse(o => { if (o.isMesh) o.receiveShadow = true; });
         const L = CITY.lamps[0] || [2.2, 7.8, 12]; VIEW.city = { eye: new THREE.Vector3(7.1, 1.55, L[2] + 5), look: new THREE.Vector3(L[0] + .3, 4.3, L[2] - 8) };   // 歩道の建物寄りから、通りの先の街灯を見上げる
         city.visible = true; const q = R.compileAsync ? R.compileAsync(city, cam, S).catch(() => { }) : null; city.visible = false; return q; }); await cityP; }
     place = p; forest.visible = p === "forest"; city.visible = p === "city";
-    S.fog.density = p === "city" ? (mobile ? .016 : .013) : (mobile ? .03 : .026);
+    S.fog.density = p === "city" ? (mobile ? .016 : .013) : FOG_D; fadeT0 = 0;
     const V = VIEW[p]; eye.copy(V.eye); look.copy(V.look); cam.position.copy(eye); yaw = Math.atan2(-(look.x - eye.x), -(look.z - eye.z)); pitch = Math.atan2(look.y - eye.y, Math.hypot(look.x - eye.x, look.z - eye.z)); dy = dp = 0;
     const host = p === "city" ? city : forest; for (const B of bats) host.add(B.b); if (aoi) { host.add(aoi); standAoi(); }
     sun.target.position.set(eye.x + 2, 0, eye.z - 8); sun.position.copy(sun.target.position).add(new THREE.Vector3(-36, 14, -16));
@@ -155,6 +161,7 @@ export function start(canvas) {
   addEventListener("resize", size); size();
   let level = 0, call = 0, last = performance.now(); const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
   R.setAnimationLoop(() => { const now = performance.now(), dt = Math.min(.05, (now - last) / 1000); last = now; const t = now / 1000; U.uTime.value = t;
+    if (fadeT0) { const k = Math.min(1, (now - fadeT0) / 800), e = 1 - Math.pow(1 - k, 3); S.fog.density = Math.exp(Math.log(.6) + (Math.log(FOG_D) - Math.log(.6)) * e); if (k >= 1) { S.fog.density = FOG_D; fadeT0 = 0; } }
     cam.rotation.set(pitch + dp + (RM ? 0 : Math.sin(t * .21) * .012), yaw + dy + (RM ? 0 : Math.sin(t * .13) * .03), 0);
     const L0 = place === "city" && CITY ? (CITY.lamps[0] || [2.2, 7.8, 12]) : null, cx = L0 ? L0[0] + .4 : 41.5, cz = L0 ? L0[2] - 5 : -2, hy = L0 ? 3.4 : 1.2;   // 森では、森のはしと浜の上（夕方のコウモリは林縁や水辺で虫を捕る）   // 都市では街灯のまわり（アブラコウモリは街灯に集まる虫を捕る）
     for (const B of bats) { const a = B.ph + t * B.sp; B.b.position.set(cx + Math.cos(a) * B.r, B.h + hy + Math.sin(a * 2.3) * .6, cz + Math.sin(a) * B.r * .8); B.b.rotation.y = -a + Math.PI; B.inner.userData.animate?.(t, true); }
