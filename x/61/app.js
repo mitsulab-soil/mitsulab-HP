@@ -500,7 +500,11 @@ function frame() {
   if (fly) { const k = Math.min(1, (performance.now() - fly.t0) / fly.dur), e = ease(k); view.pos.lerpVectors(fly.p0, fly.p1, e); if (!RM) view.pos.y += Math.sin(e * Math.PI * Math.max(1, Math.round(fly.dur / 520))) * .012; view.yaw = fly.y0 + (fly.y1 - fly.y0) * e; view.pitch = fly.q0 + (fly.q1 - fly.q0) * e; if (k >= 1) fly = null; }
   camera.position.copy(view.pos); camera.rotation.set(view.pitch, view.yaw, 0, "YXZ");
   for (const f of tick) f(t, dt);
-  for (const s of ST) { s.lbl.parent.getWorldQuaternion(_pq); s.lbl.quaternion.copy(_pq.invert()).multiply(camera.quaternion); s.lbl.getWorldPosition(_lp); const d = _lp.distanceTo(camera.position); _lp.project(camera); s.lbl.visible = d < (MOBILE ? 7.5 : 11) && Math.abs(_lp.x) < (innerWidth < 600 ? .42 : .78) && Math.abs(_lp.y) < .9; }   /* 2026-11-27 375px で札が画の端に切れた → 中ほどに入る札だけ見せる */
+  for (const s of ST) { const L = s.lbl; if (!L.userData.base) L.userData.base = L.position.clone(); L.position.copy(L.userData.base);
+    L.parent.getWorldQuaternion(_pq); L.quaternion.copy(_pq.invert()).multiply(camera.quaternion); L.getWorldPosition(_lp); const d = _lp.distanceTo(camera.position); _lp.project(camera);
+    const lim = innerWidth < 600 ? .5 : .78;   /* 2026-11-27 375px：札が端に切れるときは、画の内側へ寄せて見せる（隠さない） */
+    if (innerWidth < 600 && Math.abs(_lp.x) > lim && Math.abs(_lp.x) < 1.3 && _lp.z < 1) { const w0 = L.getWorldPosition(new THREE.Vector3()); const tgt = _lp.clone(); tgt.x = Math.sign(_lp.x) * lim; tgt.unproject(camera); L.parent.worldToLocal(tgt); L.parent.worldToLocal(w0); L.position.add(tgt.sub(w0)); _lp.x = Math.sign(_lp.x) * lim; }
+    L.visible = d < (innerWidth < 600 ? 18 : 11) && Math.abs(_lp.x) <= lim + 1e-3 && Math.abs(_lp.y) < .9 && _lp.z < 1; }
   aoi?.tick(dt, camera);
   renderer.render(scene, camera);
   frames++; const now = performance.now(); if (now - fpsT > 1000) { window.__fps = Math.round(frames * 1000 / (now - fpsT)); frames = 0; fpsT = now; }
