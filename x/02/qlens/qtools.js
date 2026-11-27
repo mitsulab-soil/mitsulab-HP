@@ -8,18 +8,17 @@
   'use strict';
   var GROUPS = [
     { title: '感覚をひらく', items: [
-      { id: 'sight', lens: 'forest-hachi', ja: '生き物の目', d: '森を、ミツバチやチョウなど生き物の目の色の幅で見る（人の目に置きかえた模式）。', m: 'ミツバチなど生き物の目が受けとる色の幅で、森を見る道具。選ぶと、紫外を見て赤を見分けにくいミツバチの色の見え方に、森の色が置きかわる。歩いたり見回したりして、花や葉の見え方の違いを探す。根拠：ミツバチの目は紫外・青・緑の三色型（人の目の色に置きかえた模式）。' },
-      { id: 'hear', lens: 'hear-bat', ja: '聴こえない音', d: 'コウモリの声を、時間 10 倍・高さ 1/10 にして聴く（端末の中で合成した模式）。', m: '人には聴こえない高さの音を、聴こえる形にする道具。選ぶと、森にアブラコウモリの呼び声が、時間を 10 倍にのばし高さを 1/10 にした音で鳴る。耳をすませて、声の間と向きを聴く。根拠：コウモリは超音波で呼び、こだまで周りを知る（声は端末の中で合成した模式）。' },
-      { id: 'touch', lens: 'touch-forest', ja: '手ざわり', d: '樹皮・苔・石・土・葉を押すと面に寄り、なぞると振動と音で手ざわりが返る。', m: '森の物の手ざわりを、指で受けとる道具。選んで樹皮・苔・石・土・葉を押すと、その面に寄り、表面が画面いっぱいに広がる。広がった面をなぞると、凹凸と粗さに合わせて振動と音が返る。根拠：森の 3D の材質の写真の明暗と粗さから組んだ模式。' },
-      { id: 'magnet', lens: 'magnet-field', ja: '地磁気', d: '見ている向きに、地磁気の線を重ねる（さいたま付近の値の模式）。', m: '人の体では感じない地磁気を、景色に重ねる道具。選ぶと、見ている向きに磁北と磁力線が淡い線で出る。体ごと向きを変えて、磁北がどちらかを確かめる。根拠：国土地理院の磁気図による、さいたま付近の偏角（西へ約 7.5°）と伏角（約 49.5°）。' } ] },   // museum は世界の地図（x/58）の場所へ（2026-11-27 本人）
+      { id: 'sight', lens: 'forest-hachi', ja: '生き物の目', d: '生き物の目の色の幅で森を見る。選ぶとミツバチの見え方に。歩いて花や葉の違いを探す。根拠：蜂の目は紫外・青・緑の三色型（模式）。' },
+      { id: 'hear', lens: 'hear-bat', ja: '聴こえない音', d: '聴こえない音を聴こえる形にする。コウモリの声が時間 10 倍・高さ 1/10 で鳴る。耳をすませて間と向きを聴く。根拠：超音波で周りを知る。' },
+      { id: 'touch', lens: 'touch-forest', ja: '手ざわり', d: '森の物の手ざわりを指で受けとる。樹皮・苔・石・土・葉を押すと面に寄り、なぞると振動と音が返る。根拠：森の材質の写真の凹凸（模式）。' },
+      { id: 'magnet', lens: 'magnet-field', ja: '地磁気', d: '感じない地磁気を景色に重ねる。見ている向きに磁北と線が出る。体ごと向きを変えて確かめる。根拠：国土地理院の磁気図（西へ約 7.5°）。' } ] },   // museum は世界の地図（x/58）の場所へ（2026-11-27 本人）
     { title: '世界を切り分け直す', items: [
-      { id: 'carve', lens: 'm-carve', ja: '色と方位', d: '文化圏ごとの色の区切りや方位の切り方で、森を区切り直す。', m: '色や方位を、文化圏ごとの区切り方で切り分け直す道具。選ぶと、森が二つの色・十一の色・水色のある区切りなどで塗り分けられる。下の札で区切り方を切りかえ、字幕を押すと説明が進む。根拠：Berlin & Kay の基本色彩語の研究と World Color Survey など（区切りの位置は模式）。' },
-      { id: 'oldmap', lens: 'm-oldmap', ja: '地図', d: '森を上から見た地図と 5 m の方眼に置きかえて読む。', m: '景色を、地図という記号に置きかえて読む道具。選ぶと、森を上から見た地図（池・川・自分の向き）や、地面に 5 m の方眼が出る。地図と目の前を見くらべ、方眼で遠さを数える。根拠：この森の模型の池と川の位置（特定の実在の場所ではない）。' },
-      { id: 'civil', lens: 'm-civil', ja: '土木の目', d: '線・水平・水の集まる所。土木の目で森を読む。', m: '道や水路をつくる人の目で、景色の線と傾きを読む道具。選ぶと、輪郭の線・目の高さの水平・水の集まる池と川の筋が浮かぶ。札で読み方を切りかえ、見上げ見下ろして水平の線を動かす。根拠：道路構造令による車道の横断勾配 1.5〜2% など。' },
-      { id: 'kigo', lens: 'm-kigo', ja: '季語', d: 'いまの季節の季語を一つずつ重ね、森の中に探す。', m: '俳句の季語を枠にして、景色を季節の名で切りとる道具。選ぶと、いまの季節の季語が縦書きで重なり、その種類に合わせて空や足もとが強まる。字幕を押すと次の季語へ進み、森の中にその季語を探す。根拠：季節の区切りは、太陽の黄経による立春・立夏・立秋・立冬の目安。' },
-      { id: 'koyomi', lens: 'm-koyomi', ja: '暦', d: 'いまの二十四節気と七十二候を、太陽の位置から出して重ねる。', m: '一年を区切って景色に名をつける、暦の道具。選ぶと、いまの七十二候の名と読み、二十四節気の環と太陽の位置が重なる。札で候と節気を切りかえ、いまの候の気配を森に探す。根拠：太陽の黄経を 15° ずつ区切ると節気、5° ずつで候（国立天文台 暦Wiki）。' },
-      { id: 'role', lens: 'm-role', ja: '立場の目', d: '植木職人・鳥を調べる人・子ども。立場ごとの目の向け方を借りる。', m: '仕事や年齢など、立場ごとの目の向け方を借りる道具。選ぶと、植木職人・鳥を調べる人・子どもなどの見る所が残り、ほかが沈む。札で立場を切りかえ、その目で森を歩いてみる。根拠：mitsulab がその立場を想像して書いた問い（仮説）で、仕事の手引きにもとづくものではない。' },
-      { id: 'language', lens: 'language', ja: 'ことば', d: '言語を切りかえると、同じ名前でまとまる物と、別の名前に分かれる物が、景色の中で入れかわる。' } ] }
+      { id: 'carve', lens: 'm-carve', ja: '色と方位', d: '色や方位を文化圏ごとの区切りで切り直す。森が二つ・十一の色などで塗り分けられる。札で切りかえる。根拠：Berlin & Kay ほかの研究。' },
+      { id: 'oldmap', lens: 'm-oldmap', ja: '地図', d: '景色を地図の記号で読む。森を上から見た地図と 5 m の方眼が出る。目の前と見くらべ、遠さを数える。根拠：この森の模型の池と川。' },
+      { id: 'civil', lens: 'm-civil', ja: '土木の目', d: '道をつくる人の目で線と傾きを読む。輪郭・水平・水の集まる所が浮かぶ。見上げて水平の線を動かす。根拠：道路構造令の横断勾配 1.5〜2%。' },
+      { id: 'kigo', lens: 'm-kigo', ja: '季語', d: '季語を枠に、景色を季節の名で切りとる。いまの季語が縦書きで重なる。字幕を押して次へ、森に探す。根拠：太陽の黄経による季節の区切り。' },
+      { id: 'koyomi', lens: 'm-koyomi', ja: '暦', d: '暦で一年を区切り、景色に名をつける。いまの七十二候と二十四節気が重なる。札で切りかえる。根拠：黄経 15° で節気・5° で候（国立天文台）。' },
+      { id: 'role', lens: 'm-role', ja: '立場の目', d: '立場ごとの目の向け方を借りる。植木職人・鳥を調べる人・子どもの見る所が残る。札で切りかえ森を歩く。根拠：mitsulab が書いた問い（仮説）。' } ] }
   ];
   var ALL = []; GROUPS.forEach(function (G) { G.items.forEach(function (it) { ALL.push(it); }); });
   var O, cur = null, box, badge, THREE = null, loader = null, models = {}, rr = null, live = null;
@@ -28,8 +27,8 @@
     /* 帯：カメラの撮影モードのような細い一本の帯に、道具の名前が横に並ぶ。画面の下の端（常設の 3 つの上）。景色のまん中はあける */
     '.qs{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 92px);z-index:26;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;font-family:"Shippori Mincho","Hiragino Mincho ProN",serif;color:#eef5f2}.qs.on{opacity:1;transform:none}' +
     '.qs-pv{display:flex;align-items:center;justify-content:center;gap:12px;margin:0 auto 10px;padding:8px 12px;max-width:600px;box-sizing:border-box;border-radius:14px;background:rgba(8,16,18,.42);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);pointer-events:auto}' +
-    '@media (max-width:767px){.qs-pv{margin:0 16px 10px}.qs-pv em{white-space:nowrap}.qs .qs-pv p{-webkit-line-clamp:3}}.qs-pv canvas{width:68px;height:68px;flex:0 0 68px;border-radius:50%;background:radial-gradient(circle at 50% 42%,rgba(220,240,240,.22),rgba(220,240,240,0) 68%)}.qs-pv div{flex:1 1 auto}' +
-    '.qs-pv div{min-width:0}.qs-pv em{display:block;font-style:normal;font-size:10px;letter-spacing:.16em;opacity:.6}.qs-pv b{display:block;font-weight:500;font-size:14px;letter-spacing:.06em}.qs-pv p{margin:2px 0 0;font-size:12px;line-height:1.5;opacity:.86;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}' +
+    '@media (max-width:767px){.qs-pv{margin:0 16px 10px}.qs-pv em{white-space:nowrap}.qs .qs-pv p{-webkit-line-clamp:5;font-size:12px}.qs-pv canvas{width:52px;height:52px;flex:0 0 52px}.qs-pv{gap:10px;padding:8px 10px}}.qs-pv canvas{width:68px;height:68px;flex:0 0 68px;border-radius:50%;background:radial-gradient(circle at 50% 42%,rgba(220,240,240,.22),rgba(220,240,240,0) 68%)}.qs-pv div{flex:1 1 auto}' +
+    '.qs-pv div{min-width:0}.qs-pv em{display:block;font-style:normal;font-size:10px;letter-spacing:.16em;opacity:.6}.qs-pv b{display:block;font-weight:500;font-size:14px;letter-spacing:.06em}.qs-pv p{margin:2px 0 0;font-size:12px;line-height:1.5;opacity:.86;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}' +
     '.qs-more{display:inline-block;min-height:32px;margin:2px 0 0;padding:0;border:0;background:none;color:#cfe9ef;font:500 12px "Shippori Mincho",serif;letter-spacing:.06em;cursor:pointer}.qs-more:focus-visible{outline:1px solid rgba(190,236,246,.7)}' +
     '.qs .qs-pv p.qs-m[hidden],.qs-more[hidden]{display:none}.qs .qs-pv p.qs-m{display:block;-webkit-line-clamp:unset;margin:4px 0 0;font-size:12.5px;line-height:1.7;opacity:.92;max-height:min(34vh,220px);overflow-y:auto}' +
     '.qs-bar{position:relative;height:46px;margin:0 auto;max-width:640px;pointer-events:auto;touch-action:pan-y;cursor:grab;background:rgba(8,16,18,.46);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-top:1px solid rgba(220,240,240,.14);border-bottom:1px solid rgba(220,240,240,.14);-webkit-mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);overflow:hidden}' +
@@ -57,7 +56,6 @@
     else if (id === 'kigo') { add(new THREE.BoxGeometry(.28, 1.1, .02), M(0xe6dcc6)); add(new THREE.TorusGeometry(.04, .01, 6, 16), M(0x864e4c), 0, .5, .02); }
     else if (id === 'koyomi') { add(new THREE.TorusGeometry(.5, .05, 8, 48), M(0xd6c09b)); for (var k = 0; k < 24; k++) { var a = k / 24 * Math.PI * 2; add(new THREE.BoxGeometry(.02, .1, .02), M(0xeef5f2), Math.cos(a) * .5, Math.sin(a) * .5, 0, 0, 0, a); } add(new THREE.SphereGeometry(.07, 12, 8), M(0xf3d696, { emissive: 0x6a5020 }), .5, 0, 0); }
     else if (id === 'role') { add(new THREE.TorusGeometry(.32, .05, 8, 32), M(0x4a5a5e), -.36, 0, 0); add(new THREE.TorusGeometry(.32, .05, 8, 32), M(0x4a5a5e), .36, 0, 0); add(new THREE.CylinderGeometry(.03, .03, .2, 8), M(0x4a5a5e), 0, 0, 0, 0, 0, Math.PI / 2); }
-    else if (id === 'language') { add(new THREE.TorusGeometry(.4, .045, 8, 40), M(0x9bdcf0), -.2, 0, 0); add(new THREE.TorusGeometry(.4, .045, 8, 40), M(0xf3d696), .2, 0, 0); }
     else { add(new THREE.IcosahedronGeometry(.5, 1), M(0x9bdcf0, { flatShading: true })); }
     return G;
   }
@@ -102,7 +100,7 @@
     });
     seps.forEach(function (m) { m.el.style.left = 'calc(50% + ' + ((m.at - pos) * G) + 'px)'; m.el.style.opacity = Math.abs(m.at - pos) < 3.5 ? 1 : 0; });
     var it = ALL[((Math.round(pos) % n) + n) % n];
-    if (pv.dataset.id !== it.id) { pv.dataset.id = it.id; pv.querySelector('em').textContent = it.g + (cur === it ? '　·　使用中' : '　·　押して決める'); pv.querySelector('b').textContent = it.ja; pv.querySelector('p').textContent = it.d; var q = pv.querySelector('.qs-m'); q.textContent = it.m || ''; q.hidden = true; var mb = pv.querySelector('.qs-more'); mb.hidden = !it.m; mb.setAttribute('aria-expanded', 'false'); mb.textContent = '＋ くわしく'; spinPv(it); }
+    if (pv.dataset.id !== it.id) { pv.dataset.id = it.id; pv.querySelector('em').textContent = it.g + (cur === it ? '　·　使用中' : '　·　押して決める'); pv.querySelector('b').textContent = it.ja; pv.querySelector('p').textContent = it.d; spinPv(it); }
   }
   function spinPv(it) {
     cancelAnimationFrame(pvSpin); var cv = pv.querySelector('canvas'), t0 = performance.now(), last = 0;
@@ -120,8 +118,7 @@
   function closeDial() { dial.classList.remove('on'); document.body.classList.remove('qd-on'); setTimeout(function () { if (!dial.classList.contains('on')) { dial.hidden = true; cancelAnimationFrame(pvSpin); } }, 320); }
   function buildDial() {
     dial = document.createElement('div'); dial.className = 'qs'; dial.hidden = true; dial.setAttribute('role', 'dialog'); dial.setAttribute('aria-label', '道具をえらぶ');
-    pv = document.createElement('div'); pv.className = 'qs-pv'; pv.setAttribute('aria-live', 'polite'); pv.innerHTML = '<canvas width="112" height="112" aria-hidden="true"></canvas><div><em></em><b></b><p></p><button type="button" class="qs-more" aria-expanded="false">＋ くわしく</button><p class="qs-m" hidden></p></div>';
-    pv.querySelector('.qs-more').onclick = function () { var o = this.getAttribute('aria-expanded') !== 'true', q = pv.querySelector('.qs-m'); this.setAttribute('aria-expanded', String(o)); this.textContent = o ? '－ とじる' : '＋ くわしく'; q.hidden = !o; }; dial.appendChild(pv);
+    pv = document.createElement('div'); pv.className = 'qs-pv'; pv.setAttribute('aria-live', 'polite'); pv.innerHTML = '<canvas width="112" height="112" aria-hidden="true"></canvas><div><em></em><b></b><p></p></div>'; dial.appendChild(pv);
     bar = document.createElement('div'); bar.className = 'qs-bar'; bar.tabIndex = 0; bar.setAttribute('aria-label', '道具の帯：左右に送って選ぶ'); dial.appendChild(bar);
     var prevG = null;
     ALL.forEach(function (it, i) {
