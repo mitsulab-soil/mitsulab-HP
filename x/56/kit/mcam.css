@@ -16,5 +16,4 @@ html,body{margin:0;height:100%;background:#0b1211;color:var(--ink);font:400 14px
 #dr ol.src{margin:0;padding-left:1.4em;font-size:12px}
 #dr a{color:#bfe6ee}
 #dr .cr{font-size:11px;opacity:.72;line-height:1.6;margin-top:10px}
-html body #qgPop:not(.on),html body #qgPop:not(.on) *{pointer-events:none!important}
-@media (max-width:767px){html body #qgPop{left:16px!important;right:16px!important;width:auto!important;max-width:none!important;box-sizing:border-box}#dr{left:16px;right:16px;width:auto}#sub{font-size:13.5px}}
+@media (max-width:767px){#dr{left:16px;right:16px;width:auto}#sub{font-size:13.5px}}

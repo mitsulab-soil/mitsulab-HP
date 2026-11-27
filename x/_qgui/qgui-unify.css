@@ -132,3 +132,8 @@ html body #qgDrawer.qu-drawer #dMore{justify-content:flex-start!important;gap:8p
 @media (min-width:768px){body.qu-menuon .qu-mcard{background:none!important;border:0!important;box-shadow:none!important}}
 html body #qgDrawer.qu-drawer #dMore>*{flex:0 0 auto!important;order:0!important;margin-left:0!important}
 html body #qgDrawer.qu-drawer #dMore>*{margin-right:0!important}html body #qgDrawer.qu-drawer #dMore{justify-content:flex-start!important}
+/* 閉じた候補の板：中のボタンも見えず、押しを奪わない（2026-11-27。上の .qg-u の visibility:visible!important が親の hidden を上書きしていた） */
+html body #qgPop:not(.on),html body #qgPop:not(.on) *{pointer-events:none!important}
+html body #qgPop:not(.on) .qg-u{visibility:hidden!important}
+/* スマホの候補の板：枠と内側の余白を幅に含め、左右の余白を 16px でそろえる（2026-11-27） */
+@media (max-width:767px){html body #qgPop{box-sizing:border-box!important}}

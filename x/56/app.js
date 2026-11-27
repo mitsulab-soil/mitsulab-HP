@@ -34,7 +34,7 @@
   M.start({
     name: 'Qualia/koyomi ── 暦で見る', more: 'いまの暦',
     about: '<p>暦は、一年を区切って景色に名をつける枠です。太陽の黄経（地球から見た太陽の位置）を 15° ずつに区切ると二十四節気、5° ずつに区切ると七十二候になります。この道具は、いまの日時から太陽の位置を計算して、いまの節気と候を出します。どこにいても同じです。</p><p>七十二候の名とよみは、国立天文台の暦Wiki の表（宝暦暦以降の欄）によります。太陽の位置は簡単な式による目安で、区切りの日の前後では、暦の本とずれることがあります。</p>',
-    sources: { k72: { title: '国立天文台 暦計算室「暦Wiki 七十二候」', url: 'https://eco.mtk.nao.ac.jp/koyomi/wiki/B5A8C0E12FBCB7BDBDC6F3B8F5.html' }, sek: { title: '国立天文台 暦計算室「暦Wiki 二十四節気」', url: 'https://eco.mtk.nao.ac.jp/koyomi/wiki/C6F3BDBDBBCDC0E1B5A4.html' } },
+    sources: { k72: { title: '国立天文台 暦計算室「暦Wiki 七十二候」', url: 'https://eco.mtk.nao.ac.jp/koyomi/wiki/B5A8C0E12FBCB7BDBDC6F3B8F5.html' }, sek: { title: '国立天文台 暦計算室「暦Wiki 二十四節気とは？」', url: 'https://eco.mtk.nao.ac.jp/koyomi/wiki/B5A8C0E12FC6F3BDBDBBCDC0E1B5A4A4C8A4CFA1A9.html' } },
     modes: [
       { id: 'kou', label: '七十二候', fx: function (px) { M.tone(px, [.78, .76, .72], [10, 9, 6]); }, over: kou,
         ask: function (S) { var n = now(S); return n.ko ? 'いまは' + n.sek + '、「' + n.ko[1].replace(/\(.*\)/, '') + '（' + n.ko[2] + '）」のころ。目の前の景色に、その気配はありますか。' : ''; },

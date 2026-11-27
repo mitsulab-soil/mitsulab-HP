@@ -46,7 +46,7 @@
     var id2 = id.slice(0);
     for (var yy = 1; yy < h - 1; yy++) for (var xx = 1; xx < w - 1; xx++) { var j = yy * w + xx, cnt = {}, best = id[j], bc = 0; for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var v = id[j + dy * w + dx]; cnt[v] = (cnt[v] || 0) + 1; if (cnt[v] > bc) { bc = cnt[v]; best = v; } } if (bc >= 5) id2[j] = best; }
     id = id2;
-    mix = mix == null ? .66 : mix;
+    mix = mix == null ? .48 : mix;
     for (i = 0, k = 0; i < n; i++, k += 4) {
       var c = Lt.P[id[i]].rgb, x = i % w, gi = Lt.P[id[i]].g, edge = (x < w - 1 && gi !== Lt.P[id[i + 1]].g) || (i + w < n && gi !== Lt.P[id[i + w]].g);
       if (edge) { px[k] = px[k] * .3 + 165; px[k + 1] = px[k + 1] * .3 + 172; px[k + 2] = px[k + 2] * .3 + 171; continue; }
@@ -108,7 +108,7 @@
   function notes() { var L = mode.notes; return typeof L === 'function' ? L(S) : (L || []); }
   function say() {
     var L = notes(), el = $('#sub');
-    if (noteI < 0 || noteI >= L.length) { noteI = -1; var a = typeof mode.ask === 'function' ? mode.ask(S) : mode.ask; el.innerHTML = esc(a) + (L.length ? '<small class="nx">' + (C.more || 'ひらく') + ' ›</small>' : ''); return; }
+    if (noteI < 0 || noteI >= L.length) { noteI = -1; var a = typeof mode.ask === 'function' ? mode.ask(S) : mode.ask; el.innerHTML = esc(a) + (L.length || C.tapHint ? '<small class="nx">' + (C.tapHint || C.more || 'ひらく') + ' ›</small>' : ''); return; }
     var n = L[noteI]; el.innerHTML = esc(n.text) + srcLine(n) + '<small class="nx">' + (noteI + 1) + ' / ' + L.length + '　次へ ›</small>';
   }
   function drawer() {
