@@ -70,7 +70,7 @@ var T={
  museum:["Qualia/museum","https://mitsulab-soil.github.io/museum/"],yose:["Qualia/yose","https://mitsulab-soil.github.io/aoi-shizen-rakugo/"],
  
  omiya:["Qualia/omiya","/x/09/"],kawagoe:["Qualia/kawagoe","/x/12/"],shibuya:["Qualia/shibuya","/x/14/"],
- map:["Qualia/map","/x/39/"],macroscope:["Qualia/macroscope","/x/59/"],microscope:["Qualia/microscope","/x/60/"],carve:["Qualia/carve","/x/52/"],oldmap:["Qualia/oldmap","/x/53/"],civil:["Qualia/civil","/x/54/"],kigo:["Qualia/kigo","/x/55/"],koyomi:["Qualia/koyomi","/x/56/"],role:["Qualia/role","/x/57/"],network:["Qualia/network","/x/46/"]};
+ map:["Qualia/map","/x/39/"],lab:["Qualia/lab","/x/61/"],macroscope:["Qualia/macroscope","/x/59/"],microscope:["Qualia/microscope","/x/60/"],carve:["Qualia/carve","/x/52/"],oldmap:["Qualia/oldmap","/x/53/"],civil:["Qualia/civil","/x/54/"],kigo:["Qualia/kigo","/x/55/"],koyomi:["Qualia/koyomi","/x/56/"],role:["Qualia/role","/x/57/"],network:["Qualia/network","/x/46/"]};
 var BAG=[["森で見つける道具 ── 知覚 P",["sight","hear","touch","magnet","macroscope","microscope"]],["街で見つける道具 ── 意味づけ M",["oldmap","koyomi","carve","kigo","civil","role"]]];
 /* 場所：x,y は 0..1000 × 0..700 の地図の上 */
 var PL=[
@@ -78,7 +78,7 @@ var PL=[
  {id:"macro",x:140,y:205,ch:"承 ── P",n:"天文台",p:"はじまりの森の先、大きい世界の端に立つ塔。望遠鏡で、十倍ずつ宇宙へ。",t:["macroscope"],q:"いちばん遠くの光は、いつ出発した？"},
  {id:"micro",x:330,y:500,ch:"承 ── P",n:"微文台",p:"読みは、びもんだい。天文台と対になる、小さい世界の端に立つ塔。顕微鏡で、十分の一ずつ小さな世界へ。",t:["microscope"],q:"足もとの一粒の土に、何がいる？"},
  {id:"town",x:470,y:400,ch:"承 ── M",n:"はじまりの街",p:"街の人は、それぞれ別の切り分け方で世界を見ている。色の名・方位・季節・地名・仕事の目。昔の地図を重ねると、道の下に消えた川が見える。",t:["oldmap","koyomi","carve","kigo","civil","role"],q:"この通りを、季節の言葉で切り分けたら？"},
- {id:"hall",x:520,y:215,ch:"承 ── N",n:"館と宿",p:"物語にふれる場所。絵の中の生き物が額から抜け出し、目の前の景色に重なる。北斎の燕が、いつもの空を横切る。その生き物は、旅についてくる。",t:["museum","yose"],q:"その景色は、どんな噺になる？"},
+ {id:"hall",x:520,y:215,ch:"承 ── N",n:"館と宿",p:"物語にふれる場所。絵の中の生き物が額から抜け出し、目の前の景色に重なる。北斎の燕が、いつもの空を横切る。その生き物は、旅についてくる。",t:["museum","yose","lab"],q:"その景色は、どんな噺になる？"},
  {id:"real",x:760,y:330,ch:"転 ── E",n:"実在の街",p:"手に入れた道具と、館で出会った絵の生き物を連れて、本物の場所へ。渋谷で、アゲハの目と AR の中に入りこむと、人と蝶の境目が溶ける。スマホの AR で、目の前の参道や路地に道具が効く。「蝶になってもいい。帰ってくる体を、忘れないで」",t:["omiya","kawagoe","shibuya","network"],q:"いま、あなたは湊ですか。それとも、蝶の夢を見ている誰かですか"},
  {id:"daily",x:600,y:560,ch:"結 ── E",n:"いつもの街",p:"家の近く、通勤の道。道具はそのまま使える。家の近くの植え込みの前で、画面を閉じます。まず自分の体で受けとります。それから道具をひらき、ハチの道すじと、夕空のコウモリの声を重ねます。世界は、人間だけのものではありませんでした。",t:["map"],q:"画面を閉じたら、何が聞こえる？"},
  {id:"next",x:925,y:150,ch:"まだ地図にない場所",far:1,n:"まだ地図にない場所",p:"場所そのものが感じとる土地。旅人の記録が、次の旅人の受けとり方をひらく（IoT・開発中）。そこへ行くための、現実の空間で使える知覚拡張のデバイスを、β 版としてつくっている。クラウドファンディングで、世に出す予定。",t:[],q:"場所の方が、あなたに気づいたら？"}
