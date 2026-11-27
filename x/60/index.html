@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noai,noimageai">
+<meta name="tdm-reservation" content="1">
+<title>Qualia/microscope 微文台</title>
+<meta name="description" content="はじまりの森の先、小さい方の端に立つ塔。顕微鏡をのぞき、花から雪の結晶、ミツバチの複眼、ゾウリムシ、花粉、土の中の菌糸、細菌まで、十分の一ずつ連続してのぞく。">
+<meta name="theme-color" content="#15120e">
+<link rel="icon" href="../39/favicon/icon.svg" type="image/svg+xml">
+<script>(function(){var pub=/\/x\/\d+\//.test(location.pathname);window.__TW={pub:pub};var m={imports:{three:pub?"../hub/engine/vendor/three/build/three.module.js":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"}};var s=document.createElement("script");s.type="importmap";s.textContent=JSON.stringify(m);document.currentScript.after(s);var q=pub?"../_qgui/":"../../../../01_経営/03_対外書類/12_ブランド/_共通3D/qgui/";document.write('<link rel="stylesheet" href="'+q+'qgui-unify.css"><script src="'+q+'qgui-unify.js"><\/script>')})()</script>
+<style>
+:root{--ink:#e9f2f1;--dim:rgba(233,242,241,.74);--line:rgba(170,226,236,.5);--gold:#e8cf96;--bg:#15120e}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;-webkit-tap-highlight-color:transparent}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+.brand{position:fixed;left:16px;top:max(14px,env(safe-area-inset-top));font-size:12px;letter-spacing:.1em;color:var(--dim);pointer-events:none;text-shadow:0 0 6px #000;z-index:4}
+.brand b{color:var(--ink);font-weight:500}
+#hint{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(max(22px,env(safe-area-inset-bottom)) + 70px);width:min(420px,calc(100% - 32px));text-align:center;font-size:13px;line-height:1.7;color:var(--ink);text-shadow:0 0 6px #000,0 0 12px rgba(0,0,0,.7);pointer-events:none;transition:opacity .6s}
+body.sky #hint{opacity:0}
+#cap{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(max(22px,env(safe-area-inset-bottom)) + 66px);width:min(460px,calc(100% - 32px));padding:12px 16px;background:rgba(6,12,18,.5);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(170,226,236,.22);border-radius:12px;opacity:0;transition:opacity .5s;pointer-events:none;z-index:3}
+body.sky #cap.on{opacity:1}
+#cap h2{font-size:15px;font-weight:500;letter-spacing:.1em}
+#cap p{font-size:13px;line-height:1.75;color:var(--dim);margin-top:4px}
+#capT{color:var(--gold)!important}
+#cap a{pointer-events:auto;color:var(--gold);display:inline-flex;align-items:center;min-height:44px}
+#rul{position:fixed;left:16px;top:74px;bottom:calc(max(22px,env(safe-area-inset-bottom)) + 200px);width:2px;background:linear-gradient(transparent,rgba(170,226,236,.45),transparent);opacity:0;transition:opacity .5s;pointer-events:none}
+body.sky #rul{opacity:1}
+#rul i sup{font-size:8px}#rul i{position:absolute;left:8px;transform:translateY(-50%);font:10px/1 Inter,"Hiragino Sans",sans-serif;font-style:normal;color:rgba(233,242,241,.45);white-space:nowrap}
+#rulMk{position:absolute;left:-5px;width:12px;height:12px;border-radius:50%;border:1.5px solid #8fe0ee;box-shadow:0 0 10px #5cc8e0;transform:translateY(-50%)}
+#wtxt{position:fixed;left:16px;top:44px;font:12px/1.4 Inter,"Hiragino Sans",sans-serif;letter-spacing:.06em;color:#bfeaf2;opacity:0;transition:opacity .5s;text-shadow:0 0 6px #000}
+body.sky #wtxt{opacity:1}
+#phase{position:fixed;inset:auto;left:auto;right:16px;width:84px;height:84px;top:max(14px,env(safe-area-inset-top));width:84px;height:84px;opacity:0;transition:opacity .5s}
+body.sky #phase{opacity:1}
+#phase[hidden]{display:none}
+.bar{position:fixed;right:16px;bottom:max(22px,env(safe-area-inset-bottom));display:flex;gap:8px;align-items:center;z-index:6}
+.bar button,.bar summary{height:48px;min-width:48px;padding:0 18px;border-radius:24px;border:1px solid rgba(233,242,241,.38);background:rgba(10,18,26,.42);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:var(--ink);font:13px/1 inherit;font-family:inherit;letter-spacing:.08em;cursor:pointer}
+.bar #go{border-color:rgba(143,224,238,.7);background:rgba(20,48,60,.55)}
+#stages{display:none}
+#qgMenu{padding:0;width:48px;border-radius:50%}
+#drawer{position:fixed;right:16px;bottom:calc(max(22px,env(safe-area-inset-bottom)) + 60px);width:min(340px,calc(100% - 32px));max-height:60vh;overflow:auto;padding:14px 16px;background:rgba(6,12,18,.9);border:1px solid rgba(170,226,236,.25);border-radius:14px;font-size:13px;line-height:1.75;color:var(--dim);display:none;z-index:7}
+#drawer.open{display:block}
+#drawer h3{font-size:13px;color:var(--ink);font-weight:500;margin:10px 0 4px;letter-spacing:.08em}
+#drawer a{color:#bfeaf2}
+#drawer li{margin-left:1.1em;font-size:12px}
+#drawer .lk{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+#drawer .lk a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;border:1px solid rgba(170,226,236,.35);border-radius:22px;text-decoration:none}
+#endHint[hidden]{display:none}
+.ld{position:fixed;inset:0;background:var(--bg);transition:opacity .5s;pointer-events:none;z-index:9}
+body.ready .ld{opacity:0}
+@media (max-width:767px){#cap{bottom:calc(max(22px,env(safe-area-inset-bottom)) + 62px)}#cap p{font-size:12.5px}#rul{top:70px}#phase{width:64px;height:64px}}
+</style>
+</head>
+<body>
+<div class="ld"></div>
+<div class="brand"><b>Qualia/microscope 微文台</b></div>
+<div id="wtxt"></div>
+<div id="rul"><span id="rulMk"></span></div>
+<canvas id="phase" width="128" height="128" hidden aria-label="地球から見た月の形"></canvas>
+<p id="hint">部屋をドラッグで見回し、床を押すと歩く。顕微鏡を押すと、のぞく。</p>
+<div id="cap" aria-live="polite"><h2 id="capN"></h2><p id="capF"></p><p id="capT"></p><p id="endHint" hidden><a id="other2" href="../59/">大きい方へは、天文台へ →</a></p></div>
+<div class="bar"><div id="stages" aria-label="段"></div><button id="go" type="button">顕微鏡をのぞく</button><button id="qgMenu" type="button" aria-label="メニュー" aria-expanded="false">≡</button></div>
+<div id="drawer" role="dialog" aria-label="説明と出典">
+<h3>Qualia/microscope 微文台（びもんだい）</h3><p>はじまりの森の先に立つ二つの塔のうち、小さい方の端。顕微鏡をのぞくと、花から中へ、視野の幅を十分の一ずつ狭めながら、雪の結晶・ミツバチの複眼・ゾウリムシ・スギ花粉・土の中の菌糸・細菌までのぞく。</p>
+<h3>うごかし方</h3><p>のぞいたあとは、上下のドラッグ・ホイール・二本指のピンチで大きさをわたる。「段」の札から一つの段へとぶ。扉から天文台へ行ける。</p>
+<h3>出典</h3><ul id="srcL"></ul>
+<p style="margin-top:8px;font-size:12px">形は事実にもとづく模式です。大きさと距離は実際の値の比のままにし、小さすぎて見えない物は光る印で示しています。</p>
+<div class="lk"><a id="other" href="../59/">天文台へ</a><a href="../58/">世界の地図</a><a href="https://mitsulab.jp/">mitsulab</a></div>
+<p style="margin-top:10px;font-size:11px">© mitsulab. All rights reserved.</p>
+</div>
+<script type="module">
+const pub=window.__TW.pub;
+const {run}=await import(pub?"../59/tower.js":"../../31_Qualia_macroscope/★実行データ/tower.js");
+const qm=document.getElementById("qgMenu"),dr=document.getElementById("drawer");
+qm.addEventListener("click",()=>{const o=!dr.classList.contains("open");dr.classList.toggle("open",o);qm.setAttribute("aria-expanded",o)});
+run({kind:"micro",other:"../59/",asset:k=>pub?"../36/img/earth_4096.webp":"../../../03_開発中（非公開）/19_Qualia_scale/★実行データ/img/earth_4096.webp"});
+</script>
+</body>
+</html>
