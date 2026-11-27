@@ -73,7 +73,7 @@ export function start(opt){
       tx(en()?'torii':'鳥居',[tr[0]+10,tr[1]],WH,k*s0*1.2);
       o.trees.forEach((t,i)=>{const s=st(pr,1+i*0.7,5),r=Math.abs(t.b[1]-t.c[1])*0.36,c=t.c;ln([t.b,t.c],CY,k*s,1);ell(c,r,r*0.9,CY,k*s*0.9,1);sq(t.b,3,CY,k*s);if(i===0)tx(en()?'tree':'木',[c[0]+r+8,c[1]],WH,k*s*1.2)});
       const s4=st(pr,4,5),L=[],R=[];A.path.filter(r=>r.m>=8).forEach(r=>{L.push(M(r.l));R.push(M(r.r))});ln(L,CY,k*s4*0.8,1,[2,5]);ln(R,CY,k*s4*0.8,1,[2,5]);
-      const pp=M(row(10).c);tx(en()?'paving stones':'石畳',[pp[0]+12,pp[1]],WH,k*s4*1.2)},
+      /* 石畳の札は出さない（2026-11-27：見出しに重なるため） */},
     agent(a,pr){const k=K()*a,u=Math.min(W,H);agents().forEach((g,i)=>{const s=st(pr,i*0.8,5),col=g.s?BR:g.m?WH:CY;
       tri(g.p,5,col,k*s*1.3,g.m);
       const R=g.R*u;                                   // 受けとれる範囲（模式）：大きさも向きも受けとり手ごとに違う
