@@ -3059,7 +3059,7 @@ function foot(){if(!ft)return;var d=new Date(),h=d.getHours(),night=(h>=20||h<5)
 /* 6 隠れた楽しみ：フッターの mitsulab を三度押す */
 var n=0,nt;document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('footer .f-brand');if(!b)return;n++;clearTimeout(nt);nt=setTimeout(function(){n=0;},900);if(n>=3&&dr){dr.classList.toggle('on');n=0;}});
 /* 7 よそ見をすると、タブの名前が少し変わる */
-var ot=document.title;document.addEventListener('visibilitychange',function(){if(document.hidden){ot=document.title;document.title=T('（標本は、そのままにしておきます）','(We left the specimens as they were)');}else{document.title=ot;}});
+var ot=document.title;document.addEventListener('visibilitychange',function(){if(document.hidden){ot=document.title;document.title='mitsulab';}else{document.title=ot;}});
 /* 8 ソースを読みに来た方へ */
 try{console.log('%cmitsulab%c\n'+'ソースまで読みに来たあなたは、たぶんもう住人です。 official@mitsulab.jp','font:600 16px serif;color:#8fe3ea','font:12px sans-serif;color:#9bb');}catch(_){}
 function all(){obs();foot();}
