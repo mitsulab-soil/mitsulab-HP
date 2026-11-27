@@ -137,3 +137,5 @@ html body #qgPop:not(.on),html body #qgPop:not(.on) *{pointer-events:none!import
 html body #qgPop:not(.on) .qg-u{visibility:hidden!important}
 /* スマホの候補の板：枠と内側の余白を幅に含め、左右の余白を 16px でそろえる（2026-11-27） */
 @media (max-width:767px){html body #qgPop{box-sizing:border-box!important}}
+
+/* 2026-11-27 たたんだ元の列（.qu-gone）が、道具の側の強い指定（AR の #ring など）で出てしまい、列の札と重なる → id を持つ指定より強くして必ず隠す */html body .qu-gone:is(#qgNone1,*):is(#qgNone2,*){display:none!important}

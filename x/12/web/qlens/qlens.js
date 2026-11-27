@@ -9,14 +9,15 @@
    P の道具の単体でも：QLens.use('sight-bee', ctx) で同じ部品を読む。 */
 (function (g) {
   'use strict';
-  /* 目録（中身は読まない）。M のレンズも同じ形で一行足す */
+  /* 目録（中身は読まない）。P＝知覚・N＝物語。M のレンズも同じ形で一行足す */
   var LIST = [
     { id: 'none',       name: 'そのまま', tool: '' },
     { id: 'sight-bee',  name: 'ミツバチ', tool: 'sight' },
     { id: 'sight-papilio', name: 'アゲハ', tool: 'sight' },
     { id: 'hear-bat',   name: 'コウモリ', tool: 'hear' },
     { id: 'touch-ground', name: '手ざわり', tool: 'touch' },
-    { id: 'magnet-field', name: '地磁気', tool: 'magnet' }
+    { id: 'magnet-field', name: '地磁気', tool: 'magnet' },
+    { id: 'n-tsubame', name: '絵の燕', tool: 'n' }
   ];
   var defs = {}, loading = {}, cur = null, curId = 'none', base = '';
   function define(d) { defs[d.id] = d; }
@@ -24,7 +25,7 @@
     if (!tool) return Promise.resolve();
     if (loading[tool]) return loading[tool];
     return loading[tool] = new Promise(function (ok, ng) {
-      var s = document.createElement('script'); s.src = base + 'lens-' + tool + '.js?v=4'; s.onload = ok; s.onerror = ng; document.head.appendChild(s);
+      var s = document.createElement('script'); s.src = base + 'lens-' + tool + '.js?v=10'; s.onload = ok; s.onerror = ng; document.head.appendChild(s);
     });
   }
   function use(id, ctx) {
@@ -43,12 +44,13 @@
     base = o.base || base;
     var css = document.createElement('style');
     css.textContent = '.qlens{grid-column:1/-1;flex:0 0 100%;width:100%;box-sizing:border-box;position:static;margin:0 0 10px;padding:0 0 10px;border-bottom:1px solid rgba(170,226,236,.18)}.qlens b{display:block;font:500 12px/1.4 "Shippori Mincho","Hiragino Mincho ProN",serif;letter-spacing:.1em;opacity:.72;margin:0 0 8px}.qlens div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.qlens button{position:static;width:100%;min-width:0;min-height:44px;overflow:hidden;padding:4px 6px;border:1px solid rgba(170,226,236,.4);border-radius:22px;background:rgba(6,34,38,.3);color:#e9f6f5;font:500 12px/1.25 "Shippori Mincho","Hiragino Mincho ProN",serif}.qlens button[aria-pressed=true]{background:rgba(155,220,240,.22);border-color:rgba(190,236,246,.9)}';
-    css.textContent += 'html body #q3Drawer>.qlens{grid-column:1/-1!important;display:block!important;width:100%!important}html body #q3Drawer .qlens>div{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important}html body #q3Drawer .qlens button{min-width:0!important;width:100%!important;padding:0 4px!important;font-size:12px!important;letter-spacing:0!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis}html body #q3Drawer .qlens b{display:block!important;margin:0 0 8px!important}';
+    css.textContent += 'html body :is(#q3Drawer,#qgDrawer)>.qlens{grid-column:1/-1!important;display:block!important;width:100%!important}html body :is(#q3Drawer,#qgDrawer) .qlens>div{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important}html body :is(#q3Drawer,#qgDrawer) .qlens button{min-width:0!important;width:100%!important;padding:0 4px!important;font-size:12px!important;letter-spacing:0!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis}html body :is(#q3Drawer,#qgDrawer) .qlens b{display:block!important;margin:0 0 8px!important}';
     document.head.appendChild(css);
     var box = document.createElement('section'); box.className = 'qlens'; box.setAttribute('aria-label', '知覚のレンズ');
-    box.innerHTML = '<b>知覚のレンズ</b><div></div>';
+    box.innerHTML = '<b>' + (o.title || '知覚のレンズ') + '</b><div></div>';
     var row = box.lastChild;
     LIST.forEach(function (it) {
+      if (o.only && o.only.indexOf(it.id) < 0) return;
       var b = document.createElement('button'); b.type = 'button'; b.textContent = it.name; b.dataset.lens = it.id;
       b.setAttribute('aria-pressed', it.id === curId ? 'true' : 'false');
       b.addEventListener('click', function () {
@@ -63,5 +65,5 @@
     document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest(o.menu || '#q3Menu, #qgBar [data-k=menu]')) { put(); setTimeout(put, 0); setTimeout(put, 120); } }, true);
     return { box: box };
   }
-  g.QLens = { list: LIST, define: define, use: use, mountE: mountE, current: function () { return curId; }, setBase: function (b) { base = b; } };
+  g.QLens = { list: LIST, define: define, use: use, mountE: mountE, current: function () { return curId; }, base: function () { return base; }, setBase: function (b) { base = b; } };
 })(window);
