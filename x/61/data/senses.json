@@ -1,0 +1,1117 @@
+{
+ "version": 1,
+ "updated": "2026-11-27",
+ "note": "値ごとに出典と確かさ。未確認は空欄。生き物の感じ方は言い切らず、受けとれる幅と反応の記録として書く。書誌は採用時に原本で確かめる。",
+ "keys": {
+  "vision": "視覚の波長域",
+  "hearing": "可聴域",
+  "temporal": "時間の分解能",
+  "magnetic": "磁気",
+  "electric": "電場",
+  "thermal": "熱",
+  "chemical": "化学（物質と濃度）"
+ },
+ "agents": [
+  {
+   "id": "human",
+   "name": "人",
+   "kind": "生き物",
+   "senses": {
+    "vision": {
+     "value": "錐体 3 種（λmax 約 420・534・563 nm）、桿体 約 498 nm",
+     "certainty": "確か",
+     "source": "Bowmaker & Dartnall 1980 J. Physiol. 298:501–511 doi:10.1113/jphysiol.1980.sp013097（PMC1279132）、Abstract",
+     "checked": "2026-11-26（本文で確かめた）"
+    },
+    "hearing": {
+     "value": "約 20〜20,000 Hz（年齢で上限が下がる）",
+     "certainty": "幅あり",
+     "source": "ISO 226:2023 https://www.iso.org/standard/83117.html",
+     "checked": "未照合（本・規格・Web 仕様。原本で確かめる）"
+    },
+    "temporal": {
+     "value": "ちらつきが止まって見える頻度 約 50〜60 Hz（明るさで変わる）",
+     "certainty": "幅あり",
+     "source": "Hecht & Shlaer 1936, J. Gen. Physiol. 19(6):965–977, doi:10.1085/jgp.19.6.965 ／ 60 Hz は Healy et al. 2013, Anim. Behav. 86:685–696, doi:10.1016/j.anbehav.2013.06.018, Table 1（PMC3791410）",
+     "checked": "2026-11-26（Crossref で書誌を照合）"
+    },
+    "magnetic": {
+     "value": "地球ほどの強さの磁場を回すと、脳波のα波（8〜13 Hz）が下がる反応が出た（意識にはのぼらない。追試を待つ）",
+     "certainty": "幅あり",
+     "source": "Wang et al. 2019 eNeuro 6:ENEURO.0483-18.2019 doi:10.1523/ENEURO.0483-18.2019、要旨",
+     "checked": "2026-11-27（Crossref で書誌、Europe PMC で要旨を照合）"
+    },
+    "electric": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "thermal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "chemical": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    }
+   },
+   "marks": [],
+   "transform": {
+    "mode": "base"
+   }
+  },
+  {
+   "id": "honeybee",
+   "name": "ミツバチ（セイヨウミツバチ）",
+   "kind": "生き物",
+   "senses": {
+    "vision": {
+     "value": "視細胞 3 種（λmax 約 344・436・544〜556 nm＝紫外・青・緑）",
+     "certainty": "確か",
+     "source": "Hempel de Ibarra, Vorobyev & Menzel 2014 J. Comp. Physiol. A 200:411–433 doi:10.1007/s00359-014-0915-1（PMC4035557。値は Menzel & Backhaus 1991 から）、本文と Fig. 2（L は本文 544・図 556 nm）",
+     "checked": "2026-11-26（本文で確かめた）"
+    },
+    "hearing": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "temporal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "magnetic": {
+     "value": "磁気の感覚がある証拠は出ているが、受容の場所と仕組みは分かっていない（腹部の鉄を調べても受容細胞は見つからなかった）",
+     "certainty": "幅あり",
+     "source": "Shaw et al. 2018, Royal Society Open Science, doi:10.1098/rsos.181163（PMC6170574）、要旨・導入",
+     "checked": "2026-11-26（本文で確かめた）"
+    },
+    "electric": {
+     "value": "体のまわりの電場で触角が受け身に動き、ジョンストン器官などの機械受容器が反応する。一定の電場と変動する電場の両方を学習できた（感度の数値はこの表では未記載）",
+     "certainty": "確か",
+     "source": "Greggers U, Koch G, Schmidt V, Dürr A, Floriou-Servou A, Piepenbrock D, Göpfert MC, Menzel R. 2013 Proc. R. Soc. B 280:20130528 doi:10.1098/rspb.2013.0528（PMC3619523）、Abstract",
+     "checked": "2026-11-27（Europe PMC の書誌と要旨で確かめた）"
+    },
+    "thermal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "chemical": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    }
+   },
+   "marks": [],
+   "transform": {
+    "mode": "uv",
+    "shift_nm": -60
+   }
+  },
+  {
+   "id": "papilio",
+   "name": "アゲハ（ナミアゲハ）",
+   "kind": "生き物",
+   "senses": {
+    "vision": {
+     "value": "紫外〜赤。視細胞は 6 種類",
+     "certainty": "幅あり",
+     "source": "Arikawa 2003, J. Comp. Physiol. A 189:791–800, doi:10.1007/s00359-003-0454-7",
+     "checked": "2026-11-26（Crossref で書誌を照合）"
+    },
+    "chemical": {
+     "value": "雌は前脚の跗節の味の感覚毛で葉を確かめる。日本のアゲハ属はみな、この感覚毛の応答が同じと報告されている",
+     "certainty": "確か",
+     "source": "Inoue et al. 2023, Journal of Chemical Ecology, doi:10.1007/s10886-023-01433-2（PMC10611675）、導入（Inoue 2006 ほかを引用）",
+     "checked": "2026-11-26（本文で確かめた）"
+    },
+    "hearing": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "temporal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "magnetic": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "electric": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "thermal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    }
+   },
+   "marks": [
+    {
+     "id": "rutaceae",
+     "label": "ミカン科の葉",
+     "target": "plant:Rutaceae",
+     "color": "#d9e86a"
+    }
+   ],
+   "transform": {
+    "mode": "uv",
+    "shift_nm": -40
+   }
+  },
+  {
+   "id": "bombyx",
+   "name": "カイコガ（雄）",
+   "kind": "生き物",
+   "senses": {
+    "chemical": {
+     "value": "ボンビコール。受容神経は 1 分子でも電気信号を出すほど敏感と計算されている（放射標識ボンビコールの電気生理から）",
+     "certainty": "幅あり",
+     "source": "Sakurai, Namiki & Kanzaki 2014, Frontiers in Physiology, doi:10.3389/fphys.2014.00125（PMC3978319）、本文（Kaissling 1987 を引用）",
+     "checked": "2026-11-26（本文で確かめた）"
+    },
+    "vision": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "hearing": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "temporal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "magnetic": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "electric": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "thermal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    }
+   },
+   "marks": [
+    {
+     "id": "bombykol",
+     "label": "ボンビコールの流れ（模式）",
+     "target": "odor:plume",
+     "color": "#f2c6e0"
+    }
+   ],
+   "transform": {}
+  },
+  {
+   "id": "mosquito",
+   "name": "蚊（雌）",
+   "kind": "生き物",
+   "senses": {
+    "chemical": {
+     "value": "二酸化炭素・人の匂い・見た目・体温を組み合わせて人を探す（濃度の数値は未確認）",
+     "certainty": "幅あり",
+     "source": "Uehara, Dong & Duvall 2026, Communications Biology, doi:10.1038/s42003-026-09987-z（PMC13234290）、導入",
+     "checked": "2026-11-26（本文で確かめた）"
+    },
+    "thermal": {
+     "value": "近くでは体温にも反応する",
+     "certainty": "幅あり",
+     "source": "Gillies 1980（同上）",
+     "checked": "未照合（本・規格・Web 仕様。原本で確かめる）"
+    },
+    "vision": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "hearing": {
+     "value": "触角のジョンストン器官で空気の動きとしての音を聴く。雄は群れの中で雌の羽音を聴き分ける（周波数の選択性が高い。数値はこの表では未記載）",
+     "certainty": "確か",
+     "source": "Loh YM, Su MP, Ellis DA, Andrés M 2023 Front. Cell Dev. Biol. 11:1123738 doi:10.3389/fcell.2023.1123738（PMC10009176）、Abstract",
+     "checked": "2026-11-27（Europe PMC の書誌と要旨で確かめた）"
+    },
+    "temporal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "magnetic": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "electric": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    }
+   },
+   "marks": [
+    {
+     "id": "co2",
+     "label": "息の二酸化炭素（模式）",
+     "target": "odor:breath",
+     "color": "#bfe3ff"
+    }
+   ],
+   "transform": {}
+  },
+  {
+   "id": "tick",
+   "name": "マダニ",
+   "kind": "生き物",
+   "senses": {
+    "chemical": {
+     "value": "哺乳類の皮膚の酪酸に反応する",
+     "certainty": "幅あり",
+     "source": "Uexküll & Kriszat 1934『Streifzüge durch die Umwelten von Tieren und Menschen』",
+     "checked": "未照合（本・規格・Web 仕様。原本で確かめる）"
+    },
+    "thermal": {
+     "value": "体温ほどの温かさに反応する",
+     "certainty": "幅あり",
+     "source": "Uexküll & Kriszat 1934（同上）",
+     "checked": "未照合（本・規格・Web 仕様。原本で確かめる）"
+    },
+    "vision": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "hearing": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "temporal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "magnetic": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "electric": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    }
+   },
+   "marks": [
+    {
+     "id": "butyric",
+     "label": "酪酸と体温（模式）",
+     "target": "body:mammal",
+     "color": "#ffb38a"
+    }
+   ],
+   "transform": {
+    "mode": "dim"
+   }
+  },
+  {
+   "id": "ant",
+   "name": "アリ",
+   "kind": "生き物",
+   "senses": {
+    "chemical": {
+     "value": "仲間が地面に残した道しるべフェロモンをたどる（物質は種ごとに異なる）",
+     "certainty": "幅あり",
+     "source": "Hölldobler & Wilson 1990『The Ants』Harvard Univ. Press",
+     "checked": "未照合（本・規格・Web 仕様。原本で確かめる）"
+    },
+    "vision": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "hearing": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "temporal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "magnetic": {
+     "value": "サバクアリ（Cataglyphis）は、学習のための歩きで地磁気をコンパスの手がかりに使う",
+     "certainty": "確か",
+     "source": "Fleischmann, Grob, Müller, Wehner & Rössler 2018 Curr. Biol. 28:1440–1444.e2 doi:10.1016/j.cub.2018.03.043、題と要旨（種による）",
+     "checked": "2026-11-27（Crossref で書誌、Europe PMC で要旨を照合）"
+    },
+    "electric": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "thermal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    }
+   },
+   "marks": [
+    {
+     "id": "trail",
+     "label": "道しるべの跡（模式）",
+     "target": "ground:trail",
+     "color": "#e9d28a"
+    }
+   ],
+   "transform": {}
+  },
+  {
+   "id": "wasp",
+   "name": "寄生蜂（コテシア属）",
+   "kind": "生き物",
+   "senses": {
+    "chemical": {
+     "value": "イモムシに食べられた葉が出す匂いに引き寄せられる",
+     "certainty": "確か",
+     "source": "Turlings, Tumlinson & Lewis 1990, Science 250:1251–1253, doi:10.1126/science.250.4985.1251",
+     "checked": "2026-11-26（Crossref で書誌を照合）"
+    },
+    "vision": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "hearing": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "temporal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "magnetic": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "electric": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "thermal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    }
+   },
+   "marks": [
+    {
+     "id": "hipv",
+     "label": "食べられた葉の匂い（模式）",
+     "target": "plant:damaged",
+     "color": "#b8f0a0"
+    }
+   ],
+   "transform": {}
+  },
+  {
+   "id": "bat",
+   "name": "コウモリ（エコーロケーションをする種）",
+   "kind": "生き物",
+   "senses": {
+    "hearing": {
+     "value": "人に聴こえない高い音（超音波）で鳴き、跳ね返りを聴く。周波数は種で大きく違う",
+     "certainty": "幅あり",
+     "source": "Griffin 1958『Listening in the Dark』Yale Univ. Press",
+     "checked": "未照合（本・規格・Web 仕様。原本で確かめる）"
+    },
+    "vision": {
+     "value": "花蜜食のコウモリ（Glossophaga soricina）は色覚がなく、感度の山は 510 nm（緑）と 365 nm 以下（紫外。310 nm まで）",
+     "certainty": "確か",
+     "source": "Winter, López & von Helversen 2003 Nature 425:612–614 doi:10.1038/nature01971、要旨（種による。エコーロケーションをする種すべての値ではない）",
+     "checked": "2026-11-27（Crossref で書誌、Europe PMC で要旨を照合）"
+    },
+    "temporal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "magnetic": {
+     "value": "オオクビワコウモリは、地磁気を人工的にずらすと帰巣の向きが変わった（磁気コンパスを使う）",
+     "certainty": "確か",
+     "source": "Holland, Thorup, Vonhof, Cochran & Wikelski 2006 Nature 444:702 doi:10.1038/444702a、要旨",
+     "checked": "2026-11-27（Crossref で書誌、Europe PMC で要旨を照合）"
+    },
+    "electric": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "thermal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "chemical": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    }
+   },
+   "marks": [],
+   "transform": {
+    "mode": "pitch_down",
+    "factor": 10
+   }
+  },
+  {
+   "id": "dog",
+   "name": "イヌ",
+   "kind": "生き物",
+   "senses": {
+    "hearing": {
+     "value": "約 67〜45,000 Hz（60 dB SPL で聴こえる幅）",
+     "certainty": "確か",
+     "source": "Lue et al. 2023, Lab. Anim. Res. 39:31, doi:10.1186/s42826-023-00182-3（PMC10680324。元は Heffner）、Table 2",
+     "checked": "2026-11-26（本文で確かめた）"
+    },
+    "chemical": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "vision": {
+     "value": "錐体 2 種（λmax 約 429・555 nm）。水晶体が 50% 通す下限 約 335 nm",
+     "certainty": "確か",
+     "source": "Siniscalchi et al. 2017 R. Soc. Open Sci. 4:170869 doi:10.1098/rsos.170869（PMC5717654・錐体）／Douglas & Jeffery 2014 Proc. R. Soc. B 281:20132995 doi:10.1098/rspb.2013.2995（PMC4027392・水晶体）、Introduction／Table 1",
+     "checked": "2026-11-26（本文で確かめた）／2026-11-27 採点役の指摘：水晶体 335 nm の出典は Douglas & Jeffery 2014（Proc. R. Soc. B 281:20132995）の可能性。原本で未照合のため道具には出していない"
+    },
+    "temporal": {
+     "value": "ちらつきが止まって見える頻度 80 Hz（行動実験・Coile et al. 1989 の値）",
+     "certainty": "幅あり",
+     "source": "Healy et al. 2013, Anim. Behav. 86:685–696, doi:10.1016/j.anbehav.2013.06.018, Table 1（PMC3791410）",
+     "checked": "2026-11-26（PMC の本文 Table 1 で数値を確かめた）"
+    },
+    "magnetic": {
+     "value": "地磁気が穏やかなとき、排泄の際に体を南北の軸にそろえる（地磁気が乱れているときは消える）",
+     "certainty": "幅あり",
+     "source": "Hart et al. 2013 Front. Zool. 10:80 doi:10.1186/1742-9994-10-80（PMC3882779）、要旨（行動の傾向。受容の仕組みは分かっていない）",
+     "checked": "2026-11-27（Crossref で書誌、Europe PMC で要旨を照合）"
+    },
+    "electric": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "thermal": {
+     "value": "鼻先で、離れた所の哺乳類の毛皮ほどの温かさの物を、輻射の熱で見分けられた（訓練した 3 頭）",
+     "certainty": "幅あり",
+     "source": "Bálint et al. 2020 Sci. Rep. 10:3736 doi:10.1038/s41598-020-60439-y（PMC7048925）、要旨",
+     "checked": "2026-11-27（Crossref で書誌、Europe PMC で要旨を照合）"
+    }
+   },
+   "marks": [],
+   "transform": {
+    "mode": "pitch_down",
+    "factor": 2
+   }
+  },
+  {
+   "id": "cat",
+   "name": "ネコ",
+   "kind": "生き物",
+   "senses": {
+    "hearing": {
+     "value": "約 58〜75,000 Hz（60 dB SPL で聴こえる幅）",
+     "certainty": "確か",
+     "source": "Lue et al. 2023, Lab. Anim. Res. 39:31, doi:10.1186/s42826-023-00182-3（PMC10680324。元は Heffner and Heffner）、Table 2",
+     "checked": "2026-11-26（本文で確かめた）"
+    },
+    "vision": {
+     "value": "水晶体が 50% 通す下限 約 345 nm。錐体の数と λmax は本文で未確認",
+     "certainty": "幅あり",
+     "source": "Douglas & Jeffery 2014 Proc. R. Soc. B 281:20132995 doi:10.1098/rspb.2013.2995（PMC4027392）、Table 1",
+     "checked": "2026-11-26（本文で確かめた）"
+    },
+    "temporal": {
+     "value": "ちらつきが止まって見える頻度 55 Hz（網膜電図・Loop & Berkley 1975 の値）",
+     "certainty": "幅あり",
+     "source": "Healy et al. 2013, Anim. Behav. 86:685–696, doi:10.1016/j.anbehav.2013.06.018, Table 1（PMC3791410）",
+     "checked": "2026-11-26（PMC の本文 Table 1 で数値を確かめた）"
+    },
+    "magnetic": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "electric": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "thermal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "chemical": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    }
+   },
+   "marks": [],
+   "transform": {
+    "mode": "pitch_down",
+    "factor": 4
+   }
+  },
+  {
+   "id": "pigeon",
+   "name": "ハト（伝書鳩）",
+   "kind": "生き物",
+   "senses": {
+    "magnetic": {
+     "value": "曇りの日の帰巣に地磁気を使っている（磁石を付けると乱れる）",
+     "certainty": "幅あり",
+     "source": "Keeton 1971, PNAS 68(1):102–106, doi:10.1073/pnas.68.1.102",
+     "checked": "2026-11-26（Crossref で書誌を照合）"
+    },
+    "vision": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "hearing": {
+     "value": "下限は約 0.1〜1 Hz の超低周波まで（100 dB を超える強い音で確かめた。上限はこの出典に書かれていない）",
+     "certainty": "幅あり",
+     "source": "Gillies et al. 2023, PNAS 120(43):e2218679120, doi:10.1073/pnas.2218679120（PMC10589618）、本文 Discussion（伝書鳩の下限の記述）",
+     "checked": "2026-11-26（本文で確かめた）"
+    },
+    "temporal": {
+     "value": "ちらつきが止まって見える頻度 100 Hz（網膜電図・Bornschein & Tansley 1961 の値）",
+     "certainty": "幅あり",
+     "source": "Healy et al. 2013, Anim. Behav. 86:685–696, doi:10.1016/j.anbehav.2013.06.018, Table 1（PMC3791410）",
+     "checked": "2026-11-26（PMC の本文 Table 1 で数値を確かめた）"
+    },
+    "electric": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "thermal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "chemical": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    }
+   },
+   "marks": [],
+   "transform": {}
+  },
+  {
+   "id": "shearwater",
+   "name": "ミズナギドリ類",
+   "kind": "生き物",
+   "senses": {
+    "chemical": {
+     "value": "ジメチルスルフィド（DMS）。ナンキョククジラドリの行動の閾値は約 10⁻¹² M、DMS に反応する種が集まる海の前線では約 10⁻¹¹ M",
+     "certainty": "幅あり",
+     "source": "Savoca et al. 2016, Science Advances, doi:10.1126/sciadv.1600395（PMC5569953）、Discussion（Nevitt らの先行研究を引用）",
+     "checked": "2026-11-26（本文で確かめた）"
+    },
+    "vision": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "hearing": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "temporal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "magnetic": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "electric": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "thermal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    }
+   },
+   "marks": [
+    {
+     "id": "dms",
+     "label": "海の DMS（模式）",
+     "target": "odor:sea",
+     "color": "#9fe0d8"
+    }
+   ],
+   "transform": {}
+  },
+  {
+   "id": "salmon",
+   "name": "サケ",
+   "kind": "生き物",
+   "senses": {
+    "chemical": {
+     "value": "生まれた場所の匂い（または磁気の手がかり）を刷り込んで覚える例として挙げられる",
+     "certainty": "幅あり",
+     "source": "Morford et al. 2025, Animal Behaviour, doi:10.1016/j.anbehav.2025.123272（PMC7618438）、本文（刷り込みの例）",
+     "checked": "2026-11-26（本文で確かめた）"
+    },
+    "vision": {
+     "value": "タイセイヨウサケの視物質（配列からの予測）：紫外 360・青 420・緑 472〜511・赤 546〜560 nm、桿体 509 nm",
+     "certainty": "幅あり",
+     "source": "Eilertsen et al. 2022 Front. Neuroanat. 16:945344 doi:10.3389/fnana.2022.945344（PMC9309310）、Results・Fig. 2・Table 2",
+     "checked": "2026-11-26（本文で確かめた）"
+    },
+    "hearing": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "temporal": {
+     "value": "ちらつきが止まって見える頻度 27 Hz（同じサケ科のニジマス・行動実験・Carvalho et al. 2004 の値）",
+     "certainty": "幅あり",
+     "source": "Healy et al. 2013, Anim. Behav. 86:685–696, doi:10.1016/j.anbehav.2013.06.018, Table 1（PMC3791410）",
+     "checked": "2026-11-26（PMC の本文 Table 1 で数値を確かめた）"
+    },
+    "magnetic": {
+     "value": "若いサケは、地磁気の伏角と強さに応じて向きを決める決まりを生まれつきもつとみられる",
+     "certainty": "幅あり",
+     "source": "Morford et al. 2025, Animal Behaviour, doi:10.1016/j.anbehav.2025.123272（PMC7618438）、本文（Lohmann らを引用）",
+     "checked": "2026-11-26（本文で確かめた）"
+    },
+    "electric": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "thermal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    }
+   },
+   "marks": [
+    {
+     "id": "river",
+     "label": "生まれた川の匂い（模式）",
+     "target": "water:river",
+     "color": "#8fc8ff"
+    }
+   ],
+   "transform": {}
+  },
+  {
+   "id": "shark",
+   "name": "サメ",
+   "kind": "生き物",
+   "senses": {
+    "electric": {
+     "value": "生き物の出す電場の変化に、約 5 nV/cm の小ささまで反応する（サメ・ガンギエイ・エイ。多くのロレンチーニ器官の信号を合わせて）",
+     "certainty": "確か",
+     "source": "Josberger et al. 2016, Science Advances, doi:10.1126/sciadv.1600112（PMC4928922）、本文の導入と図 1 の説明",
+     "checked": "2026-11-26（本文で確かめた）"
+    },
+    "vision": {
+     "value": "錐体は 1 種だけ（色を見分けない見込み）。例：オグロメジロザメの錐体 RH2 λmax 528 nm、桿体 505 nm",
+     "certainty": "幅あり",
+     "source": "Hart et al. 2025 Mol. Biol. Evol. 42(3):msaf043 doi:10.1093/molbev/msaf043（PMC11886822）、Abstract／Results（RH2・RH1 の節）",
+     "checked": "2026-11-26（本文で確かめた）"
+    },
+    "hearing": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "temporal": {
+     "value": "ちらつきが止まって見える頻度 18〜37 Hz（種で違う。McComb et al. 2010・Gruber 1969 の値）",
+     "certainty": "幅あり",
+     "source": "Healy et al. 2013, Anim. Behav. 86:685–696, doi:10.1016/j.anbehav.2013.06.018, Table 1（PMC3791410）",
+     "checked": "2026-11-26（PMC の本文 Table 1 で数値を確かめた）"
+    },
+    "magnetic": {
+     "value": "ウチワシュモクザメは、磁場で別の場所にいる状況をつくると巣の方角へ向いた（地磁気を地図のように使う）",
+     "certainty": "確か",
+     "source": "Keller, Putman, Grubbs, Portnoy & Murphy 2021 Curr. Biol. 31:2881–2886.e3 doi:10.1016/j.cub.2021.03.103、要旨",
+     "checked": "2026-11-27（Crossref で書誌、Europe PMC で要旨を照合）"
+    },
+    "thermal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "chemical": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    }
+   },
+   "marks": [],
+   "transform": {}
+  },
+  {
+   "id": "pitviper",
+   "name": "ヘビ（マムシ・ガラガラヘビなどピット器官をもつ種）",
+   "kind": "生き物",
+   "senses": {
+    "thermal": {
+     "value": "ピット器官の受容体 TRPA1 が温かさで開く。ガラガラヘビの TRPA1 は約 26.3／23.3 ℃（卵母細胞で測定）で働き始め、ピット器官をもたないネズミヘビ（37.2 ℃）より低い（表では二つの値の違いの説明なし。原典 Kang 2016 は未照合）",
+     "certainty": "幅あり",
+     "source": "Zhang et al. 2022, Cell Insight, doi:10.1016/j.cellin.2022.100059（PMC10120293）、表（TRPA1 の温度閾値の一覧。Saito 2014・Gracheva 2010 を引用）",
+     "checked": "2026-11-26（本文で確かめた）"
+    },
+    "vision": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "hearing": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "temporal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "magnetic": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "electric": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "chemical": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    }
+   },
+   "marks": [
+    {
+     "id": "ir",
+     "label": "温かい体（模式）",
+     "target": "body:warm",
+     "color": "#ff9a6a"
+    }
+   ],
+   "transform": {
+    "mode": "thermal"
+   }
+  },
+  {
+   "id": "frog",
+   "name": "カエル",
+   "kind": "生き物",
+   "senses": {
+    "vision": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "hearing": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "temporal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "magnetic": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "electric": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "thermal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "chemical": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    }
+   },
+   "marks": [],
+   "transform": {}
+  },
+  {
+   "id": "nematode",
+   "name": "線虫（C. elegans）",
+   "kind": "生き物",
+   "senses": {
+    "chemical": {
+     "value": "ジアセチルを受容体 ODR-10 で感じ、1:1000 に薄めた点にも寄っていく",
+     "certainty": "確か",
+     "source": "Mehraj et al. 2025, microPublication Biology, doi:10.17912/micropub.biology.001722（PMC12368358）、結果と図 1B",
+     "checked": "2026-11-26（本文で確かめた）"
+    },
+    "vision": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "hearing": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "temporal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "magnetic": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "electric": {
+     "value": "電場の中で陰極の側へ這う。這う角度は電場の強さに比例し、頭の感覚ニューロン（アンフィド）が電場の向きと強さに反応する",
+     "certainty": "確か",
+     "source": "Gabel et al. 2007 J. Neurosci. 27:7586–7596 doi:10.1523/JNEUROSCI.0775-07.2007（PMC6672606）、要旨",
+     "checked": "2026-11-27（Crossref で書誌、Europe PMC で要旨を照合）"
+    },
+    "thermal": {
+     "value": "育った温度を覚え、温度の勾配の上でその温度へ向かう。主な温度の受容は感覚ニューロン AFD",
+     "certainty": "確か",
+     "source": "Mori & Ohshima 1995 Nature 376:344–348 doi:10.1038/376344a0、要旨",
+     "checked": "2026-11-27（Crossref で書誌、Europe PMC で要旨を照合）"
+    }
+   },
+   "marks": [],
+   "transform": {}
+  },
+  {
+   "id": "camera",
+   "name": "カメラ（スマホ）",
+   "kind": "機械",
+   "senses": {
+    "vision": {
+     "value": "ふつうは可視光（赤外を切るフィルター付き）。幅は機種による",
+     "certainty": "幅あり",
+     "source": "W3C Media Capture and Streams https://www.w3.org/TR/mediacapture-streams/",
+     "checked": "未照合（本・規格・Web 仕様。原本で確かめる）"
+    },
+    "temporal": {
+     "value": "多くは毎秒 30〜60 コマ（機種による）",
+     "certainty": "幅あり",
+     "source": "同上",
+     "checked": "未照合（本・規格・Web 仕様。原本で確かめる）"
+    },
+    "hearing": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "magnetic": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "electric": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "thermal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "chemical": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    }
+   },
+   "marks": [],
+   "transform": {}
+  },
+  {
+   "id": "mic",
+   "name": "マイク（ブラウザ）",
+   "kind": "機械",
+   "senses": {
+    "hearing": {
+     "value": "サンプリング 48 kHz なら上限は 24 kHz まで（マイクの性能でさらに狭まる）",
+     "certainty": "幅あり",
+     "source": "W3C Web Audio API https://www.w3.org/TR/webaudio/",
+     "checked": "未照合（本・規格・Web 仕様。原本で確かめる）"
+    },
+    "vision": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "temporal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "magnetic": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "electric": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "thermal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "chemical": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    }
+   },
+   "marks": [],
+   "transform": {}
+  },
+  {
+   "id": "magnetometer",
+   "name": "磁気センサー（スマホ）",
+   "kind": "機械",
+   "senses": {
+    "magnetic": {
+     "value": "三軸の磁場を µT で読む（ブラウザは対応機種のみ）",
+     "certainty": "幅あり",
+     "source": "W3C Magnetometer https://www.w3.org/TR/magnetometer/",
+     "checked": "未照合（本・規格・Web 仕様。原本で確かめる）"
+    },
+    "vision": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "hearing": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "temporal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "electric": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "thermal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "chemical": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    }
+   },
+   "marks": [],
+   "transform": {}
+  },
+  {
+   "id": "lidar",
+   "name": "LiDAR",
+   "kind": "機械",
+   "senses": {
+    "vision": {
+     "value": "近赤外のレーザーで距離を測る（範囲と波長は機種による）",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "hearing": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "temporal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "magnetic": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "electric": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "thermal": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    },
+    "chemical": {
+     "value": "",
+     "certainty": "未確認",
+     "source": ""
+    }
+   },
+   "marks": [],
+   "transform": {}
+  }
+ ]
+}

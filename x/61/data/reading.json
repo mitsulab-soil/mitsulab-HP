@@ -1,0 +1,257 @@
+{
+ "fields": [
+  {
+   "h": "環世界と感覚生態学",
+   "p": [
+    "生き物は、それぞれの体が受けとれるものだけでできた世界を生きています。これを環世界と呼びます。多くの鳥は紫外線を、コウモリは超音波を手がかりにします。どんな感覚があるかは測れるようになってきましたが、それが本人にどう感じられているかは、まだ外からは分かりません。",
+    "mitsulab の立ち位置 ── 測れる受けとり方（帯域・感度・行動）を出典つきの部品にし、「主観の再現」とは書かずに模式として重ねる。確かめられた受けとり方だけを使い、ほかの生き物の世界を「模式」として体験できる形にします。"
+   ],
+   "links": [
+    {
+     "u": "https://www.upress.umn.edu/9780816659005/a-foray-into-the-worlds-of-animals-and-humans/",
+     "t": "J. von Uexküll（1934／英訳 2010）A Foray into the Worlds of Animals and Humans. University of Minnesota Press"
+    },
+    {
+     "u": "https://doi.org/10.2307/2183914",
+     "t": "T. Nagel（1974）What Is It Like to Be a Bat? The Philosophical Review 83(4)"
+    },
+    {
+     "u": "https://doi.org/10.1086/596463",
+     "t": "O. Dangles ほか（2009）Variability in Sensory Ecology. The Quarterly Review of Biology 84(1)"
+    },
+    {
+     "u": "https://doi.org/10.1093/acprof:oso/9780199601776.001.0001",
+     "t": "M. Stevens（2013）Sensory Ecology, Behaviour, and Evolution. Oxford University Press"
+    },
+    {
+     "u": "https://edyong.me/an-immense-world",
+     "t": "E. Yong（2022）An Immense World（著者のページ）"
+    }
+   ]
+  },
+  {
+   "h": "知覚と認知（予測・身体・道具）",
+   "p": [
+    "わたしたちは、目や耳に入ったものをそのまま見ているのではなく、これまでの経験から「次はこうだろう」と予測しながら世界を受けとっている、という考え方が有力です。体の動きや、ノート・スマホのような道具も、考えることの一部だとする見方もあります。どこまでが確かなのかは、まだ議論が続いています。",
+    "mitsulab の立ち位置 ── 「知識と経験が知覚を組み替える」を作品設計の前提にし、層（情報）が注意と予測をどう変えるかを体験として試す。効果は実証済みとは書かない。"
+   ],
+   "links": [
+    {
+     "u": "https://doi.org/10.1017/S0140525X12000477",
+     "t": "A. Clark（2013）Whatever next? Predictive brains, situated agents, and the future of cognitive science. Behavioral and Brain Sciences 36(3)"
+    },
+    {
+     "u": "https://doi.org/10.1038/nrn2787",
+     "t": "K. Friston（2010）The free-energy principle: a unified brain theory? Nature Reviews Neuroscience 11"
+    },
+    {
+     "u": "https://doi.org/10.1093/analys/58.1.7",
+     "t": "A. Clark, D. Chalmers（1998）The Extended Mind. Analysis 58(1)"
+    },
+    {
+     "u": "https://doi.org/10.7551/mitpress/9780262529365.001.0001",
+     "t": "F. Varela, E. Thompson, E. Rosch（1991／改訂 2016）The Embodied Mind. MIT Press"
+    }
+   ]
+  },
+  {
+   "h": "意識とクオリアの科学",
+   "p": [
+    "赤いものを見たときの「赤さ」のような、その人にしか分からない感じをクオリアと呼びます。それが脳のどんな働きから生まれるのかについて、いくつもの理論があり、まだ決着していません。最近は、理論どうしの予測を前もって決めて実験で確かめる取り組みも進んでいます。",
+    "mitsulab の立ち位置 ── 他者のクオリアは渡せない、という前提に立つ。mitsulab の「Qualia」は経験そのものでなく、受けとり方を写した模式の呼び名として使い、意識の有無を主張しない。"
+   ],
+   "links": [
+    {
+     "u": "https://doi.org/10.1038/nrn.2016.22",
+     "t": "C. Koch ほか（2016）Neural correlates of consciousness: progress and problems. Nature Reviews Neuroscience 17"
+    },
+    {
+     "u": "https://doi.org/10.1038/s41583-022-00587-4",
+     "t": "A. K. Seth, T. Bayne（2022）Theories of consciousness. Nature Reviews Neuroscience 23"
+    },
+    {
+     "u": "https://doi.org/10.1038/s41586-025-08888-1",
+     "t": "COGITATE Consortium（2025）Adversarial testing of global neuronal workspace and integrated information theories of consciousness. Nature"
+    },
+    {
+     "u": "https://doi.org/10.2307/2183914",
+     "t": "T. Nagel（1974）What Is It Like to Be a Bat? The Philosophical Review 83(4)"
+    }
+   ]
+  },
+  {
+   "h": "感覚の代替と拡張",
+   "p": [
+    "目の見えない人が、カメラの映像を背中や舌への振動で受けとり、物の位置をつかめるようになる研究が 1960 年代からあります。北の方角を振動で知らせるベルトを何週間も着けると、空間の感じ方が変わったという報告もあります。ただ、それが新しい「感覚」なのか、頭で読みとっているだけなのかは、まだ議論されています。",
+    "mitsulab の立ち位置 ── 振動・音・光への「翻訳」を道具の中心に置き、訓練なしで数分で手がかりが立ち上がる形を探る。知覚に「なった」とは書かない。"
+   ],
+   "links": [
+    {
+     "u": "https://doi.org/10.1038/221963a0",
+     "t": "P. Bach-y-Rita ほか（1969）Vision Substitution by Tactile Image Projection. Nature 221"
+    },
+    {
+     "u": "https://doi.org/10.1016/j.tics.2003.10.013",
+     "t": "P. Bach-y-Rita, S. W. Kercel（2003）Sensory substitution and the human–machine interface. Trends in Cognitive Sciences 7(12)"
+    },
+    {
+     "u": "https://doi.org/10.1088/1741-2560/2/4/R02",
+     "t": "S. K. Nagel ほか（2005）Beyond sensory substitution—learning the sixth sense. Journal of Neural Engineering 2(4)"
+    },
+    {
+     "u": "https://doi.org/10.1016/j.concog.2014.06.006",
+     "t": "K. Kaspar ほか（2014）The experience of new sensorimotor contingencies by sensory augmentation. Consciousness and Cognition 28"
+    },
+    {
+     "u": "https://doi.org/10.1111/j.1551-6709.2009.01040.x",
+     "t": "M. Auvray, E. Myin（2009）Perception With Compensatory Devices. Cognitive Science 33(6)"
+    },
+    {
+     "u": "https://doi.org/10.1007/s00221-015-4346-1",
+     "t": "S. D. Novich, D. M. Eagleman（2015）Using space and time to encode vibrotactile information. Experimental Brain Research 233"
+    }
+   ]
+  },
+  {
+   "h": "空間計算・AR/MR・都市の 3D",
+   "p": [
+    "スマホやゴーグルで、目の前の風景に情報を重ねる技術（AR・MR）と、都市や地形をまるごと 3D にする技術が急速に進んでいます。日本では国が都市の 3D モデル（PLATEAU）を公開しています。一方で、屋外でずれなく重ねることや、軽い端末で長く使うことは、まだ課題です。",
+    "mitsulab の立ち位置 ── PLATEAU・地理院・OSM を地にし、層を「空中の情報」でなく風景から浮かぶものとして重ねる。将来の MR グラスで 1 画面に収まる GUI を前提にする。"
+   ],
+   "links": [
+    {
+     "u": "https://doi.org/10.1162/pres.1997.6.4.355",
+     "t": "R. T. Azuma（1997）A Survey of Augmented Reality. Presence 6(4)"
+    },
+    {
+     "u": "https://doi.org/10.1098/rstb.2009.0138",
+     "t": "M. Slater（2009）Place illusion and plausibility … Phil. Trans. R. Soc. B 364"
+    },
+    {
+     "u": "https://doi.org/10.1145/3592433",
+     "t": "B. Kerbl ほか（2023）3D Gaussian Splatting for Real-Time Radiance Field Rendering. ACM Transactions on Graphics 42(4)"
+    },
+    {
+     "u": "https://doi.org/10.1177/2399808318796416",
+     "t": "M. Batty（2018）Digital twins. Environment and Planning B 45(5)"
+    },
+    {
+     "u": "https://doi.org/10.3390/ijgi4042842",
+     "t": "F. Biljecki ほか（2015）Applications of 3D City Models: State of the Art Review. ISPRS Int. J. Geo-Information 4(4)"
+    },
+    {
+     "u": "https://www.mlit.go.jp/plateau/",
+     "t": "国土交通省 PLATEAU（公式）"
+    }
+   ]
+  },
+  {
+   "h": "サウンドスケープと生物音響",
+   "p": [
+    "森や公園の音を長く録音すると、鳥や虫の声、風や雨、人の音が重なった「音の風景」が記録されます。いまは AI がその中から鳥の種類を聞き分けられるようになり、生き物の調査に使われ始めています。ただ、聞き分けの誤りや、場所による違いには注意が必要です。",
+    "mitsulab の立ち位置 ── 鳥の声の認識（Perch・Apache 2.0）を現地の体験に入れ、判定は「〜らしい」と幅をもたせて語る。聴こえない音は「聴こえる高さに移した模式」と明記する。"
+   ],
+   "links": [
+    {
+     "u": "https://doi.org/10.1525/bio.2011.61.3.6",
+     "t": "B. C. Pijanowski ほか（2011）Soundscape Ecology: The Science of Sound in the Landscape. BioScience 61(3)"
+    },
+    {
+     "u": "https://doi.org/10.1007/s12304-015-9248-x",
+     "t": "J. Sueur, A. Farina（2015）Ecoacoustics. Biosemiotics 8"
+    },
+    {
+     "u": "https://doi.org/10.1016/j.ecoinf.2021.101236",
+     "t": "S. Kahl ほか（2021）BirdNET: A deep learning solution for avian diversity monitoring. Ecological Informatics 61"
+    },
+    {
+     "u": "https://doi.org/10.1038/s41598-023-49989-z",
+     "t": "B. Ghani ほか（2023）Global birdsong embeddings enable superior transfer learning for bioacoustic classification. Scientific Reports 13"
+    }
+   ]
+  },
+  {
+   "h": "触覚（ハプティクス）",
+   "p": [
+    "手ざわりは、指先にある何種類ものセンサーが、ふるえ・押される力・すべりなどを受けとって生まれます。質感は「粗い・硬い・温かい・すべる」などの組み合わせとして整理されています。スマホの振動でも一部は伝えられますが、本物そっくりにするのはまだ難しい段階です。",
+    "mitsulab の立ち位置 ── 写真の質感を振動と音に置きかえる（Qualia/touch）。再現でなく「手がかりの翻訳」と位置づけ、端末の振動の限界を前提に設計する。"
+   ],
+   "links": [
+    {
+     "u": "https://doi.org/10.1038/nrn2621",
+     "t": "R. S. Johansson, J. R. Flanagan（2009）Coding and use of tactile signals from the fingertips in object manipulation tasks. Nature Reviews Neuroscience 10"
+    },
+    {
+     "u": "https://doi.org/10.1016/j.neuron.2013.07.051",
+     "t": "V. E. Abraira, D. D. Ginty（2013）The Sensory Neurons of Touch. Neuron 79(4)"
+    },
+    {
+     "u": "https://doi.org/10.1109/TOH.2012.32",
+     "t": "S. Okamoto ほか（2013）Psychophysical Dimensions of Tactile Perception of Textures. IEEE Transactions on Haptics 6(1)"
+    },
+    {
+     "u": "https://doi.org/10.1146/annurev-control-060117-105043",
+     "t": "H. Culbertson ほか（2018）Haptics: The Present and Future of Artificial Touch Sensation. Annual Review of Control, Robotics, and Autonomous Systems 1"
+    }
+   ]
+  },
+  {
+   "h": "環境心理・景観・アフォーダンス",
+   "p": [
+    "段差は「上れる」、平らな面は「座れる」と、環境は人にできることを差し出している、という考え方（アフォーダンス）があります。また、窓から木が見える・公園を歩くといった自然との接触が、心の落ち着きや健康と関わることを示す研究が増えています。ただ、効果の大きさには幅があります。",
+    "mitsulab の立ち位置 ── 「人の体験・行動＝f（空間の条件、身体・経験、時間・文脈）」という見方で、層が行為の手がかりをどう増やすかを試す。健康効果は主張しない。"
+   ],
+   "links": [
+    {
+     "u": "https://doi.org/10.4324/9781315740218",
+     "t": "J. J. Gibson（1979／2014 版）The Ecological Approach to Visual Perception. Psychology Press"
+    },
+    {
+     "u": "https://doi.org/10.1207/S15326969ECO1502_5",
+     "t": "A. Chemero（2003）An Outline of a Theory of Affordances. Ecological Psychology 15(2)"
+    },
+    {
+     "u": "https://doi.org/10.1126/science.6143402",
+     "t": "R. S. Ulrich（1984）View Through a Window May Influence Recovery from Surgery. Science 224"
+    },
+    {
+     "u": "https://doi.org/10.1016/0272-4944(95)90001-2",
+     "t": "S. Kaplan（1995）The restorative benefits of nature. Journal of Environmental Psychology 15(3)"
+    },
+    {
+     "u": "https://doi.org/10.1126/sciadv.aax0903",
+     "t": "G. N. Bratman ほか（2019）Nature and mental health: An ecosystem service perspective. Science Advances 5(7)"
+    }
+   ]
+  },
+  {
+   "h": "土壌生態と地下のつながり",
+   "p": [
+    "ひとすくいの土には、目に見えない細菌・菌・小さな動物がたくさんいて、地球の生き物の種の半分以上が土にすむと推定されています。「木どうしが菌のネットワークで栄養を分け合う」という話がよく知られていますが、2023 年の論文は、その証拠はまだ限られていて、言われすぎていると指摘しました。",
+    "mitsulab の立ち位置 ── 根・菌糸・土中の音を層にするときは、確かめられた事実と論争中の説を分け、論争中のものは「仮説」と明記する。土の中の世界を層にするとき、分かっていることと、まだ議論中のことを分けて伝えます。"
+   ],
+   "links": [
+    {
+     "u": "https://doi.org/10.1038/nature13855",
+     "t": "R. D. Bardgett, W. H. van der Putten（2014）Belowground biodiversity and ecosystem functioning. Nature 515"
+    },
+    {
+     "u": "https://doi.org/10.1073/pnas.2304663120",
+     "t": "M. A. Anthony ほか（2023）Enumerating soil biodiversity. PNAS 120(33)"
+    },
+    {
+     "u": "https://doi.org/10.1038/41557",
+     "t": "S. W. Simard ほか（1997）Net transfer of carbon between ectomycorrhizal tree species in the field. Nature 388"
+    },
+    {
+     "u": "https://doi.org/10.1038/s41559-023-01986-1",
+     "t": "J. Karst ほか（2023）Positive citation bias and overinterpreted results lead to misinformation on common mycorrhizal networks in forests. Nature Ecology &amp; Evolution 7"
+    },
+    {
+     "u": "https://doi.org/10.1111/1365-2664.14738",
+     "t": "J. M. Robinson ほか（2024）Sounds of the underground reflect soil biodiversity dynamics … Journal of Applied Ecology"
+    }
+   ]
+  }
+ ]
+}
