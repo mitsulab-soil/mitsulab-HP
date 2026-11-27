@@ -133,15 +133,15 @@ const brass = new THREE.MeshStandardMaterial({ color: 0x9a7a44, roughness: .55, 
 }
 // いまの層：机の上に薄く光る観測の画面と、空中の細い線の図・床を這う細いケーブル（青白い光は控えめに）
 const FUT = [], _lp = new THREE.Vector3();
-function screenOver(x, y, z, ry, draw) { const t = canvasTex(512, 300, (g, w, h) => { g.strokeStyle = "rgba(150,220,232,.55)"; g.lineWidth = 2; g.strokeRect(4, 4, w - 8, h - 8); draw(g, w, h); });
-  const m = add(new THREE.Mesh(new THREE.PlaneGeometry(.75, .44), new THREE.MeshBasicMaterial({ map: t, transparent: true, opacity: .85, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide })), x, y, z); m.rotation.y = ry; FUT.push(m); return m; }
+function screenOver(x, y, z, ry, draw) { const t = canvasTex(512, 300, (g, w, h) => { g.fillStyle = "rgba(40,90,100,.16)"; g.fillRect(4, 4, w - 8, h - 8); g.strokeStyle = "rgba(170,235,245,.85)"; g.lineWidth = 3; g.strokeRect(4, 4, w - 8, h - 8); draw(g, w, h); });
+  const m = add(new THREE.Mesh(new THREE.PlaneGeometry(.95, .56), new THREE.MeshBasicMaterial({ map: t, transparent: true, opacity: 1, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide })), x, y, z); m.rotation.y = ry; FUT.push(m); return m; }
 const graph = (g, w, h) => { g.strokeStyle = "rgba(150,220,232,.8)"; g.lineWidth = 2; g.beginPath(); for (let i = 0; i <= 60; i++) { const xx = 20 + i / 60 * (w - 40), yy = h * .6 - Math.sin(i / 6) * 40 * Math.exp(-i / 40) - rnd() * 8; i ? g.lineTo(xx, yy) : g.moveTo(xx, yy); } g.stroke(); g.fillStyle = "rgba(150,220,232,.5)"; for (let i = 0; i < 6; i++) g.fillRect(20, 30 + i * 10, 60 + rnd() * 120, 2); };
 const rings = (g, w, h) => { g.strokeStyle = "rgba(150,220,232,.7)"; g.lineWidth = 1.5; for (let i = 1; i < 6; i++) { g.beginPath(); g.arc(w / 2, h / 2, i * 24, 0, 7); g.stroke(); } };
 screenOver(-6.0, 1.9, -1.9, Math.PI / 2, graph); screenOver(6.5, 1.9, -2.9, -Math.PI / 2, rings); screenOver(-5.0, 2.1, 4.0, Math.PI / 2, graph); screenOver(5.0, 2.25, 4.0, -Math.PI / 2, rings);
-{ const lineM = new THREE.LineBasicMaterial({ color: 0x9fdce6, transparent: true, opacity: .32 });
+{ const lineM = new THREE.LineBasicMaterial({ color: 0x9fdce6, transparent: true, opacity: .5 });   /* 2026-11-27 未来の層が薄かった */
   const ico = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(.55, 1)), lineM); ico.position.set(0, 4.3, .8); setTimeout(() => tick.push(t => { ico.rotation.y = t * .08; ico.rotation.x = Math.sin(t * .05) * .3; }));
-  const cab = new THREE.MeshStandardMaterial({ color: 0x141618, roughness: .7 });
-  for (const [a, b] of [[[-6.6, -1.2], [-3.5, -5.9]], [[6.5, -1.2], [3.5, -5.9]], [[-5.4, 3.4], [-8.7, 1.2]], [[5.4, 3.4], [8.4, 1.2]]]) { const c = new THREE.CatmullRomCurve3([new THREE.Vector3(a[0], .85, a[1]), new THREE.Vector3(a[0], .01, a[1] + .2), new THREE.Vector3((a[0] + b[0]) / 2, .01, (a[1] + b[1]) / 2), new THREE.Vector3(b[0], .01, b[1])]); scene.add(new THREE.Mesh(new THREE.TubeGeometry(c, 40, .012, 6), cab)); }
+  const cab = new THREE.MeshStandardMaterial({ color: 0x2b2e30, roughness: .6 });
+  if (false) for (const [a, b] of [[[-6.6, -1.2], [-3.5, -5.9]], [[6.5, -1.2], [3.5, -5.9]], [[-5.4, 3.4], [-8.7, 1.2]], [[5.4, 3.4], [8.4, 1.2]]]) { const c = new THREE.CatmullRomCurve3([new THREE.Vector3(a[0] + .35, .008, a[1] + .35), new THREE.Vector3(a[0] + .3, .008, a[1] + .6), new THREE.Vector3((a[0] + b[0]) / 2, .008, (a[1] + b[1]) / 2), new THREE.Vector3(b[0], .008, b[1])]); scene.add(new THREE.Mesh(new THREE.TubeGeometry(c, 60, .009, 6), cab)   /* 2026-11-27 机から床へ斜めに下りる黒い棒に見えた → 床の上だけを這わせる */); }
 }
 // 机ごとの手元の灯り（天井から下がる真鍮の笠）
 for (const [x, z] of [[-6.6, -1.2], [6.5, -1.2], [-5.4, 3.4], [5.4, 3.4]]) { add(new THREE.Mesh(new THREE.CylinderGeometry(.006, .006, H - 3.0, 4), M.black), x, (H + 3.0) / 2, z);
@@ -179,14 +179,16 @@ const tick = [];   // 毎こま (t, dt)
   const flower = new THREE.Group(); flower.position.set(0, 1.18, 0); flower.rotation.x = -.5; g.add(flower);
   const stem = add(new THREE.Mesh(new THREE.CylinderGeometry(.008, .01, .32, 6), new THREE.MeshStandardMaterial({ color: 0x4d6b34, roughness: .8 })), 0, 1.04, .04, g); stem.rotation.x = .25;
   add(new THREE.Mesh(new THREE.CylinderGeometry(.06, .07, .1, 16), new THREE.MeshStandardMaterial({ color: 0x8a6a4a, roughness: .9 })), 0, .95, .06, g);
-  const N = 14, petals = [], pg = new THREE.PlaneGeometry(.045, .16, 1, 8); pg.translate(0, .1, 0); { const ps = pg.attributes.position; for (let i = 0; i < ps.count; i++) { const y = (ps.getY(i) - .02) / .16; ps.setX(i, ps.getX(i) * (.35 + .75 * Math.sin(Math.PI * Math.min(1, y * .85 + .1)))); ps.setZ(i, -y * y * .02); } pg.computeVertexNormals(); }
+  const N = 14, petals = [], pg = new THREE.PlaneGeometry(.045, .16, 6, 14); pg.translate(0, .1, 0); { const ps = pg.attributes.position; for (let i = 0; i < ps.count; i++) { const y = (ps.getY(i) - .02) / .16, x0 = ps.getX(i) / .0225; ps.setX(i, ps.getX(i) * (.35 + .75 * Math.sin(Math.PI * Math.min(1, y * .85 + .1))) * (y > .92 ? 1 - Math.abs(x0) * .0 : 1)); ps.setZ(i, -y * y * .03 + x0 * x0 * .006 + (y > .9 && Math.abs(x0) < .2 ? .002 : 0)); } pg.computeVertexNormals(); }   /* 2026-11-27 板の花びら → 縦にくぼみ、先が垂れる */
   const col = new Float32Array(pg.attributes.position.count * 3); pg.setAttribute("color", new THREE.BufferAttribute(col, 3));
   const pm = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .7, side: THREE.DoubleSide });
   for (let i = 0; i < N; i++) { const p = new THREE.Mesh(pg, pm); p.rotation.z = i / N * Math.PI * 2; p.rotation.x = .18 + (i % 2) * .05; flower.add(p); petals.push(p); }
-  const disc = add(new THREE.Mesh(new THREE.SphereGeometry(.045, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x2d1a10, roughness: .95 })), 0, 0, .0, flower); disc.rotation.x = Math.PI / 2; disc.scale.z = .7;
+  const discTex = canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#2a170d'; g.fillRect(0, 0, w, h); for (let i = 0; i < 1400; i++) { const x = rnd() * w, y = rnd() * h; g.fillStyle = `rgba(${70 + rnd() * 50 | 0},${40 + rnd() * 25 | 0},${18 + rnd() * 10 | 0},.9)`; g.beginPath(); g.arc(x, y, 1.5 + rnd() * 2.5, 0, 7); g.fill(); } });
+  const disc = add(new THREE.Mesh(new THREE.SphereGeometry(.045, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ map: discTex, bumpMap: discTex, bumpScale: 2, color: 0xffffff, roughness: .95 })), 0, 0, .0, flower); disc.rotation.x = Math.PI / 2; disc.scale.z = 1.05;   /* 2026-11-27 芯は盛り上がった粒の丘（オオハンゴンソウ属） */
+  for (let i = 0; i < N; i++) { const p2 = new THREE.Mesh(pg, pm); p2.rotation.z = (i + .5) / N * Math.PI * 2; p2.rotation.x = .32; p2.scale.setScalar(.82); p2.position.z = -.004; flower.add(p2); }   /* 二重の花びら */
   // 人の目＝黄の花びら・黒褐の芯。蜂の目（偽色）＝紫外を青、青を緑、緑を赤に置きかえて描く（よく使われる置きかえ）。先は紫外と緑を返す→赤紫、根元は紫外を吸う→赤
   const human = y => [.95, .74 + .05 * y, .1], bee = y => { const uv = y > .45 ? .9 : .08; return [.85, .12, uv]; };
-  const paint = f => { const pos = pg.attributes.position; for (let i = 0; i < pos.count; i++) { const y = (pos.getY(i) - .02) / .16; const c = f(Math.max(0, Math.min(1, y))); col.set(c, i * 3); } pg.attributes.color.needsUpdate = true; };
+  const paint = f => { const pos = pg.attributes.position; for (let i = 0; i < pos.count; i++) { const y = (pos.getY(i) - .02) / .16; const v = .86 + .14 * Math.cos(pos.getX(i) / .0225 * Math.PI * 2.5); const c = f(Math.max(0, Math.min(1, y))).map(k => k * v); col.set(c, i * 3); }   /* 花びらの筋 */ pg.attributes.color.needsUpdate = true; };
   paint(human);
   // 光の帯（人と蜂の視細胞の感度の山。senses.json の値）
   const band = canvasTex(1024, 220, () => { }, [1, 1]);
@@ -271,13 +273,16 @@ const tick = [];   // 毎こま (t, dt)
   const fuzz = (geo, f) => { const p = geo.attributes.position, n = new THREE.Vector3(), c = new Float32Array(p.count * 3); for (let i = 0; i < p.count; i++) { n.set(p.getX(i), p.getY(i), p.getZ(i)); const k = 1 + (Math.sin(i * 12.9898) * 43758.5453 % 1) * .07; c.set(f(n).map(v => Math.pow(v, 2.2)), i * 3); n.multiplyScalar(k); p.setXYZ(i, n.x, n.y, n.z); } geo.setAttribute("color", new THREE.BufferAttribute(c, 3)); geo.computeVertexNormals(); return geo; };
   const furM = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 });
   const Y = [.84, .66, .2], K = [.1, .09, .07], Wt = [.9, .87, .8];
-  add(new THREE.Mesh(fuzz(new THREE.SphereGeometry(.017, 20, 14), v => v.y > .002 && v.z < .006 ? Y : (v.z > .008 ? K : Y)), furM), 0, 0, .012, bee).scale.set(1, .95, 1);
-  const ab = add(new THREE.Mesh(fuzz(new THREE.SphereGeometry(.021, 20, 14), v => v.z > .009 ? Y : v.z > -.012 ? K : Wt), furM), 0, -.003, -.022, bee); ab.scale.set(1, .9, 1.3);
+  const hairA = canvasTex(128, 128, (g, w, h) => { g.fillStyle = '#000'; g.fillRect(0, 0, w, h); g.fillStyle = '#fff'; for (let i = 0; i < 1600; i++) g.fillRect(rnd() * w | 0, rnd() * h | 0, 1, 1); }, [1, 1]);
+  const shellM = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, alphaMap: hairA, alphaTest: .5 });
+  const shell = (m) => { for (const k of [1.07, 1.14]) { const sm = new THREE.Mesh(m.geometry, shellM); sm.scale.setScalar(k); m.add(sm); } return m; };   /* 2026-11-27 丸い塊 → 毛の殻を二重に重ねて毛足を出す */
+  shell(add(new THREE.Mesh(fuzz(new THREE.SphereGeometry(.017, 24, 16), v => v.y > .002 && v.z < .006 ? Y : (v.z > .008 ? K : Y)), furM), 0, 0, .012, bee)).scale.set(1, .95, 1);
+  const ab = shell(add(new THREE.Mesh(fuzz(new THREE.SphereGeometry(.021, 24, 16), v => v.z > .009 ? Y : v.z > -.012 ? K : Wt), furM), 0, -.003, -.022, bee)); ab.scale.set(1, .9, 1.3);
   for (const sx of [-1, 1]) for (const lz of [.02, .008, -.006]) { const l = add(new THREE.Mesh(new THREE.CylinderGeometry(.0014, .001, .03, 4), fur), sx * .012, -.016, lz, bee); l.rotation.z = sx * .5; }
   for (const sx of [-1, 1]) { const a = add(new THREE.Mesh(new THREE.CylinderGeometry(.001, .001, .022, 4), fur), sx * .005, .012, .046, bee); a.rotation.x = .9; a.rotation.z = sx * .3; }
   add(new THREE.Mesh(new THREE.SphereGeometry(.011, 10, 8), fur), 0, .002, .034, bee);
   const wm = new THREE.MeshStandardMaterial({ color: 0xd8e6ea, transparent: true, opacity: .45, side: THREE.DoubleSide, roughness: .2 });
-  const wings = [-1, 1].map(s => { const w = new THREE.Mesh(new THREE.PlaneGeometry(.03, .014), wm); w.geometry.translate(s * .015, 0, 0); w.position.set(0, .014, .006); bee.add(w); return w; });
+  const wings = [-1, 1].map(s => { const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.bezierCurveTo(.012, .009, .03, .008, .033, .001); sh.bezierCurveTo(.03, -.006, .012, -.006, 0, 0); const wgeo = new THREE.ShapeGeometry(sh, 12); if (s < 0) wgeo.scale(-1, 1, 1); const w = new THREE.Mesh(wgeo, wm);   /* 翅は先の丸い形 */ w.position.set(0, .014, .006); bee.add(w); return w; });
   const lb = add(label("花の電場の机", "マルハナバチの毛"), 0, 1.78, 0, g);
   let phase = 0, t0 = 0, charged = 0; const home = new THREE.Vector3(.28, .34, .22), land = new THREE.Vector3(0, .215, 0);
   bee.position.copy(home);
@@ -304,6 +309,7 @@ const tick = [];   // 毎こま (t, dt)
 { const g = table(1.4, 1.2, 5.4, 3.4, -Math.PI / 2);
   const arena = add(new THREE.Group(), 0, .905, 0, g); arena.rotation.y = Math.PI / 2;   /* 南北の軸を見る人の左右に＝磁力線の傾きと鳥の横顔が読める */
   add(new THREE.Mesh(new THREE.CylinderGeometry(.42, .3, .18, 40, 1, true), new THREE.MeshStandardMaterial({ color: 0xe9e3d6, roughness: .9, side: THREE.DoubleSide })), 0, .09, 0, arena);
+  add(new THREE.Mesh(new THREE.TorusGeometry(.42, .008, 8, 64), new THREE.MeshStandardMaterial({ color: 0xb9ad98, roughness: .8 })), 0, .18, 0, arena).rotation.x = Math.PI / 2;   /* 籠の縁 */
   add(new THREE.Mesh(new THREE.CircleGeometry(.3, 40), new THREE.MeshStandardMaterial({ color: 0xc9c1b2, roughness: 1 })), 0, .002, 0, arena).rotation.x = -Math.PI / 2;
   // 磁力線の向きの矢（伏角 66° の模式＝実験の行われたフランクフルトほどの値）
   const arrM = new THREE.MeshStandardMaterial({ color: 0x5cc8e0, emissive: 0x1a4c58, roughness: .4 });
@@ -316,7 +322,8 @@ const tick = [];   // 毎こま (t, dt)
   const brown = new THREE.MeshStandardMaterial({ color: 0x7a6650, roughness: 1 });
   const robinCol = (geo, f) => { const p = geo.attributes.position, c = new Float32Array(p.count * 3); for (let i = 0; i < p.count; i++) c.set(f(p.getX(i), p.getY(i), p.getZ(i)).map(v => Math.pow(v, 2.2)), i * 3); geo.setAttribute("color", new THREE.BufferAttribute(c, 3)); return geo; };
   const BR = [.42, .35, .25], OR = [.83, .43, .2], WH = [.86, .84, .8], mix = (a, b, k) => a.map((v, i) => v + (b[i] - v) * Math.max(0, Math.min(1, k)));
-  const featherM = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .95 });
+  const featherTex = canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#fff'; g.fillRect(0, 0, w, h); for (let i = 0; i < 900; i++) { const x = rnd() * w, y = rnd() * h, l = 200 + rnd() * 55 | 0; g.strokeStyle = `rgb(${l},${l},${l})`; g.lineWidth = 1 + rnd() * 1.5; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + 4, y + 6, x + 2, y + 12); g.stroke(); } });
+  const featherM = new THREE.MeshStandardMaterial({ vertexColors: true, map: featherTex, roughness: .95 });   /* 2026-11-27 羽の細かな筋 */
   // 体：しずく形の回転体（前が丸く、後ろへ細る）
   const prof = []; for (let i = 0; i <= 16; i++) { const u = i / 16, a = u * Math.PI; prof.push(new THREE.Vector2(Math.max(.002, Math.sin(a) * .05 * (1 - .35 * u)), -Math.cos(a) * .07)); }
   const bg = new THREE.LatheGeometry(prof, 28); bg.rotateX(Math.PI / 2);
@@ -383,8 +390,10 @@ const tick = [];   // 毎こま (t, dt)
 // 6. 書架：研究の九つの分野（HP の研究の頁と同じ文）
 let reading = null;
 { const g = new THREE.Group(); g.position.set(-4.4, 0, -5.75); scene.add(g);
-  const sh = add(new THREE.Mesh(new THREE.BoxGeometry(3.4, 2.4, .42), M.top), 0, 1.2, 0, g); sh.castShadow = true;
-  add(new THREE.Mesh(new THREE.BoxGeometry(3.24, 2.26, .4), new THREE.MeshStandardMaterial({ color: 0x2a1e16, roughness: .9 })), 0, 1.2, .03, g);
+  const sh = add(new THREE.Mesh(new THREE.BoxGeometry(3.4, 2.4, .04), M.top), 0, 1.2, -.19, g); sh.castShadow = true;   /* 2026-11-27 箱が本を覆い隠していた → 背板と側板・天板の枠にする */
+  for (const sx of [-1, 1]) add(new THREE.Mesh(new THREE.BoxGeometry(.06, 2.4, .42), M.top), sx * 1.67, 1.2, 0, g);
+  add(new THREE.Mesh(new THREE.BoxGeometry(3.4, .06, .42), M.top), 0, 2.37, 0, g);
+  add(new THREE.Mesh(new THREE.BoxGeometry(3.24, 2.26, .01), new THREE.MeshStandardMaterial({ color: 0x2a1e16, roughness: .9 })), 0, 1.2, -.165, g);
   for (let r = 0; r < 4; r++) add(new THREE.Mesh(new THREE.BoxGeometry(3.26, .03, .38), M.top), 0, .2 + r * .58, .03, g);
   const hues = [190, 30, 280, 160, 210, 120, 20, 90, 40]; const books = [];
   for (let r = 0; r < 4; r++) { let x = -1.56; while (x < 1.5) { const w = .03 + rnd() * .04, h = .36 + rnd() * .14; const b = add(new THREE.Mesh(new THREE.BoxGeometry(w, h, .26 + rnd() * .06), new THREE.MeshStandardMaterial({ color: new THREE.Color().setHSL(rnd(), .25 + rnd() * .2, .2 + rnd() * .2), roughness: .8 })), x + w / 2, .215 + r * .58 + h / 2, .05, g); b.castShadow = true; x += w + .004; } }
@@ -392,6 +401,7 @@ let reading = null;
   for (let i = 0; i < 9; i++) { const c = document.createElement("canvas"); c.width = 64; c.height = 300; const x = c.getContext("2d"); x.fillStyle = `hsl(${hues[i]},32%,30%)`; x.fillRect(0, 0, 64, 300); x.fillStyle = "#e8dfc8"; x.font = '600 30px "Hiragino Mincho ProN",serif'; x.textAlign = "center"; x.fillText(String(i + 1), 32, 44); x.fillRect(10, 60, 44, 2);
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
     const b = add(new THREE.Mesh(new THREE.BoxGeometry(.07, .42, .28), [M.top, M.top, M.top, M.top, new THREE.MeshStandardMaterial({ map: t, roughness: .7 }), M.top]), -.4 + i * .1, 1.37, .1, g); b.userData.book = i; b.castShadow = true; books.push(b); }
+  { const sl = new THREE.SpotLight(0xffdcb0, 9, 6, .6, .6, 1.6); sl.position.set(0, 3.2, 1.6); sl.target.position.set(0, 1.3, 0); g.add(sl, sl.target); }   /* 2026-11-27 書架の場面が暗すぎた → 上から本棚を照らす */
   const lb = add(label("書架", "研究の九つの分野"), 0, 2.75, .25, g);
   ST.push({ id: "shelf", name: "書架", sub: "九つの分野", c: [-4.4, -5.75], view: [-4.4, -2.7], mview: [-4.4, -1.2], look: [-4.4, 1.65, -5.75], lbl: lb, books,
     go() { openBook(0); return null; },
@@ -490,7 +500,7 @@ function frame() {
   if (fly) { const k = Math.min(1, (performance.now() - fly.t0) / fly.dur), e = ease(k); view.pos.lerpVectors(fly.p0, fly.p1, e); if (!RM) view.pos.y += Math.sin(e * Math.PI * Math.max(1, Math.round(fly.dur / 520))) * .012; view.yaw = fly.y0 + (fly.y1 - fly.y0) * e; view.pitch = fly.q0 + (fly.q1 - fly.q0) * e; if (k >= 1) fly = null; }
   camera.position.copy(view.pos); camera.rotation.set(view.pitch, view.yaw, 0, "YXZ");
   for (const f of tick) f(t, dt);
-  for (const s of ST) { s.lbl.parent.getWorldQuaternion(_pq); s.lbl.quaternion.copy(_pq.invert()).multiply(camera.quaternion); s.lbl.getWorldPosition(_lp); const d = _lp.distanceTo(camera.position); _lp.project(camera); s.lbl.visible = d < (MOBILE ? 7.5 : 11) && Math.abs(_lp.x) < .78 && Math.abs(_lp.y) < .9; }
+  for (const s of ST) { s.lbl.parent.getWorldQuaternion(_pq); s.lbl.quaternion.copy(_pq.invert()).multiply(camera.quaternion); s.lbl.getWorldPosition(_lp); const d = _lp.distanceTo(camera.position); _lp.project(camera); s.lbl.visible = d < (MOBILE ? 7.5 : 11) && Math.abs(_lp.x) < (innerWidth < 600 ? .42 : .78) && Math.abs(_lp.y) < .9; }   /* 2026-11-27 375px で札が画の端に切れた → 中ほどに入る札だけ見せる */
   aoi?.tick(dt, camera);
   renderer.render(scene, camera);
   frames++; const now = performance.now(); if (now - fpsT > 1000) { window.__fps = Math.round(frames * 1000 / (now - fpsT)); frames = 0; fpsT = now; }
