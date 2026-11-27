@@ -51,6 +51,10 @@ canvas{position:absolute;left:0;top:0}
 #bag .ft{margin-top:30px;font-size:11px;line-height:1.9;color:rgba(233,242,241,.5)}
 #bag .ft a{color:inherit}
 @media (max-width:767px){.pin i{display:none}.pin:not(.on) b{font-size:11.5px;padding:4px 9px;opacity:.88}#card{bottom:calc(env(safe-area-inset-bottom,0px) + 128px)}#say{font-size:12.5px;letter-spacing:.02em;width:calc(100% - 32px);bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}.pin b{font-size:12.5px;padding:5px 10px}.pin:not(.on) b{font-size:10.5px!important;padding:3px 7px!important;letter-spacing:.06em}.pin{gap:3px}#card{top:calc(env(safe-area-inset-top,0px) + 58px);bottom:auto;padding:12px 16px 12px;border-radius:12px}#card .ch{font-size:10.5px}#card h2{font-size:16px;margin:0 0 4px}#card p{font-size:12.5px;line-height:1.7;margin:0 0 10px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}#card .go{gap:6px}#card .go a{min-height:40px;padding:0 12px;font-size:12.5px}#card .x{right:2px;top:2px}@keyframes hint{to{opacity:0}}}
+.bld{position:absolute;transform:translate(-50%,-50%);width:44px;height:44px;pointer-events:auto;display:flex;align-items:flex-end;justify-content:center;text-decoration:none;color:var(--ink);border-radius:50%}
+.bld span{transform:translateY(16px);font:400 10px/1 ui-monospace,monospace;letter-spacing:.06em;padding:2px 5px;border-radius:6px;background:rgba(4,20,24,.6);color:#bfeef4;white-space:nowrap}
+.bld:hover span,.bld:focus-visible span{background:rgba(143,227,234,.3);color:#fff}
+@media (max-width:767px){.bld span{font-size:8.5px;padding:1px 3px}}
 #bf .w{transform-origin:23px 20px;animation:bfF 2.6s ease-in-out infinite alternate}@keyframes bfF{to{transform:scaleX(.3)}}@media (prefers-reduced-motion:reduce){#card,#bag{transition:none}#bf{display:none}}
 </style>
 </head>
@@ -81,6 +85,7 @@ var PL=[
  {id:"daily",x:600,y:560,ch:"記録の地図",n:"いつもの街",p:"家の近く、通勤の道。道具はそのまま使える。家の近くの植え込みの前で、画面を閉じます。まず自分の体で受けとります。それから道具をひらき、ハチの道すじと、夕空のコウモリの声を重ねます。世界は、人間だけのものではありませんでした。",t:["map"],q:"画面を閉じたら、何が聞こえる？"},
  {id:"next",x:812,y:165,ch:"まだ地図にない場所",far:1,n:"まだ地図にない場所",p:"場所そのものが感じとる土地。旅人の記録が、次の旅人の受けとり方をひらく（IoT・開発中）。そこへ行くための、現実の空間で使える知覚拡張のデバイスを、β 版としてつくっている。クラウドファンディングで、世に出す予定。",t:[],q:"場所の方が、あなたに気づいたら？"}
 ];
+var LMK=[{k:"forest",x:205,y:395,w:22},{k:"house",x:450,y:420,w:24},{k:"museum",x:480,y:245,w:20,t:"museum"},{k:"yose",x:520,y:250,w:20,t:"yose"},{k:"lab",x:560,y:245,w:16,t:"lab"},{k:"omiya",x:715,y:345,w:22,t:"omiya"},{k:"kawagoe",x:825,y:318,w:22,t:"kawagoe"},{k:"shibuya",x:810,y:360,w:22,t:"shibuya"},{k:"network",x:735,y:395,w:20,t:"network"},{k:"map",x:640,y:575,w:24,t:"map"}];
 var W=1000,H=700,cv=document.getElementById("c"),cx=cv.getContext("2d"),pins=document.getElementById("pins"),V=document.getElementById("v");
 var S=1,ox=0,oy=0,vw=0,vh=0,dpr=Math.min(2,window.devicePixelRatio||1),map=null,sel=null;
 var got={};try{got=JSON.parse(localStorage.getItem("qw-got")||"{}")||{}}catch(e){}
@@ -125,6 +130,21 @@ function build(){
  function blocks(cxp,cyp,rad,n,col,seed){for(var k=0;k<n;k++){var a=rnd(k,seed)*6.283,r=Math.sqrt(rnd(k,seed+1))*rad,bx=cxp+Math.cos(a)*r,by=cyp+Math.sin(a)*r*.7,hh=hgt(bx,by);if(hh<.1)continue;var yy=by-hh*K,w=3+rnd(k,seed+2)*4;c.fillStyle=col;c.fillRect((bx-w/2)*sc,(yy-3)*sc,w*sc,3*sc);c.fillStyle="rgba(0,0,0,.25)";c.fillRect((bx-w/2)*sc,yy*sc,w*sc,1.2*sc)}}
  blocks(470,400,70,160,"rgba(214,196,160,.85)",21);blocks(520,215,34,30,"rgba(232,207,150,.9)",41);
 
+
+ /* 建物と目印（描き起こした模式） */
+ LMK.forEach(function(m){var hh=Math.max(0,hgt(m.x,m.y)),bx=m.x*sc,by=(m.y-hh*K)*sc,u=sc*Math.max(1,.75/S);c.save();c.translate(bx,by);
+  c.fillStyle="rgba(0,0,0,.35)";c.beginPath();c.ellipse(0,1*u,m.w*.62*u,2.2*u,0,0,7);c.fill();
+  var stone="#d9d2bf",lineC="rgba(170,235,244,.9)";c.lineWidth=.7*u;c.strokeStyle=lineC;
+  if(m.k==="museum"){c.fillStyle=stone;c.fillRect(-9*u,-10*u,18*u,10*u);c.fillStyle="#a49c88";for(var q=-7;q<=7;q+=3.5)c.fillRect((q-.6)*u,-9*u,1.2*u,8*u);c.fillStyle="#efe7d2";c.beginPath();c.moveTo(-10.5*u,-10*u);c.lineTo(0,-15*u);c.lineTo(10.5*u,-10*u);c.closePath();c.fill();c.stroke()}
+  else if(m.k==="yose"){c.fillStyle="#5a3e2b";c.fillRect(-8*u,-8*u,16*u,8*u);c.fillStyle="#2b2b30";c.beginPath();c.moveTo(-11*u,-8*u);c.quadraticCurveTo(0,-15*u,11*u,-8*u);c.closePath();c.fill();c.stroke();c.fillStyle="#ffcf7a";c.fillRect(-1.5*u,-6*u,3*u,4*u)}
+  else if(m.k==="lab"){c.fillStyle="#cfd8dc";c.fillRect(-7*u,-8*u,14*u,8*u);c.fillStyle="#e8eef0";c.beginPath();c.arc(0,-8*u,5.5*u,Math.PI,0);c.fill();c.stroke();c.beginPath();c.moveTo(0,-13.5*u);c.lineTo(0,-18*u);c.stroke();c.fillStyle="#8fe3ea";c.fillRect(-.8*u,-19*u,1.6*u,1.6*u)}
+  else if(m.k==="omiya"){c.strokeStyle="rgba(120,90,60,.8)";c.lineWidth=1.4*u;c.beginPath();c.moveTo(-14*u,6*u);c.lineTo(10*u,-4*u);c.stroke();c.fillStyle="#c9452f";c.fillRect(-6*u,-11*u,1.4*u,11*u);c.fillRect(4.6*u,-11*u,1.4*u,11*u);c.fillRect(-8.5*u,-12.5*u,17*u,1.6*u);c.fillRect(-7*u,-9.2*u,14*u,1*u);c.lineWidth=.6*u;c.strokeStyle=lineC;c.strokeRect(-8.5*u,-12.5*u,17*u,1.6*u)}
+  else if(m.k==="kawagoe"){for(var q=0;q<3;q++){var x0=(q-1)*7*u;c.fillStyle="#24242a";c.fillRect(x0-3*u,-8*u,6*u,8*u);c.fillStyle="#ece6d6";c.fillRect(x0-2*u,-5*u,4*u,2*u);c.fillStyle="#141418";c.beginPath();c.moveTo(x0-4*u,-8*u);c.lineTo(x0,-12*u);c.lineTo(x0+4*u,-8*u);c.closePath();c.fill();c.stroke()}}
+  else if(m.k==="shibuya"){var hs=[16,24,12,20];for(var q=0;q<4;q++){var x0=(q-1.5)*5*u;c.fillStyle="rgba(150,170,190,.9)";c.fillRect(x0-2*u,-hs[q]*u,4*u,hs[q]*u);c.strokeRect(x0-2*u,-hs[q]*u,4*u,hs[q]*u);c.fillStyle="rgba(255,236,170,.75)";for(var r=3;r<hs[q];r+=4)c.fillRect(x0-1*u,-r*u,2*u,.8*u)}c.strokeStyle="rgba(120,200,220,.6)";c.beginPath();c.moveTo(-12*u,3*u);c.quadraticCurveTo(0,6*u,12*u,3*u);c.stroke()}
+  else if(m.k==="network"){var pp=[[-9,-2],[0,-7],[9,-3],[3,4],[-5,5]];c.strokeStyle="rgba(170,235,244,.8)";pp.forEach(function(a,i){pp.forEach(function(b,j){if(j>i&&(j-i)%2){c.beginPath();c.moveTo(a[0]*u,a[1]*u);c.lineTo(b[0]*u,b[1]*u);c.stroke()}})});c.fillStyle="#e9fbff";pp.forEach(function(a){c.beginPath();c.arc(a[0]*u,a[1]*u,1.3*u,0,7);c.fill()})}
+  else if(m.k==="map"||m.k==="house"){for(var q=0;q<4;q++){var x0=(q-1.5)*6*u,y0=(q%2)*2*u;c.fillStyle="#d8c8a8";c.fillRect(x0-2.5*u,y0-5*u,5*u,5*u);c.fillStyle="#6b4a3a";c.beginPath();c.moveTo(x0-3.3*u,y0-5*u);c.lineTo(x0,y0-8*u);c.lineTo(x0+3.3*u,y0-5*u);c.closePath();c.fill();c.fillStyle="rgba(255,214,140,.8)";c.fillRect(x0-.8*u,y0-3.4*u,1.6*u,1.6*u)}}
+  else if(m.k==="forest"){for(var q=0;q<5;q++){var x0=(q-2)*4.5*u,h0=10+(q%2)*4;c.fillStyle="#1f4a30";c.beginPath();c.moveTo(x0,-h0*u);c.lineTo(x0+3.4*u,0);c.lineTo(x0-3.4*u,0);c.closePath();c.fill();c.stroke()}}
+  c.restore()});
  /* 実在の街＝点群の層 */
  for(i=0;i<2600;i++){var a2=rnd(i,61)*6.283,r3=Math.sqrt(rnd(i,63))*95;x=760+Math.cos(a2)*r3;y=330+Math.sin(a2)*r3*.8;var h3=hgt(x,y);if(h3<.08)continue;c.fillStyle="rgba(170,235,244,"+(.25+rnd(i,65)*.45).toFixed(2)+")";c.fillRect(x*sc,(y-h3*K-rnd(i,67)*6)*sc,1.1*sc,1.1*sc)}
  /* 道（場所どうしをつなぐ） */
@@ -152,7 +172,9 @@ function focus(p,now){var tx=p?vw*(vw<vh?.36:.4)-p.x*S:(vw-W*S)/2,ty=p?vh*.42-p.
 var bfDone=false;
 function draw(){cx.setTransform(1,0,0,1,0,0);cx.fillStyle="#041419";cx.fillRect(0,0,cv.width,cv.height);cx.drawImage(map,Math.round(ox*dpr),Math.round(oy*dpr));veil();
  for(var k=0;k<PL.length;k++){var p=PL[k],e=PL[k].el;e.style.left=(ox+p.x*S)+"px";e.style.top=(oy+p.sy*S-6)+"px";var bw=e.offsetWidth/2,lx=ox+p.x*S;e.style.setProperty("--dx",(lx-bw<16?16-(lx-bw):lx+bw>vw-16?(vw-16)-(lx+bw):0)+"px")}
+ LMK.forEach(function(m){if(!m.el)return;m.el.style.left=(ox+m.x*S)+"px";m.el.style.top=(oy+(m.y-Math.max(0,hgt(m.x,m.y))*36)*S)+"px"});
  if(sel&&bfDone){BF.style.transform="translate("+(ox+sel.x*S+18)+"px,"+(oy+sel.sy*S-58)+"px)";BF.style.opacity=".7"}}
+LMK.forEach(function(m){if(!m.t)return;var a=document.createElement("a");a.className="bld";a.href=T[m.t][1];a.target=/embed=1/.test(location.search)?"_blank":"_blank";a.rel="noopener";a.translate=false;a.setAttribute("aria-label",T[m.t][0]+" をひらく");a.innerHTML="<span>"+m.t+"</span>";a.addEventListener("click",function(){got[m.t]=1;save()});m.el=a;pins.appendChild(a)});
 PL.forEach(function(p){P(p.id);var b=document.createElement("button");b.type="button";b.className="pin"+(p.far?" far":"");b.innerHTML="<i>"+(p.far?"":p.ch)+"</i><b>"+p.n+"</b>";b.addEventListener("click",function(ev){ev.stopPropagation();open(p)});p.el=b;pins.appendChild(b)});
 var card=document.getElementById("card"),sayT=document.getElementById("sayT");
 function say(t){sayT.textContent=t}
