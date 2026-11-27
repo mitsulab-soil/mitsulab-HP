@@ -1364,10 +1364,11 @@ STARTUP.sceneBuiltAt = performance.now();
 (async () => {
   me.pos.set(0,1.55,4);prog(20); applyLens("hito"); setWhere(); camera.rotation.set(me.pitch, me.yaw, 0, "YXZ");
   // 2026-10-23 起動 5 秒：碧を読むあいだに、森の材質（シェーダー）を並行に組み立てておく（はじめのこまで一つずつ組み立てて数秒止まっていた）
-  const preCompile = renderer.compileAsync ? renderer.compileAsync(scene, camera).catch(() => {}) : null;
+  const preCompile = renderer.compileAsync ? Promise.all(scene.children.filter(c => c.visible).map(c => renderer.compileAsync(c, camera, scene).catch(() => {}))) : null;   /* 2026-11-27 起動 1 秒：見えている所だけ先に組む（隠れた庭・町まで組んで幕上げが 0.3 秒遅れていた。庭・町は切りかえるときに組む） */
   // 2026-10-23 本人「見える部分は表示してください」：森が組み上がったら幕を上げて操作できるようにし、碧はあとから現れる（PC は 0.8 秒まで待つ・スマホは待たない）
   A.hold = true;
-  const aoiReady = loadAoi().then(async () => {
+  let bootR; const bootP = new Promise(r => bootR = r);   /* 2026-11-27 起動 1 秒：碧の材質と森の残りは、幕を上げてから組む（幕の前に組むと幕上げが遅れていた） */
+  const aoiReady = loadAoi().then(async () => { await bootP;
     if (aoi && renderer.compileAsync) { aoi.visible = true; const par = aoi.parent; par?.remove(aoi); const W = await import("./kit/warm.js"); A.lateGuess = !!$("boot").hidden; for (const op of [0]) { opacity(op); await W.warmAoi(renderer, aoi, camera, scene, { batch: 8, dedupe: true, shadow: !A.lateGuess }); }   /* 2026-11-23 碧 2 秒：同じシェーダーの網は一つだけ組み、組み済みはこまを待たない（kit warm.js dedupe）。現れるのに要る透ける形と影だけ先に組む */ A.kvP = W.keepVariant(renderer, aoi, camera, scene, k => { k.transparent = false; }, { batch: 8, dedupe: true }).then(() => A.lateGuess && W.warmShadowCopy(renderer, aoi, camera, scene)).catch(() => {}).finally(() => { A.kvP = null; });   /* 不透明の形（写し）は現れはじめてから組む。組み終わるまで、現れきる手前（.985）でとどめる＝不透明に切りかわるこまで組んで止まらない */   /* 2026-11-22 不透明の形は上の keepVariant で組み済み → 透ける形だけ。PC で碧が出るまで約 7 秒かかっていた（一こまに一つずつ組んで約 4 秒）→ 一こまに四つずつ */   /* 2026-11-05 夕：kit/warm.js の warmAoi（骨で動く網の外接球も先に測る＝碧が出たこまの約 30 ms を前へ） */   /* 2026-11-05：不透明の形も写しで持っておく */ scene.remove(aoiFaceStub); par?.add(aoi); }   /* 2026-11-03 碧が出る瞬間の止まり：場面の外で、透ける・透けない両方の材質・テクスチャ・表情の形（モーフ）・影を一こまずつ組んでから戻す（kit warmAoi。組むあいだ描かれて止まっていた） */
     STARTUP.aoiCompiledAt = performance.now();   // 碧の材質は、出る前に並行で組み立てる（映ったこまで止まらない）
     // 碧のはじめの位置（2026-10-13・2026-11-22 スマホで足もとが下の説明と「今の景色」にかぶった → 4.0→4.7m）：見る人のすぐ前（0.6 m）で見えなかったので、ふだん立つ右前（となり）に置く
@@ -1393,7 +1394,7 @@ STARTUP.sceneBuiltAt = performance.now();
   STARTUP.controlsReadyAt = performance.now();
   /* 2026-11-03 起動 1 秒：遠くの幹・あとの草花・ヨシ・草と落ち葉を、一こまに一つずつ組み、材質を場面の外で組んでから森へ入れる（見た目・配置は前と同じ） */
   (async () => { const nf = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
-    await forestReady; for (const [ji, job] of (FOREST.later || []).entries()) { await nf(); const t0 = performance.now(); const g = job(); slow('later:' + ji, t0);
+    await forestReady; await bootP; for (const [ji, job] of (FOREST.later || []).entries()) { await nf(); const t0 = performance.now(); const g = job(); slow('later:' + ji, t0);
       g.traverse(o => { if (!o.isMesh) return; o.receiveShadow = true; for (const mt of [].concat(o.material)) worldMats.add(mt); let nc = !!o.userData.noCast; if (!nc && o.castShadow !== true) o.castShadow = !(mobile && o.isInstancedMesh && o.count > 300); if (nc) o.castShadow = false; });
       if (renderer.compileAsync) { for (const c of g.children) { try { await renderer.compileAsync(c, camera, scene); } catch (e) {} await nf(); } }   // 2026-11-04 一つの仕事で材質を 7〜10 まとめて組むと 0.12〜0.3 秒止まった → 一こまに一つずつ
       for (const c of [...g.children]) forest.add(c); }
@@ -1401,8 +1402,8 @@ STARTUP.sceneBuiltAt = performance.now();
   /* 2026-11-04 コマ落ち：影の材質は前もって組めない（three の作り）→ 起動画面の裏で一こま描き、影の材質と絵を先に用意してから幕を上げる（はじめのこまの 0.2〜0.35 秒の止まりを幕の裏へ） */ if (texPending.size) await Promise.race([Promise.all([...texPending]), new Promise(r => setTimeout(r, 60))]);   /* 2026-11-18 起動 1 秒：400→60（あとは霞から現れる）。2026-11-05 夕：ほどいている質感がそろってから（幕を上げたあとに絵が入れかわらないように） */ try { renderer.render(scene, camera); } catch (e) {}
   requestAnimationFrame(frame); { const t0 = performance.now(); let lt = t0, n = 0; while (true) { await new Promise(r => requestAnimationFrame(r)); const t = performance.now(), dt = t - lt; lt = t; n++; if ((n >= 2 && dt < 50) || t - t0 > 160) break; } }   // 幕の裏で数こま回し、こまが落ち着いてから幕を上げる
   forestReady.then(() => { if (habitat !== 'forest') return; const f = scene.fog, D = FOG_FOREST, S0 = f.density, t0 = performance.now(); const st = () => { if (habitat !== 'forest') return; const k = Math.min(1, (performance.now() - t0) / 2400), e = 1 - Math.pow(1 - k, 3); f.density = Math.exp(Math.log(S0) + (Math.log(D) - Math.log(S0)) * e); if (k < 1) requestAnimationFrame(st); }; requestAnimationFrame(st); });   /* 2026-11-26 夜：森が組み上がってから、濃い霞（.6）から晴れる（はじめの 0.8 秒で森が浮かび、残りでゆっくり） */   // 2026-11-18 幕を上げたら、濃い霞からゆっくり晴れる（あとから入る遠くの木・質感が急に入れかわって見えない）
-  window.__muBoot = true; bootOpen();
-  setTimeout(async () => { const g = new THREE.Group(); buildResidents(g); if (renderer.compileAsync) { try { await renderer.compileAsync(g, camera, scene); } catch (e) {} } for (const c of [...g.children]) forest.add(c); setTimeout(buildMoths, 400); }, 60); $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 180);
+  window.__muBoot = true; bootR(); bootOpen();
+  setTimeout(async () => { const g = new THREE.Group(); buildResidents(g); if (renderer.compileAsync) { try { await renderer.compileAsync(g, camera, scene); } catch (e) {} } for (const c of [...g.children]) forest.add(c); setTimeout(buildMoths, 400); if (renderer.compileAsync) for (const c of scene.children.filter(c => !c.visible)) { await new Promise(r => setTimeout(r, 120)); try { await renderer.compileAsync(c, camera, scene); } catch (e) {} } }, 60); $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 180);
   { const T0 = "となりは案内の碧。画面を押すと、はじまる。"; if (A.hold) A.sayOnShow = T0; else $("say").textContent = T0; }
   setActs([]);
   // 姿は、はじめて押す前から、揺れずにゆっくり現れる
