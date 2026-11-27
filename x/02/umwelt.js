@@ -278,10 +278,11 @@ legacyGardenSteps.push(() => {
 });
 // 蛾（夜・コウモリの獲物）
 const moths = [];
-for (let i = 0; i < 4; i++) {
+let nightNow = false;
+const buildMoths = () => { if (moths.length) return; for (let i = 0; i < 4; i++) {
   const m = makeCreature("chou", (c, o = {}) => M(c, { uv: .1, temp: .2, echo: 1.6, ...o }), { kind: "moth" }); m.scale.setScalar(.022 * 2.5);   // ヤガのなかま（体長 約 2 cm）の 2.5 倍
-  m.userData.ph = i * 1.7; m.visible = false; garden.add(m); moths.push(m);
-}
+  m.userData.ph = i * 1.7; m.visible = nightNow; forest.add(m); moths.push(m); asAmbient(m);
+} };   /* 2026-11-27 起動 1 秒：夜だけ出る蛾は、幕を上げたあとに組む（昼の見え方は同じ） */
 // 言葉と色の壁（黄緑→緑→青→紫・明るさ四段）。ラベルと境目は言語ごとに描きかえる
 const WALL = { x: -1.5, z: -11.1, w: 4.8, h: 1.75, y: .55, cols: 12, rows: 4 };
 const wallCanvas = document.createElement("canvas"); wallCanvas.width = 1536; wallCanvas.height = 600;
@@ -399,7 +400,7 @@ const riverCurve=new THREE.CatmullRomCurve3([[-8,-7],[-5,-13],[1,-15],[9,-12],[1
 /* 2026-11-26 夜：起動 1 秒（案 A）。森は最初のこまを出して操作できるようにしてから組み、霞の中から約 0.8 秒で浮かべる（組み上がった姿は前と同じ）。
    組み上がるまでの FOREST は、空の控え（幹なし・草地の位置だけ）。森を使う所は控えのまま動き、組み上がったら本物に替わる */
 let FOREST={trunks:[],meadow:MEADOW,blocked:()=>false,whiteFlower:{pos:new THREE.Vector3(MEADOW.x,.6,MEADOW.z)},lists:{},later:[],shafts:null,stub:true};
-for(const m of moths)forest.add(m);   // 夜の蛾は森に（2026-10-12）
+
 const FOG_FOREST=mobile?.03:.026;scene.fog.density=.6;   // 木々の奥が、かすみに溶ける（はじめは濃い霞から晴れていく）
 const forestReady=(async()=>{const nf1=()=>new Promise(r=>requestAnimationFrame(()=>setTimeout(r,0)));
   while(!STARTUP.firstFrameAt)await nf1(); const tw=performance.now(); while(document.querySelector('.mlq:not(.out)')&&performance.now()-tw<700)await nf1(); await nf1();   // 幕が上がって（操作できるようになって）から組む
@@ -430,10 +431,10 @@ const bodies=Object.fromEntries(S.lens.map(l=>[l.id,null]));
 // 森を飛ぶ生きもの（2026-10-12 写実の造形に。頭はいつも進む向きへ・曲がるときは内へ傾く）
 //   シジュウカラ 3 羽（実物の 1.5 倍）・ナミアゲハ（2 倍）・ミツバチ（3 倍）。道すじは木の間を通るなめらかな輪
 const mfR=(c,o={})=>M(c,{temp:.7,uv:.1,...o});
-const residents=[
+const residents=[], RESIDENTS=[
   {id:'tori',s:.145*1.5,c:[-3,-4],r:[4.2,3.1],h:[2.2,.5],w:.32,ph:0},{id:'tori',s:.145*1.5,c:[-3,-4],r:[4.2,3.1],h:[2.3,.45],w:.32,ph:-.16},{id:'tori',s:.145*1.5,c:[5,-2],r:[3.4,4.4],h:[2.6,.6],w:-.27,ph:2},
   {id:'chou',s:.03*2,c:[4,-3],r:[2.6,1.8],h:[1.0,.3],w:.22,ph:1},{id:'hachi',s:.013*3,c:[-1.5,1.5],r:[1.6,1.2],h:[.8,.25],w:-.45,ph:3},
-].map((R,i)=>{const b=makeCreature(R.id,mfR,{kind:'ageha',uv:R.id==='chou'?.15:undefined,ph:i*.37});b.scale.setScalar(R.s);b.userData.kind=R.id;b.userData.R=R;b.userData.prev=new THREE.Vector3();b.userData.yaw=0;b.userData.roll=0;forest.add(b);return b;});
+];const buildResidents=(par)=>{if(residents.length)return;RESIDENTS.forEach((R,i)=>{const b=makeCreature(R.id,mfR,{kind:'ageha',uv:R.id==='chou'?.15:undefined,ph:i*.37});b.scale.setScalar(R.s);b.userData.kind=R.id;b.userData.R=R;b.userData.prev=new THREE.Vector3();b.userData.yaw=0;b.userData.roll=0;par.add(b);residents.push(b);if(b.userData.kind!=='tori')asAmbient(b);});};   /* 2026-11-27 起動 1 秒：森を飛ぶ鳥・蝶・蜂は、幕を上げたあと濃い霞のうちに組んで入れる */
 // 蜂の花めぐり（2026-10-13）：花の前でホバリング（小さくゆれて止まる）→ 花にとまる（翅をたたむ）→ 飛びたって、次の花へすばやく移る。
 //   花はオカトラノオの群れ（草地の白い花）から近いものを選ぶ。とまる高さは目安（花穂の上のあたり）
 function beeForage(b,t,dt){const F=b.userData.F||(b.userData.F={st:'go',t0:t,from:b.position.clone(),to:null,i:0,spd:0});
@@ -454,7 +455,7 @@ window.__orient=()=>residents.concat([...butterflies,ageha]).map(b=>{const f=new
 //   まわりの地面や葉と同じ値にする（熱の見え方では、ほとんど浮かばない）。飛ぶハチの胸がわずかに温まることは「なぜ」の画面に書いた。
 const AMBIENT_T = .1;
 function asAmbient(o) { o.traverse(m => { if (!m.isMesh) return; for (const mt of [].concat(m.material)) { const u = mt.userData?.u; if (u?.uTemp) u.uTemp.value = AMBIENT_T; } }); }
-for (const o of [...butterflies, ageha, bee, ...moths, ...residents.filter(b => b.userData.kind !== 'tori')]) asAmbient(o);
+for (const o of [...butterflies, ageha, bee]) asAmbient(o);
 // 見る人の身体：頭を前（画面の奥）へ。曲がるときは傾く
 //   2026-10-13：画面のまん中をふさがないよう、少し小さく・下へ。切り替えた直後の見せ場のあとは、うすく透ける
 const bodyRoot=new THREE.Group();camera.add(bodyRoot);bodyRoot.position.set(0,-.27,-.65);bodyRoot.scale.setScalar(.2);bodyRoot.rotation.y=Math.PI;
@@ -513,7 +514,7 @@ function lensVisual(id) {
   if (night) { hemi.intensity = .05; sun.intensity = 0; scene.fog.color.set(0x020306); } else setDay(LIT.base);
   if (L.mode === 6) scene.fog.color.set(0x0a0a0a);   // 熱カメラ：晴れた空はとても冷たく写る（Berdahl & Martin 1984）＝遠くも空も暗い側へ
   scene.background.set(L.under ? 0x000000 : night ? 0x020306 : 0x0f1412);
-  for (const m of moths) m.visible = night;
+  nightNow = night; if (night) buildMoths(); for (const m of moths) m.visible = night;
   if (FOREST.shafts) FOREST.shafts.visible = (id === 'hito' || id === 'inu') && !night;
 }
 let comparing = false;
@@ -535,7 +536,7 @@ function applyLens(id) {
   if (night) { hemi.intensity = .05; sun.intensity = 0;scene.fog.color.set(0x020306); } else setDay(LIT.base);
   if (L.mode === 6) scene.fog.color.set(0x0a0a0a);
   scene.background.set(L.under ? 0x000000 : night ? 0x020306 : 0x0f1412);
-  for (const m of moths) m.visible = night;
+  nightNow = night; if (night) buildMoths(); for (const m of moths) m.visible = night;
   garden.visible = !L.under && habitat==='garden';forest.visible=!L.under && habitat==='forest';city.visible=!L.under && habitat==='city';if(FOREST.shafts)FOREST.shafts.visible=habitat==='forest'&&(id==='hito'||id==='inu')&&!night;
   flightHeight=L.eye||1.5;
   if (!L.under) ensureBody(id);
@@ -1400,7 +1401,8 @@ STARTUP.sceneBuiltAt = performance.now();
   /* 2026-11-04 コマ落ち：影の材質は前もって組めない（three の作り）→ 起動画面の裏で一こま描き、影の材質と絵を先に用意してから幕を上げる（はじめのこまの 0.2〜0.35 秒の止まりを幕の裏へ） */ if (texPending.size) await Promise.race([Promise.all([...texPending]), new Promise(r => setTimeout(r, 60))]);   /* 2026-11-18 起動 1 秒：400→60（あとは霞から現れる）。2026-11-05 夕：ほどいている質感がそろってから（幕を上げたあとに絵が入れかわらないように） */ try { renderer.render(scene, camera); } catch (e) {}
   requestAnimationFrame(frame); { const t0 = performance.now(); let lt = t0, n = 0; while (true) { await new Promise(r => requestAnimationFrame(r)); const t = performance.now(), dt = t - lt; lt = t; n++; if ((n >= 2 && dt < 50) || t - t0 > 160) break; } }   // 幕の裏で数こま回し、こまが落ち着いてから幕を上げる
   forestReady.then(() => { if (habitat !== 'forest') return; const f = scene.fog, D = FOG_FOREST, S0 = f.density, t0 = performance.now(); const st = () => { if (habitat !== 'forest') return; const k = Math.min(1, (performance.now() - t0) / 2400), e = 1 - Math.pow(1 - k, 3); f.density = Math.exp(Math.log(S0) + (Math.log(D) - Math.log(S0)) * e); if (k < 1) requestAnimationFrame(st); }; requestAnimationFrame(st); });   /* 2026-11-26 夜：森が組み上がってから、濃い霞（.6）から晴れる（はじめの 0.8 秒で森が浮かび、残りでゆっくり） */   // 2026-11-18 幕を上げたら、濃い霞からゆっくり晴れる（あとから入る遠くの木・質感が急に入れかわって見えない）
-  window.__muBoot = true; bootOpen(); $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 180);
+  window.__muBoot = true; bootOpen();
+  setTimeout(async () => { const g = new THREE.Group(); buildResidents(g); if (renderer.compileAsync) { try { await renderer.compileAsync(g, camera, scene); } catch (e) {} } for (const c of [...g.children]) forest.add(c); setTimeout(buildMoths, 400); }, 60); $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 180);
   { const T0 = "となりは案内の碧。画面を押すと、はじまる。"; if (A.hold) A.sayOnShow = T0; else $("say").textContent = T0; }
   setActs([]);
   // 姿は、はじめて押す前から、揺れずにゆっくり現れる
