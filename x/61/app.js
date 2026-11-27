@@ -74,8 +74,12 @@ const W = 9, D = 6, H = 6.4, add = (m, x, y, z, parent = scene) => { m.position.
   wall(2 * W, 0, -D, 0); wall(2 * W, 0, D, Math.PI); wall(2 * D, W, 0, -Math.PI / 2);
   wall(2 * D, -W - .01, 0, Math.PI / 2);
   // 左の壁は高い窓の並び（光が差しこむ側）
+  // 2026-11-27 窓の外の木が描いた丸い房で平板だった → Poly Haven の森の写真（forest_slope・CC0）を窓ごとに違う所で見せる（読み込みは起動のあと）
+  const panes = [];
+  new THREE.TextureLoader().load("data/window_forest.jpg", (t) => { t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping;
+    panes.forEach((p, i) => { const c = t.clone(); c.needsUpdate = true; c.repeat.set(.114, 1); c.offset.set(.06 + i * .19, 0); p.material.map = c; p.material.color.set(0xd8d4c8); p.material.needsUpdate = true; }); });
   for (let i = 0; i < 5; i++) { const z = -4.8 + i * 2.4;
-    const pane = add(new THREE.Mesh(new THREE.PlaneGeometry(1.7, 4.2), new THREE.MeshBasicMaterial({ map: outside, color: 0xe6e2d8 })), -W + .02, 2.75, z); pane.rotation.y = Math.PI / 2;
+    const pane = add(new THREE.Mesh(new THREE.PlaneGeometry(1.7, 4.2), new THREE.MeshBasicMaterial({ map: outside, color: 0xe6e2d8 })), -W + .02, 2.75, z); pane.rotation.y = Math.PI / 2; panes.push(pane);
     const fr = add(new THREE.Mesh(new THREE.BoxGeometry(.1, 4.5, .7), M.wall), -W + .05, 2.75, z + 1.2); fr.castShadow = true;
     for (const yy of [.6, 4.9]) add(new THREE.Mesh(new THREE.BoxGeometry(.18, .06, 1.8), M.black), -W + .06, yy, z); }
   { const fr = add(new THREE.Mesh(new THREE.BoxGeometry(.08, H, 1), M.wall), -W + .04, H / 2, -5.6); fr.castShadow = true; }
@@ -150,6 +154,7 @@ for (const [x, z] of [[-6.6, -1.2], [6.5, -1.2], [-5.4, 3.4], [5.4, 3.4]]) { add
 
 /* ---------- 札（明朝の文字を板に） ---------- */
 function label(text, sub, w = 1.3) {
+  if (innerWidth < 600) w *= .78;   /* 2026-11-27 375px の入口で手前の机の札が画の右に切れた */
   const c = document.createElement("canvas"); c.width = 640; c.height = 200; const g = c.getContext("2d");
   g.fillStyle = "rgba(14,22,24,.82)"; g.beginPath(); g.roundRect(4, 4, 632, 192, 26); g.fill(); g.strokeStyle = "rgba(170,226,236,.7)"; g.lineWidth = 3; g.stroke();
   g.fillStyle = "#eef6f4"; g.textAlign = "center"; g.font = '600 64px "Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif'; g.fillText(text, 320, 98);
