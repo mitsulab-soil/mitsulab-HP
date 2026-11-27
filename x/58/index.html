@@ -19,7 +19,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 canvas{position:absolute;left:0;top:0}
 #pins{position:absolute;left:0;top:0;pointer-events:none}
 .pin{position:absolute;transform:translate(-50%,-100%);pointer-events:auto;background:none;border:0;padding:0 0 4px;color:var(--ink);font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:44px;min-height:44px;-webkit-tap-highlight-color:transparent}
-.pin b{font-weight:500;font-size:13.5px;letter-spacing:.12em;white-space:nowrap;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(6,30,34,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.pin b{transform:translateX(var(--dx,0));font-weight:500;font-size:13.5px;letter-spacing:.12em;white-space:nowrap;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(6,30,34,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .pin i{font-style:normal;font-size:10.5px;letter-spacing:.2em;color:var(--dim)}
 .pin::after{content:"";width:9px;height:9px;border-radius:50%;background:#f0fbfc;box-shadow:0 0 0 4px rgba(143,227,234,.18),0 0 14px rgba(143,227,234,.7);order:3}
 .pin.on b{border-color:#bff3fb;color:#fff;box-shadow:0 0 14px rgba(120,220,235,.35)}
@@ -50,14 +50,14 @@ canvas{position:absolute;left:0;top:0}
 #bag .cl{position:absolute;right:8px;top:calc(env(safe-area-inset-top,0px) + 12px);width:44px;height:44px;border:0;background:none;color:var(--ink);font-size:20px;cursor:pointer}
 #bag .ft{margin-top:30px;font-size:11px;line-height:1.9;color:rgba(233,242,241,.5)}
 #bag .ft a{color:inherit}
-@media (max-width:767px){#card{bottom:calc(env(safe-area-inset-bottom,0px) + 128px)}#say{font-size:13px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}.pin b{font-size:12.5px;padding:5px 10px}#v::after{content:"← 地図を指で動かす →";position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 60px);transform:translateX(-50%);font-size:11.5px;letter-spacing:.14em;color:rgba(233,242,241,.7);pointer-events:none;animation:hint 1s 4s forwards}@keyframes hint{to{opacity:0}}}
+@media (max-width:767px){.pin i{display:none}.pin:not(.on) b{font-size:11.5px;padding:4px 9px;opacity:.88}#card{bottom:calc(env(safe-area-inset-bottom,0px) + 128px)}#say{font-size:13px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}.pin b{font-size:12.5px;padding:5px 10px}#v::after{content:"← 地図を指で動かす →";position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 60px);transform:translateX(-50%);font-size:11.5px;letter-spacing:.14em;color:rgba(233,242,241,.7);pointer-events:none;animation:hint 1s 4s forwards}@keyframes hint{to{opacity:0}}}
 #bf .w{transform-origin:23px 20px;animation:bfF 2.6s ease-in-out infinite alternate}@keyframes bfF{to{transform:scaleX(.3)}}@media (prefers-reduced-motion:reduce){#card,#bag{transition:none}#bf{display:none}}
 </style>
 </head>
 <body>
 <div id="v"><canvas id="c"></canvas><div id="pins"></div></div>
 <a id="tag" href="https://mitsulab.jp/" translate="no"><i>Qualia/</i>world</a>
-<svg id="bf" viewBox="0 0 46 40" aria-hidden="true" style="position:fixed;left:0;top:0;width:34px;height:30px;z-index:26;pointer-events:none;opacity:0"><defs><linearGradient id="bfG" x1="0" x2="1"><stop offset="0" stop-color="var(--bf-a,#9aa3a6)"/><stop offset="1" stop-color="var(--bf-b,#9aa3a6)"/></linearGradient></defs><g class="w"><path d="M23 20C17 6 4 2 3 9c-1 6 8 10 20 11z" fill="url(#bfG)" opacity=".85"/><path d="M23 21C14 23 7 30 10 35c3 4 10-3 13-14z" fill="url(#bfG)" opacity=".7"/></g><g class="w" transform="translate(46 0) scale(-1 1)"><path d="M23 20C17 6 4 2 3 9c-1 6 8 10 20 11z" fill="url(#bfG)" opacity=".85"/><path d="M23 21C14 23 7 30 10 35c3 4 10-3 13-14z" fill="url(#bfG)" opacity=".7"/></g><path d="M22.4 12h1.2v18h-1.2z" fill="#2a3134"/></svg><div id="say" aria-live="polite"><small>碧</small><span id="sayT">この景色、ほんとうに受けとっていますか？</span></div>
+<svg id="bf" viewBox="0 0 46 40" aria-hidden="true" style="position:fixed;left:0;top:0;width:34px;height:30px;z-index:26;pointer-events:none;opacity:0"><defs><linearGradient id="bfG" x1="0" x2="1"><stop offset="0" stop-color="#e9dcc0"/><stop offset="1" stop-color="#d9c9a4"/></linearGradient></defs><g class="w"><path d="M23 20C17 6 4 2 3 9c-1 6 8 10 20 11z" fill="url(#bfG)" opacity=".85"/><path d="M23 21C14 23 7 30 10 35c3 4 10-3 13-14z" fill="url(#bfG)" opacity=".7"/></g><g class="w" transform="translate(46 0) scale(-1 1)"><path d="M23 20C17 6 4 2 3 9c-1 6 8 10 20 11z" fill="url(#bfG)" opacity=".85"/><path d="M23 21C14 23 7 30 10 35c3 4 10-3 13-14z" fill="url(#bfG)" opacity=".7"/></g><path d="M22.4 12h1.2v18h-1.2z" fill="#2a3134"/></svg><div id="say" aria-live="polite"><small>碧</small><span id="sayT">この景色、ほんとうに受けとっていますか？</span></div>
 <section id="card" aria-live="polite"><button class="x" type="button" aria-label="閉じる">×</button><p class="ch" id="cCh"></p><h2 id="cH"></h2><p id="cP"></p><div class="go" id="cGo"></div></section>
 <aside id="bag" aria-label="持ち物"><button class="cl" type="button" aria-label="閉じる">×</button><h2>持ち物</h2><p class="lead">未来の景色から、色と音が抜け始めています。道具を使うたびに、同じ景色が別の景色に変わり、記録が一つ届くたびに、未来の花に一色ずつ色が戻ります。人の色だけでなく、ミツバチの紫も。記録はこの端末の中だけ。</p><div id="bagL"></div>
 <p class="ft">地図は描き起こした模式で、実在の地形ではない。<br>© mitsulab. All rights reserved.<br><a href="https://mitsulab.jp/">mitsulab.jp</a></p></aside>
@@ -76,12 +76,12 @@ var BAG=[["森で見つける道具 ── 知覚 P",["sight","hear","touch","ma
 var PL=[
  {id:"forest",x:250,y:330,ch:"承 ── P",n:"はじまりの森",p:"目を覚ます森。碧から最初のレンズを受けとる。ミツバチの目で見ると花に蜜のありかの模様が浮かび、コウモリの耳で聴くと夕暮れの空が声で満ちる（どちらも出典で確かめた範囲の模式）。",t:["sight","hear","touch","magnet"],q:"同じ森を、ミツバチはどう見ている？"},
  {id:"macro",x:140,y:205,ch:"承 ── P",n:"天文台",p:"はじまりの森の先、大きい世界の端に立つ塔。Qualia/macroscope。",t:[],q:"いちばん遠くの光は、いつ出発した？"},
- {id:"micro",x:330,y:500,ch:"承 ── P",n:"微文台",p:"はじまりの森の先、小さい世界の端に立つ塔。Qualia/microscope。",t:[],q:"足もとの一粒の土に、何がいる？"},
+ {id:"micro",x:330,y:500,ch:"承 ── P",n:"微文台",p:"読みは、びぶんだい。天文台と対になる、小さい世界の端に立つ塔。Qualia/microscope。",t:[],q:"足もとの一粒の土に、何がいる？"},
  {id:"town",x:470,y:400,ch:"承 ── M",n:"はじまりの街",p:"街の人は、それぞれ別の切り分け方で世界を見ている。色の名・方位・季節・地名・仕事の目。昔の地図を重ねると、道の下に消えた川が見える。",t:["oldmap","koyomi","carve","kigo","civil","role"],q:"この通りを、季節の言葉で切り分けたら？"},
  {id:"hall",x:520,y:215,ch:"承 ── N",n:"館と宿",p:"物語にふれる場所。絵の中の生き物が額から抜け出し、目の前の景色に重なる。北斎の燕が、いつもの空を横切る。その生き物は、旅についてくる。",t:["museum","yose"],q:"その景色は、どんな噺になる？"},
  {id:"real",x:760,y:330,ch:"転 ── E",n:"実在の街",p:"手に入れた道具と、館で出会った絵の生き物を連れて、本物の場所へ。渋谷で、アゲハの目と AR の中に入りこむと、人と蝶の境目が溶ける。スマホの AR で、目の前の参道や路地に道具が効く。「蝶になってもいい。帰ってくる体を、忘れないで」",t:["omiya","kawagoe","shibuya","network"],q:"いま、あなたは湊ですか。それとも、蝶の夢を見ている誰かですか"},
  {id:"daily",x:600,y:560,ch:"結 ── E",n:"いつもの街",p:"家の近く、通勤の道。道具はそのまま使える。家の近くの植え込みの前で、画面を閉じます。まず自分の体で受けとります。それから道具をひらき、ハチの道すじと、夕空のコウモリの声を重ねます。世界は、人間だけのものではありませんでした。",t:["map"],q:"画面を閉じたら、何が聞こえる？"},
- {id:"next",x:925,y:150,ch:"次の大陸 ── a",far:1,n:"次の大陸",p:"場所そのものが感じとる大陸。旅人の記録が、次の旅人の受けとり方をひらく（IoT・開発中）。その海を渡るための、現実の空間で使える知覚拡張のデバイスを、β 版としてつくっている。クラウドファンディングで、世に出す予定。",t:[],q:"場所の方が、あなたに気づいたら？"}
+ {id:"next",x:925,y:150,ch:"まだ地図にない場所",far:1,n:"まだ地図にない場所",p:"場所そのものが感じとる土地。旅人の記録が、次の旅人の受けとり方をひらく（IoT・開発中）。そこへ行くための、現実の空間で使える知覚拡張のデバイスを、β 版としてつくっている。クラウドファンディングで、世に出す予定。",t:[],q:"場所の方が、あなたに気づいたら？"}
 ];
 var W=1000,H=700,cv=document.getElementById("c"),cx=cv.getContext("2d"),pins=document.getElementById("pins"),V=document.getElementById("v");
 var S=1,ox=0,oy=0,vw=0,vh=0,dpr=Math.min(2,window.devicePixelRatio||1),map=null,sel=null;
@@ -116,6 +116,10 @@ function build(){
   var L=1+sh*.38;c.fillStyle="rgb("+(rr*L|0)+","+(gg*L|0)+","+(bb*L|0)+")";
   c.fillRect(x*sc,(y-h*K)*sc,step*sc+1,(step+h*K*.0+2)*sc);
  }
+ /* 描き起こした地形を、なめらかに（ピクセルの段を消す） */
+ var tmp=document.createElement("canvas");tmp.width=GW;tmp.height=GH;tmp.getContext("2d").drawImage(g,0,0);c.clearRect(0,0,GW,GH);c.filter="blur("+(2.2*sc)+"px)";c.drawImage(tmp,0,0);c.filter="none";
+ /* 細かな地肌のきめ */
+ for(i=0;i<9000;i++){x=rnd(i,91)*W;y=rnd(i,93)*H;var hg=hgt(x,y);if(hg<.06)continue;c.fillStyle="rgba("+(rnd(i,95)<.5?"0,0,0,":"255,250,235,")+(.05+rnd(i,97)*.07).toFixed(3)+")";c.fillRect(x*sc,(y-hg*K)*sc,1.4*sc,1.4*sc)}
  /* 木（はじまりの森） */
  for(i=0;i<1700;i++){x=250+(rnd(i,3)-.5)*360;y=330+(rnd(i,7)-.5)*300;var d=Math.hypot((x-250)/180,(y-330)/150);if(d>1||rnd(i,11)<d*.8)continue;var hh=hgt(x,y);if(hh<.12)continue;var yy=y-hh*K;
   c.fillStyle="rgba("+(16+rnd(i,5)*20|0)+","+(48+rnd(i,9)*36|0)+","+(30+rnd(i,2)*20|0)+",.92)";c.beginPath();c.ellipse(x*sc,(yy-2)*sc,2.4*sc,3.4*sc,0,0,7);c.fill();}
@@ -135,7 +139,7 @@ function build(){
  for(j=0;j<rows;j++)for(i=0;i<cols;i++){var h0=hm[j][i];if(h0<.06)continue;var l0=Math.floor(h0*9),l1=Math.floor(hm[j][i+1]*9),l2=Math.floor(hm[j+1][i]*9);if(l0!==l1||l0!==l2){c.fillStyle="rgba(150,225,236,.22)";c.fillRect(i*step*sc,(j*step-h0*K)*sc,1.2*sc,1.2*sc)}}
  /* 経緯の格子 */
  c.strokeStyle="rgba(150,225,236,.06)";c.lineWidth=1;for(x=0;x<=W;x+=50){c.beginPath();c.moveTo(x*sc,0);c.lineTo(x*sc,GH);c.stroke()}for(y=0;y<=H;y+=50){c.beginPath();c.moveTo(0,y*sc);c.lineTo(GW,y*sc);c.stroke()}
- /* 次の大陸の網 */
+ /* まだ地図にない場所の網 */
  c.strokeStyle="rgba(170,235,244,.4)";c.fillStyle="rgba(200,245,250,.8)";var pts=[];for(i=0;i<16;i++){var a4=rnd(i,81)*6.283,r4=Math.sqrt(rnd(i,83))*70;x=930+Math.cos(a4)*r4;y=150+Math.sin(a4)*r4*.7;var h4=hgt(x,y);if(h4<.06)continue;pts.push([x,y-h4*K])}
  pts.forEach(function(p,k){pts.forEach(function(q,m){if(m>k&&Math.hypot(p[0]-q[0],p[1]-q[1])<45){c.beginPath();c.moveTo(p[0]*sc,p[1]*sc);c.lineTo(q[0]*sc,q[1]*sc);c.stroke()}});c.fillRect((p[0]-1)*sc,(p[1]-1)*sc,2*sc,2*sc)});
  /* 霞 */
@@ -144,20 +148,22 @@ function build(){
 function drawn(p){for(var k=0;k<p.t.length;k++)if(got[p.t[k]])return true;return !!got["_"+p.id]}
 function veil(){PL.forEach(function(p){if(p.far||drawn(p))return;var x=(ox+p.x*S)*dpr,y=(oy+p.sy*S)*dpr,r=(p.id==="macro"||p.id==="micro"?40:p.id==="forest"?175:p.id==="hall"?80:p.id==="real"?110:95)*S*dpr,g=cx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,"rgba(128,132,134,.66)");g.addColorStop(.7,"rgba(128,132,134,.46)");g.addColorStop(1,"rgba(128,132,134,0)");cx.fillStyle=g;cx.beginPath();cx.arc(x,y,r,0,7);cx.fill()})}
 function P(id){for(var k=0;k<PL.length;k++)if(PL[k].id===id){var p=PL[k];p.sy=p.y-Math.max(0,hgt(p.x,p.y))*36;return p}}
-function fit(){vw=innerWidth;vh=innerHeight;var portrait=vw<vh;S=portrait?Math.max(vh*.78/H,vw/W):Math.max(vw/W,vh/H)*1.02;cv.width=vw*dpr;cv.height=vh*dpr;cv.style.width=vw+"px";cv.style.height=vh+"px";build();
+function fit(){vw=innerWidth;vh=innerHeight;var portrait=vw<vh;S=portrait?Math.max(vh*.6/H,vw/W):Math.max(vw/W,vh/H)*1.02;cv.width=vw*dpr;cv.height=vh*dpr;cv.style.width=vw+"px";cv.style.height=vh+"px";build();
  if(!fit.done){fit.done=1;focus(portrait?P("forest"):null,true)}else clamp();draw()}
 function clamp(){var mw=W*S,mh=H*S;ox=mw<=vw?(vw-mw)/2:Math.min(0,Math.max(vw-mw,ox));oy=mh<=vh?(vh-mh)/2:Math.min(0,Math.max(vh-mh,oy))}
-function focus(p,now){var tx=p?vw/2-p.x*S:(vw-W*S)/2,ty=p?vh*.42-p.sy*S:(vh-H*S)/2;if(now){ox=tx;oy=ty;clamp();return}var fx=ox,fy=oy,t0=performance.now();(function st(t){var k=Math.min(1,(t-t0)/520);k=1-Math.pow(1-k,3);ox=fx+(tx-fx)*k;oy=fy+(ty-fy)*k;clamp();draw();if(k<1)requestAnimationFrame(st)})(t0)}
+function focus(p,now){var tx=p?vw*(vw<vh?.36:.5)-p.x*S:(vw-W*S)/2,ty=p?vh*.42-p.sy*S:(vh-H*S)/2;if(now){ox=tx;oy=ty;clamp();return}var fx=ox,fy=oy,t0=performance.now();(function st(t){var k=Math.min(1,(t-t0)/520);k=1-Math.pow(1-k,3);ox=fx+(tx-fx)*k;oy=fy+(ty-fy)*k;clamp();draw();if(k<1)requestAnimationFrame(st)})(t0)}
+var bfDone=false;
 function draw(){cx.setTransform(1,0,0,1,0,0);cx.fillStyle="#041419";cx.fillRect(0,0,cv.width,cv.height);cx.drawImage(map,Math.round(ox*dpr),Math.round(oy*dpr));veil();
- for(var k=0;k<PL.length;k++){var p=PL[k],e=PL[k].el;e.style.left=(ox+p.x*S)+"px";e.style.top=(oy+p.sy*S-6)+"px"}}
-PL.forEach(function(p){P(p.id);var b=document.createElement("button");b.type="button";b.className="pin"+(p.far?" far":"");b.innerHTML="<i>"+p.ch.split(" ")[0]+"</i><b>"+p.n+"</b>";b.addEventListener("click",function(ev){ev.stopPropagation();open(p)});p.el=b;pins.appendChild(b)});
+ for(var k=0;k<PL.length;k++){var p=PL[k],e=PL[k].el;e.style.left=(ox+p.x*S)+"px";e.style.top=(oy+p.sy*S-6)+"px";var bw=e.offsetWidth/2,lx=ox+p.x*S;e.style.setProperty("--dx",(lx-bw<16?16-(lx-bw):lx+bw>vw-16?(vw-16)-(lx+bw):0)+"px")}
+ if(sel&&bfDone){BF.style.transform="translate("+(ox+sel.x*S+18)+"px,"+(oy+sel.sy*S-58)+"px)";BF.style.opacity=".7"}}
+PL.forEach(function(p){P(p.id);var b=document.createElement("button");b.type="button";b.className="pin"+(p.far?" far":"");b.innerHTML="<i>"+(p.far?"":p.ch.split(" ")[0])+"</i><b>"+p.n+"</b>";b.addEventListener("click",function(ev){ev.stopPropagation();open(p)});p.el=b;pins.appendChild(b)});
 var card=document.getElementById("card"),sayT=document.getElementById("sayT");
 function say(t){sayT.textContent=t}
 function open(p){sel=p;PL.forEach(function(q){q.el.classList.toggle("on",q===p)});
  document.getElementById("cCh").textContent=p.ch;document.getElementById("cH").textContent=p.n;document.getElementById("cP").textContent=p.p;
  var go=document.getElementById("cGo");go.innerHTML="";p.t.forEach(function(k){var a=document.createElement("a");a.href=T[k][1];a.target="_blank";a.rel="noopener";a.translate=false;a.textContent=T[k][0];if(got[k])a.className="got";a.addEventListener("click",function(){got[k]=1;save();a.className="got";renderBag();draw()});go.appendChild(a)});
  go.style.display=p.t.length?"":"none";card.classList.add("show");say(p.q);focus(p);setTimeout(function(){bfTo(p)},560);if(!p.t.length&&!p.far){got["_"+p.id]=1;save()}}
-var BF=document.getElementById("bf"),BC={forest:["#b9c4c0","#a7b6b8"],macro:["#b9c4c0","#a7b6b8"],micro:["#b9c4c0","#a7b6b8"],town:["#d3c9a8","#b8c7c2"],hall:["#e2c38e","#c9b6d6"],real:["#a9aeb0","#bdb4c4"],daily:["#e8c48a","#9b7ad6"],next:["#e8c48a","#9b7ad6"]},bfP=null;function bfTo(p){if(!BF.animate||matchMedia("(prefers-reduced-motion: reduce)").matches)return;var c=BC[p.id];BF.style.setProperty("--bf-a",c[0]);BF.style.setProperty("--bf-b",c[1]);var x=ox+p.x*S+18,y=oy+p.sy*S-58,fx=bfP?bfP[0]:-40,fy=bfP?bfP[1]:vh*.3;bfP=[x,y];BF.animate([{transform:"translate("+fx+"px,"+fy+"px)",opacity:bfP&&fx>0?.7:0},{transform:"translate("+((fx+x)/2)+"px,"+(Math.min(fy,y)-50)+"px) rotate(-8deg)",opacity:.7},{transform:"translate("+x+"px,"+y+"px)",opacity:.7}],{duration:2600,easing:"ease-in-out",fill:"forwards"})}function close(){card.classList.remove("show");sel=null;PL.forEach(function(q){q.el.classList.remove("on")})}
+var BF=document.getElementById("bf"),bfP=null;function bfTo(p){if(!BF.animate||matchMedia("(prefers-reduced-motion: reduce)").matches)return;var x=ox+p.x*S+18,y=oy+p.sy*S-58,fx=bfP?bfP[0]:-40,fy=bfP?bfP[1]:vh*.3;bfP=[x,y];bfDone=false;var A=BF.animate([{transform:"translate("+fx+"px,"+fy+"px)",opacity:bfP&&fx>0?.7:0},{transform:"translate("+((fx+x)/2)+"px,"+(Math.min(fy,y)-50)+"px) rotate(-8deg)",opacity:.7},{transform:"translate("+x+"px,"+y+"px)",opacity:.7} ],{duration:2600,easing:"ease-in-out",fill:"forwards"});A.onfinish=function(){bfDone=true;A.cancel();draw()}}function close(){card.classList.remove("show");sel=null;bfDone=false;BF.style.opacity="0";PL.forEach(function(q){q.el.classList.remove("on")})}
 card.querySelector(".x").addEventListener("click",close);
 /* 持ち物 */
 var bag=document.getElementById("bag"),bB=document.getElementById("bBag");
