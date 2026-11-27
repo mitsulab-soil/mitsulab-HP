@@ -12,7 +12,8 @@
   /* 目録（中身は読まない）。P＝知覚・N＝物語。M のレンズも同じ形で一行足す */
   var LIST = [
     { id: 'none',       name: 'そのまま', tool: '' },
-    { id: 'forest-hachi', name: '生き物の目', tool: 'forest' },   // はじまりの森の中だけ：sight の「ひと ▾」と同じ切りかえ
+    { id: 'forest-hachi', name: '生き物の目', tool: 'forest' },
+    { id: 'touch-forest', name: 'touch', tool: 'forest' },   // はじまりの森の中だけ：森の面に寄って触れる   // はじまりの森の中だけ：sight の「ひと ▾」と同じ切りかえ
     { id: 'sight-bee',  name: 'ミツバチ', tool: 'sight' },
     { id: 'sight-papilio', name: 'アゲハ', tool: 'sight' },
     { id: 'hear-bat',   name: 'コウモリ', tool: 'hear' },
@@ -33,7 +34,7 @@
     if (!tool) return Promise.resolve();
     if (loading[tool]) return loading[tool];
     return loading[tool] = new Promise(function (ok, ng) {
-      var s = document.createElement('script'); s.src = base + 'lens-' + tool + '.js?v=15'; s.onload = ok; s.onerror = ng; document.head.appendChild(s);
+      var s = document.createElement('script'); s.src = base + 'lens-' + tool + '.js?v=17'; s.onload = ok; s.onerror = ng; document.head.appendChild(s);
     });
   }
   function use(id, ctx) {

@@ -38,7 +38,7 @@
     '.qlm-row button[aria-pressed=true]{background:rgba(155,220,240,.24);border-color:rgba(190,236,246,.9)}' +
     '.qlm-sub{display:block;width:100%;text-align:left;margin:0;padding:10px 14px;border:0;border-radius:10px;background:rgba(6,16,18,.62);color:inherit;font:inherit;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);cursor:pointer}' +
     '.qlm-sub small{display:block;margin-top:4px;font-size:11px;opacity:.75}.qlm-sub a{color:inherit}' +
-    '@media (max-width:767px){.qlm{bottom:calc(env(safe-area-inset-bottom,0px) + 132px);font-size:13px}.qlm-row{gap:6px}.qlm-row button{padding:0 10px;min-height:44px;font-size:12px}}';
+    '@media (max-width:767px){.qlm{bottom:calc(env(safe-area-inset-bottom,0px) + 132px);font-size:13px}.qlm-row{gap:6px;flex-wrap:nowrap;justify-content:flex-start;-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mask-image:linear-gradient(90deg,#000 82%,transparent);padding-right:40px}.qlm-row button{padding:0 12px;min-height:44px;font-size:12px}}';
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
   function runner(C) {
@@ -86,7 +86,7 @@
         small = document.createElement('canvas'); sx = small.getContext('2d', { willReadFrequently: true });
         box = document.createElement('div'); box.className = 'qlm'; box.setAttribute('aria-label', C.name);
         row = document.createElement('div'); row.className = 'qlm-row'; row.setAttribute('role', 'group'); row.setAttribute('aria-label', '切り分け方');
-        C.modes.forEach(function (m) { var b = document.createElement('button'); b.type = 'button'; b.dataset.id = m.id; b.textContent = m.label; b.onclick = function () { setMode(m, true); }; row.appendChild(b); });
+        C.modes.forEach(function (m) { var b = document.createElement('button'); b.type = 'button'; b.dataset.id = m.id; b.textContent = m.label; b.onclick = function () { setMode(m, true); b.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); }; row.appendChild(b); });
         sub = document.createElement('button'); sub.type = 'button'; sub.className = 'qlm-sub';
         sub.addEventListener('click', function (e) { if (e.target.closest('a')) return; var L = notes(); if (C.onTap) { C.onTap(mode); noteI = -1; say(); return; } if (!L.length) return; noteI = noteI + 1 >= L.length ? -1 : noteI + 1; say(); });
         box.appendChild(row); box.appendChild(sub); document.body.appendChild(box);
