@@ -12,6 +12,7 @@
   /* 目録（中身は読まない）。P＝知覚・N＝物語。M のレンズも同じ形で一行足す */
   var LIST = [
     { id: 'none',       name: 'そのまま', tool: '' },
+    { id: 'forest-hachi', name: '生き物の目', tool: 'forest' },   // はじまりの森の中だけ：sight の「ひと ▾」と同じ切りかえ
     { id: 'sight-bee',  name: 'ミツバチ', tool: 'sight' },
     { id: 'sight-papilio', name: 'アゲハ', tool: 'sight' },
     { id: 'hear-bat',   name: 'コウモリ', tool: 'hear' },
@@ -32,7 +33,7 @@
     if (!tool) return Promise.resolve();
     if (loading[tool]) return loading[tool];
     return loading[tool] = new Promise(function (ok, ng) {
-      var s = document.createElement('script'); s.src = base + 'lens-' + tool + '.js?v=13'; s.onload = ok; s.onerror = ng; document.head.appendChild(s);
+      var s = document.createElement('script'); s.src = base + 'lens-' + tool + '.js?v=14'; s.onload = ok; s.onerror = ng; document.head.appendChild(s);
     });
   }
   function use(id, ctx) {
@@ -66,7 +67,7 @@
       });
       row.appendChild(b);
     });
-    function put() { var d = document.querySelector(o.drawer || '#q3Drawer'); if (d && !d.contains(box)) d.insertBefore(box, d.firstChild); }
+    function put() { var d = document.querySelector(o.drawer || '#q3Drawer'); if (d && !d.contains(box)) d.insertBefore(box, d.firstChild); row.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', x.dataset.lens === curId ? 'true' : 'false'); }); }
     var t0 = Date.now(), iv = setInterval(function () { put(); if (Date.now() - t0 > 30000) clearInterval(iv); }, 400);
     /* ≡ を押したときにも差し込む（引き出しを押してから作る道具・遅く作る道具でも出る） */
     document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest(o.menu || '#q3Menu, #qgBar [data-k=menu]')) { put(); setTimeout(put, 0); setTimeout(put, 120); } }, true);
