@@ -32,7 +32,7 @@
     if (!tool) return Promise.resolve();
     if (loading[tool]) return loading[tool];
     return loading[tool] = new Promise(function (ok, ng) {
-      var s = document.createElement('script'); s.src = base + 'lens-' + tool + '.js?v=12'; s.onload = ok; s.onerror = ng; document.head.appendChild(s);
+      var s = document.createElement('script'); s.src = base + 'lens-' + tool + '.js?v=13'; s.onload = ok; s.onerror = ng; document.head.appendChild(s);
     });
   }
   function use(id, ctx) {

@@ -2,7 +2,8 @@
 (function () {
   var M = MCam, K72 = [], SEK = ['春分', '清明', '穀雨', '立夏', '小満', '芒種', '夏至', '小暑', '大暑', '立秋', '処暑', '白露', '秋分', '寒露', '霜降', '立冬', '小雪', '大雪', '冬至', '小寒', '大寒', '立春', '雨水', '啓蟄'];
   fetch('../kit/k72.json').then(function (r) { return r.json(); }).then(function (j) { K72 = j; M.say(); });
-  function now(S) { var s = M.sun(S.now, S.pos && S.pos.lat, S.pos && S.pos.lon), l = s.lambda; return { s: s, sek: SEK[Math.floor(l / 15) % 24], ko: K72[Math.floor(((l - 315 + 360) % 360) / 5)] }; }
+  function dayEnd(d) { var j = new Date(d.getTime() + 9 * 36e5); j.setUTCHours(23, 59, 59, 0); return new Date(j.getTime() - 9 * 36e5); }   // 日本時間のその日の終わり：区切りの黄経に達した日から次の節気・候（暦の表の日付と同じ決め方）
+  function now(S) { var s = M.sun(S.now, S.pos && S.pos.lat, S.pos && S.pos.lon), l = M.sun(dayEnd(S.now)).lambda; return { s: s, sek: SEK[Math.floor(l / 15) % 24], ko: K72[Math.floor(((l - 315 + 360) % 360) / 5)] }; }
   function F(c, px) { c.font = px + 'px ' + getComputedStyle(document.body).fontFamily; }
   function ring(c, W, H, S, t) {
     var n = now(S), cx = W / 2, cy = H * .4, R = Math.min(W, H) * (W < 768 ? .36 : .3), l = n.s.lambda;

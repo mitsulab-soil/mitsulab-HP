@@ -22,7 +22,7 @@
         M.say = function () { if (window.__qlensM && window.__qlensM.say) window.__qlensM.say(); };
         window.fetch = function (u, o) { if (typeof u === 'string' && /kit\/k72\.json$/.test(u)) u = abs('m/k72.json'); return f0.call(window, u, o); };
         if (!document.getElementById('sub')) { dummy = document.createElement('div'); dummy.id = 'sub'; dummy.hidden = true; document.body.appendChild(dummy); }
-        var s = document.createElement('script'); s.src = abs('m/' + tool + '.js?v=3');
+        var s = document.createElement('script'); s.src = abs('m/' + tool + '.js?v=4');
         s.onload = function () { M.start = start0; window.fetch = f0; got ? ok(got) : ng(new Error('no config ' + tool)); };
         s.onerror = function (e) { M.start = start0; window.fetch = f0; ng(e); };
         document.head.appendChild(s);
@@ -116,11 +116,25 @@
   function me() { return window.__um.camera.position; }
   function dim(px, k) { for (var i = 0; i < px.length; i += 4) { px[i] *= k; px[i + 1] *= k; px[i + 2] *= k; } }
 
+  /* 線で読む：輪郭の線を淡めに重ね、碧の体には線をかけない（元の画のまま） */
+  function aoiBox(w, h) {
+    var A = window.__aoi && window.__aoi.aoi; if (!A || !A.visible) return null;
+    var p = A.getWorldPosition(V(0, 0, 0)), cam = window.__um.camera, a = V(p.x, p.y + .05, p.z).project(cam), b = V(p.x, p.y + 1.75, p.z).project(cam);
+    if (a.z > 1 || b.z > 1) return null; var y0 = (1 - b.y) / 2 * h, y1 = (1 - a.y) / 2 * h, cx = (a.x + 1) / 2 * w, rw = Math.max(6, (y1 - y0) * .32);
+    return { cx: cx, cy: (y0 + y1) / 2, rx: rw, ry: Math.max(8, (y1 - y0) * .58) };
+  }
+  function lineFx(px, w, h) {
+    var o = px.slice(0), B = aoiBox(w, h); MCam.edges(px, w, h, [155, 220, 240], .5);
+    for (var y = 0, k = 0; y < h; y++) for (var x = 0; x < w; x++, k += 4) {
+      var m = .62; if (B) { var dx = (x - B.cx) / B.rx, dy = (y - B.cy) / B.ry, d = dx * dx + dy * dy; if (d < 1.6) m *= Math.min(1, Math.max(0, (d - 1) / .6)); }
+      px[k] = o[k] + (px[k] - o[k]) * m; px[k + 1] = o[k + 1] + (px[k + 1] - o[k + 1]) * m; px[k + 2] = o[k + 2] + (px[k + 2] - o[k + 2]) * m;
+    }
+  }
   var CIVIL = {
     name: 'Qualia/civil ── 土木の目（はじまりの森）', more: 'この読み方',
     sources: { kozo: { title: '道路構造令 第24条（横断勾配）e-Gov 法令検索', url: 'https://laws.e-gov.go.jp/law/345CO0000000320' } },
     modes: [
-      { id: 'line', label: '線で読む', fx: function (px, w, h) { MCam.edges(px, w, h); },
+      { id: 'line', label: '線で読む', fx: lineFx,
         ask: '幹の線、岸の線、踏み跡の縁。線は、どちらへ続いていますか。',
         notes: [{ text: '土木の目は、まず線を読みます。森の中でも、岸の線と踏み跡の縁が、水と人の通り道を分けています。' }, { text: '画面を閉じたら、いつもの道で、縁石や溝の線を一本たどってみてください。' }] },
       { id: 'level', label: '水平をはかる', fx: function (px) { MCam.tone(px, [.5, .55, .6], [6, 10, 14]); },
