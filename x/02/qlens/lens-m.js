@@ -51,10 +51,10 @@
       var n = L[noteI], s = n.src && C.sources && C.sources[n.src];
       sub.innerHTML = esc(n.text) + (s ? '<small><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.title) + '</a></small>' : '') + '<small>' + (noteI + 1) + ' / ' + L.length + '　次へ ›</small>';
     }
-    function setMode(m) {
+    function setMode(m, user) {
       mode = m; noteI = -1; m.enter && m.enter(S);
       row.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.id === m.id)); });
-      say(); try { navigator.vibrate && navigator.vibrate(10); } catch (e) { }
+      say(); if (user) try { navigator.vibrate && navigator.vibrate(10); } catch (e) { }
     }
     function sense() {
       var e = cam.matrixWorld.elements, fx = -e[8], fz = -e[10], fy = -e[9];
@@ -86,7 +86,7 @@
         small = document.createElement('canvas'); sx = small.getContext('2d', { willReadFrequently: true });
         box = document.createElement('div'); box.className = 'qlm'; box.setAttribute('aria-label', C.name);
         row = document.createElement('div'); row.className = 'qlm-row'; row.setAttribute('role', 'group'); row.setAttribute('aria-label', '切り分け方');
-        C.modes.forEach(function (m) { var b = document.createElement('button'); b.type = 'button'; b.dataset.id = m.id; b.textContent = m.label; b.onclick = function () { setMode(m); }; row.appendChild(b); });
+        C.modes.forEach(function (m) { var b = document.createElement('button'); b.type = 'button'; b.dataset.id = m.id; b.textContent = m.label; b.onclick = function () { setMode(m, true); }; row.appendChild(b); });
         sub = document.createElement('button'); sub.type = 'button'; sub.className = 'qlm-sub';
         sub.addEventListener('click', function (e) { if (e.target.closest('a')) return; var L = notes(); if (C.onTap) { C.onTap(mode); noteI = -1; say(); return; } if (!L.length) return; noteI = noteI + 1 >= L.length ? -1 : noteI + 1; say(); });
         box.appendChild(row); box.appendChild(sub); document.body.appendChild(box);
