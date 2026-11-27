@@ -17,7 +17,14 @@
     { id: 'hear-bat',   name: 'コウモリ', tool: 'hear' },
     { id: 'touch-ground', name: '手ざわり', tool: 'touch' },
     { id: 'magnet-field', name: '地磁気', tool: 'magnet' },
-    { id: 'n-tsubame', name: '絵の燕', tool: 'n' }
+    { id: 'n-tsubame', name: '絵の燕', tool: 'n' },
+    /* M＝意味づけを切り分ける（lens-m.js に 6 つ。単体版の app.js は m/ の写しを読む） */
+    { id: 'm-carve', name: '色と方位', tool: 'm' },
+    { id: 'm-kigo', name: '季語', tool: 'm' },
+    { id: 'm-koyomi', name: '暦', tool: 'm' },
+    { id: 'm-civil', name: '土木の目', tool: 'm' },
+    { id: 'm-oldmap', name: '地図', tool: 'm' },
+    { id: 'm-role', name: '立場の目', tool: 'm' }
   ];
   var defs = {}, loading = {}, cur = null, curId = 'none', base = '';
   function define(d) { defs[d.id] = d; }
@@ -25,7 +32,7 @@
     if (!tool) return Promise.resolve();
     if (loading[tool]) return loading[tool];
     return loading[tool] = new Promise(function (ok, ng) {
-      var s = document.createElement('script'); s.src = base + 'lens-' + tool + '.js?v=11'; s.onload = ok; s.onerror = ng; document.head.appendChild(s);
+      var s = document.createElement('script'); s.src = base + 'lens-' + tool + '.js?v=12'; s.onload = ok; s.onerror = ng; document.head.appendChild(s);
     });
   }
   function use(id, ctx) {
@@ -54,7 +61,7 @@
       var b = document.createElement('button'); b.type = 'button'; b.textContent = it.name; b.dataset.lens = it.id;
       b.setAttribute('aria-pressed', it.id === curId ? 'true' : 'false');
       b.addEventListener('click', function () {
-        row.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        document.querySelectorAll('.qlens button').forEach(function (x) { x.setAttribute('aria-pressed', x.dataset.lens === it.id ? 'true' : 'false'); });
         use(it.id, o.ctx()).catch(function (e) { console.warn('qlens', e); });
       });
       row.appendChild(b);
