@@ -2421,7 +2421,7 @@ var TERMS = {
     try{ document.dispatchEvent(new CustomEvent('hp-lang-change',{detail:lang})); }catch(e){}
     document.querySelectorAll('.card-title').forEach(function(t){ var a=t.querySelector('.ct-ja'), b=t.querySelector('.ct-en'); if(a&&b) b.style.display=(lang==='en'&&a.textContent.trim().replace(/[《》]/g,'')===b.textContent.trim().replace(/[《》]/g,''))?'none':''; });
     if(!window.__titleJa) window.__titleJa=document.title;
-    document.title = lang==='en' ? 'mitsulab — A Common Ground of Umwelten' : window.__titleJa;
+    document.title = 'mitsulab';
     [['meta[name="description"]','A Common Ground of Umwelten — mitsulab’s vision. Records, sources, measured values and other creatures’ ways of taking in a place are laid over the landscape as layers, translated by Aoi and the yorishiro. The places: Qualia/omiya and Qualia/kawagoe.'],
      ['meta[property="og:title"]','mitsulab — A Common Ground of Umwelten'],
      ['meta[property="og:description"]','A Common Ground of Umwelten — mitsulab’s vision. Records, sources, measured values and other creatures’ ways of taking in a place are laid over the landscape as layers, translated by Aoi and the yorishiro. The places: Qualia/omiya and Qualia/kawagoe.'],
