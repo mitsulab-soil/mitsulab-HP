@@ -75,6 +75,8 @@ var BAG=[["森で見つける道具 ── 知覚 P",["sight","hear","touch","ma
 /* 場所：x,y は 0..1000 × 0..700 の地図の上 */
 var PL=[
  {id:"forest",x:250,y:330,ch:"承 ── P",n:"はじまりの森",p:"目を覚ます森。碧から最初のレンズを受けとる。ミツバチの目で見ると花に蜜のありかの模様が浮かび、コウモリの耳で聴くと夕暮れの空が声で満ちる（どちらも出典で確かめた範囲の模式）。",t:["sight","hear","touch","magnet"],q:"同じ森を、ミツバチはどう見ている？"},
+ {id:"macro",x:140,y:205,ch:"承 ── P",n:"天文台",p:"はじまりの森の先、大きい世界の端に立つ塔。Qualia/macroscope。",t:[],q:"いちばん遠くの光は、いつ出発した？"},
+ {id:"micro",x:330,y:500,ch:"承 ── P",n:"微文台",p:"はじまりの森の先、小さい世界の端に立つ塔。Qualia/microscope。",t:[],q:"足もとの一粒の土に、何がいる？"},
  {id:"town",x:470,y:400,ch:"承 ── M",n:"はじまりの街",p:"街の人は、それぞれ別の切り分け方で世界を見ている。色の名・方位・季節・地名・仕事の目。昔の地図を重ねると、道の下に消えた川が見える。",t:["oldmap","koyomi","carve","kigo","civil","role"],q:"この通りを、季節の言葉で切り分けたら？"},
  {id:"hall",x:520,y:215,ch:"承 ── N",n:"館と宿",p:"物語にふれる場所。絵の中の生き物が額から抜け出し、目の前の景色に重なる。北斎の燕が、いつもの空を横切る。その生き物は、旅についてくる。",t:["museum","yose"],q:"その景色は、どんな噺になる？"},
  {id:"real",x:760,y:330,ch:"転 ── E",n:"実在の街",p:"手に入れた道具と、館で出会った絵の生き物を連れて、本物の場所へ。渋谷で、アゲハの目と AR の中に入りこむと、人と蝶の境目が溶ける。スマホの AR で、目の前の参道や路地に道具が効く。「蝶になってもいい。帰ってくる体を、忘れないで」",t:["omiya","kawagoe","shibuya","network"],q:"いま、あなたは湊ですか。それとも、蝶の夢を見ている誰かですか"},
@@ -120,11 +122,13 @@ function build(){
  /* 街・館・実在の街の屋根 */
  function blocks(cxp,cyp,rad,n,col,seed){for(var k=0;k<n;k++){var a=rnd(k,seed)*6.283,r=Math.sqrt(rnd(k,seed+1))*rad,bx=cxp+Math.cos(a)*r,by=cyp+Math.sin(a)*r*.7,hh=hgt(bx,by);if(hh<.1)continue;var yy=by-hh*K,w=3+rnd(k,seed+2)*4;c.fillStyle=col;c.fillRect((bx-w/2)*sc,(yy-3)*sc,w*sc,3*sc);c.fillStyle="rgba(0,0,0,.25)";c.fillRect((bx-w/2)*sc,yy*sc,w*sc,1.2*sc)}}
  blocks(470,400,70,160,"rgba(214,196,160,.85)",21);blocks(520,215,34,30,"rgba(232,207,150,.9)",41);
+ /* 二つの塔（天文台・微文台） */
+ [[140,205,"rgba(200,220,240,.95)"],[330,500,"rgba(230,215,190,.95)"]].forEach(function(T){var hh=Math.max(0,hgt(T[0],T[1])),by=T[1]-hh*K;c.fillStyle="rgba(0,0,0,.35)";c.fillRect((T[0]-3)*sc,(by-1)*sc,9*sc,2*sc);c.fillStyle=T[2];c.fillRect((T[0]-2.5)*sc,(by-22)*sc,5*sc,22*sc);c.beginPath();c.arc(T[0]*sc,(by-23)*sc,4.2*sc,Math.PI,0);c.fill()});
  /* 実在の街＝点群の層 */
  for(i=0;i<2600;i++){var a2=rnd(i,61)*6.283,r3=Math.sqrt(rnd(i,63))*95;x=760+Math.cos(a2)*r3;y=330+Math.sin(a2)*r3*.8;var h3=hgt(x,y);if(h3<.08)continue;c.fillStyle="rgba(170,235,244,"+(.25+rnd(i,65)*.45).toFixed(2)+")";c.fillRect(x*sc,(y-h3*K-rnd(i,67)*6)*sc,1.1*sc,1.1*sc)}
  /* 道（場所どうしをつなぐ） */
  c.strokeStyle="rgba(240,226,190,.5)";c.lineWidth=1.3*sc;c.setLineDash([5*sc,5*sc]);
- [["forest","town"],["town","hall"],["town","real"],["real","daily"],["town","daily"]].forEach(function(e){var A=P(e[0]),B=P(e[1]);c.beginPath();c.moveTo(A.x*sc,A.sy*sc);c.quadraticCurveTo((A.x+B.x)/2*sc,((A.sy+B.sy)/2+24)*sc,B.x*sc,B.sy*sc);c.stroke()});
+ [["forest","town"],["forest","macro"],["forest","micro"],["town","hall"],["town","real"],["real","daily"],["town","daily"]].forEach(function(e){var A=P(e[0]),B=P(e[1]);c.beginPath();c.moveTo(A.x*sc,A.sy*sc);c.quadraticCurveTo((A.x+B.x)/2*sc,((A.sy+B.sy)/2+24)*sc,B.x*sc,B.sy*sc);c.stroke()});
  c.strokeStyle="rgba(170,235,244,.35)";var A=P("real"),B=P("next");c.beginPath();c.moveTo(A.x*sc,A.sy*sc);c.quadraticCurveTo(880*sc,250*sc,B.x*sc,B.sy*sc);c.stroke();c.setLineDash([]);
  /* 等高の線（デジタルの層） */
  c.strokeStyle="rgba(150,225,236,.16)";c.lineWidth=.8*sc;
@@ -138,7 +142,7 @@ function build(){
  var v=c.createRadialGradient(GW/2,GH/2,GH*.3,GW/2,GH/2,GH*.85);v.addColorStop(0,"rgba(4,20,24,0)");v.addColorStop(1,"rgba(4,20,24,.65)");c.fillStyle=v;c.fillRect(0,0,GW,GH);
  map=g;}
 function drawn(p){for(var k=0;k<p.t.length;k++)if(got[p.t[k]])return true;return !!got["_"+p.id]}
-function veil(){PL.forEach(function(p){if(p.far||drawn(p))return;var x=(ox+p.x*S)*dpr,y=(oy+p.sy*S)*dpr,r=(p.id==="forest"?175:p.id==="hall"?80:p.id==="real"?110:95)*S*dpr,g=cx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,"rgba(128,132,134,.66)");g.addColorStop(.7,"rgba(128,132,134,.46)");g.addColorStop(1,"rgba(128,132,134,0)");cx.fillStyle=g;cx.beginPath();cx.arc(x,y,r,0,7);cx.fill()})}
+function veil(){PL.forEach(function(p){if(p.far||drawn(p))return;var x=(ox+p.x*S)*dpr,y=(oy+p.sy*S)*dpr,r=(p.id==="macro"||p.id==="micro"?40:p.id==="forest"?175:p.id==="hall"?80:p.id==="real"?110:95)*S*dpr,g=cx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,"rgba(128,132,134,.66)");g.addColorStop(.7,"rgba(128,132,134,.46)");g.addColorStop(1,"rgba(128,132,134,0)");cx.fillStyle=g;cx.beginPath();cx.arc(x,y,r,0,7);cx.fill()})}
 function P(id){for(var k=0;k<PL.length;k++)if(PL[k].id===id){var p=PL[k];p.sy=p.y-Math.max(0,hgt(p.x,p.y))*36;return p}}
 function fit(){vw=innerWidth;vh=innerHeight;var portrait=vw<vh;S=portrait?Math.max(vh*.78/H,vw/W):Math.max(vw/W,vh/H)*1.02;cv.width=vw*dpr;cv.height=vh*dpr;cv.style.width=vw+"px";cv.style.height=vh+"px";build();
  if(!fit.done){fit.done=1;focus(portrait?P("forest"):null,true)}else clamp();draw()}
@@ -153,7 +157,7 @@ function open(p){sel=p;PL.forEach(function(q){q.el.classList.toggle("on",q===p)}
  document.getElementById("cCh").textContent=p.ch;document.getElementById("cH").textContent=p.n;document.getElementById("cP").textContent=p.p;
  var go=document.getElementById("cGo");go.innerHTML="";p.t.forEach(function(k){var a=document.createElement("a");a.href=T[k][1];a.target="_blank";a.rel="noopener";a.translate=false;a.textContent=T[k][0];if(got[k])a.className="got";a.addEventListener("click",function(){got[k]=1;save();a.className="got";renderBag();draw()});go.appendChild(a)});
  go.style.display=p.t.length?"":"none";card.classList.add("show");say(p.q);focus(p);setTimeout(function(){bfTo(p)},560);if(!p.t.length&&!p.far){got["_"+p.id]=1;save()}}
-var BF=document.getElementById("bf"),BC={forest:["#b9c4c0","#a7b6b8"],town:["#d3c9a8","#b8c7c2"],hall:["#e2c38e","#c9b6d6"],real:["#a9aeb0","#bdb4c4"],daily:["#e8c48a","#9b7ad6"],next:["#e8c48a","#9b7ad6"]},bfP=null;function bfTo(p){if(!BF.animate||matchMedia("(prefers-reduced-motion: reduce)").matches)return;var c=BC[p.id];BF.style.setProperty("--bf-a",c[0]);BF.style.setProperty("--bf-b",c[1]);var x=ox+p.x*S+18,y=oy+p.sy*S-58,fx=bfP?bfP[0]:-40,fy=bfP?bfP[1]:vh*.3;bfP=[x,y];BF.animate([{transform:"translate("+fx+"px,"+fy+"px)",opacity:bfP&&fx>0?.7:0},{transform:"translate("+((fx+x)/2)+"px,"+(Math.min(fy,y)-50)+"px) rotate(-8deg)",opacity:.7},{transform:"translate("+x+"px,"+y+"px)",opacity:.7}],{duration:2600,easing:"ease-in-out",fill:"forwards"})}function close(){card.classList.remove("show");sel=null;PL.forEach(function(q){q.el.classList.remove("on")})}
+var BF=document.getElementById("bf"),BC={forest:["#b9c4c0","#a7b6b8"],macro:["#b9c4c0","#a7b6b8"],micro:["#b9c4c0","#a7b6b8"],town:["#d3c9a8","#b8c7c2"],hall:["#e2c38e","#c9b6d6"],real:["#a9aeb0","#bdb4c4"],daily:["#e8c48a","#9b7ad6"],next:["#e8c48a","#9b7ad6"]},bfP=null;function bfTo(p){if(!BF.animate||matchMedia("(prefers-reduced-motion: reduce)").matches)return;var c=BC[p.id];BF.style.setProperty("--bf-a",c[0]);BF.style.setProperty("--bf-b",c[1]);var x=ox+p.x*S+18,y=oy+p.sy*S-58,fx=bfP?bfP[0]:-40,fy=bfP?bfP[1]:vh*.3;bfP=[x,y];BF.animate([{transform:"translate("+fx+"px,"+fy+"px)",opacity:bfP&&fx>0?.7:0},{transform:"translate("+((fx+x)/2)+"px,"+(Math.min(fy,y)-50)+"px) rotate(-8deg)",opacity:.7},{transform:"translate("+x+"px,"+y+"px)",opacity:.7}],{duration:2600,easing:"ease-in-out",fill:"forwards"})}function close(){card.classList.remove("show");sel=null;PL.forEach(function(q){q.el.classList.remove("on")})}
 card.querySelector(".x").addEventListener("click",close);
 /* 持ち物 */
 var bag=document.getElementById("bag"),bB=document.getElementById("bBag");
