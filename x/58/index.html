@@ -20,7 +20,7 @@ canvas{position:absolute;left:0;top:0}
 #pins{position:absolute;left:0;top:0;pointer-events:none}
 .pin{position:absolute;transform:translate(-50%,-100%);pointer-events:auto;background:none;border:0;padding:0 0 4px;color:var(--ink);font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:44px;min-height:44px;-webkit-tap-highlight-color:transparent}
 .pin b{transform:translateX(var(--dx,0));font-weight:500;font-size:13.5px;letter-spacing:.12em;white-space:nowrap;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(6,30,34,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-.pin i{font-style:normal;font-size:10.5px;letter-spacing:.2em;color:var(--dim)}
+.pin i{white-space:nowrap;font-style:normal;font-size:10.5px;letter-spacing:.2em;color:var(--dim)}
 .pin::after{content:"";width:9px;height:9px;border-radius:50%;background:#f0fbfc;box-shadow:0 0 0 4px rgba(143,227,234,.18),0 0 14px rgba(143,227,234,.7);order:3}
 .pin.on b{border-color:#bff3fb;color:#fff;box-shadow:0 0 14px rgba(120,220,235,.35)}
 .pin.far b{border-style:dashed;color:var(--dim)}
@@ -70,17 +70,15 @@ var T={
  museum:["Qualia/museum","https://mitsulab-soil.github.io/museum/"],yose:["Qualia/yose","https://mitsulab-soil.github.io/aoi-shizen-rakugo/"],
  
  omiya:["Qualia/omiya","/x/09/"],kawagoe:["Qualia/kawagoe","/x/12/"],shibuya:["Qualia/shibuya","/x/14/"],
- map:["Qualia/map","/x/39/"],lab:["Qualia/lab","/x/61/"],macroscope:["Qualia/macroscope","/x/59/"],microscope:["Qualia/microscope","/x/60/"],carve:["Qualia/carve","/x/52/"],oldmap:["Qualia/oldmap","/x/53/"],civil:["Qualia/civil","/x/54/"],kigo:["Qualia/kigo","/x/55/"],koyomi:["Qualia/koyomi","/x/56/"],role:["Qualia/role","/x/57/"],network:["Qualia/network","/x/46/"]};
-var BAG=[["森で見つける道具 ── 知覚 P",["sight","hear","touch","magnet","macroscope","microscope"]],["街で見つける道具 ── 意味づけ M",["oldmap","koyomi","carve","kigo","civil","role"]]];
+ map:["Qualia/map","/x/39/"],lab:["Qualia/lab","/x/61/"],carve:["Qualia/carve","/x/52/"],oldmap:["Qualia/oldmap","/x/53/"],civil:["Qualia/civil","/x/54/"],kigo:["Qualia/kigo","/x/55/"],koyomi:["Qualia/koyomi","/x/56/"],role:["Qualia/role","/x/57/"],network:["Qualia/network","/x/46/"]};
+var BAG=[["感覚をひらく道具",["sight","hear","touch","magnet"]],["世界を切り分け直す道具",["oldmap","koyomi","carve","kigo","civil","role"]]];
 /* 場所：x,y は 0..1000 × 0..700 の地図の上 */
 var PL=[
- {id:"forest",x:250,y:330,ch:"承 ── P",n:"はじまりの森",p:"目を覚ます森。碧から最初のレンズを受けとる。ミツバチの目で見ると花に蜜のありかの模様が浮かび、コウモリの耳で聴くと夕暮れの空が声で満ちる（どちらも出典で確かめた範囲の模式）。",t:["sight","hear","touch","magnet"],q:"同じ森を、ミツバチはどう見ている？"},
- {id:"macro",x:140,y:205,ch:"承 ── P",n:"天文台",p:"はじまりの森の先、大きい世界の端に立つ塔。望遠鏡で、十倍ずつ宇宙へ。",t:["macroscope"],q:"いちばん遠くの光は、いつ出発した？"},
- {id:"micro",x:330,y:500,ch:"承 ── P",n:"微文台",p:"読みは、びもんだい。天文台と対になる、小さい世界の端に立つ塔。顕微鏡で、十分の一ずつ小さな世界へ。",t:["microscope"],q:"足もとの一粒の土に、何がいる？"},
- {id:"town",x:470,y:400,ch:"承 ── M",n:"はじまりの街",p:"街の人は、それぞれ別の切り分け方で世界を見ている。色の名・方位・季節・地名・仕事の目。昔の地図を重ねると、道の下に消えた川が見える。",t:["oldmap","koyomi","carve","kigo","civil","role"],q:"この通りを、季節の言葉で切り分けたら？"},
- {id:"hall",x:520,y:215,ch:"承 ── N",n:"館と宿",p:"物語にふれる場所。絵の中の生き物が額から抜け出し、目の前の景色に重なる。北斎の燕が、いつもの空を横切る。その生き物は、旅についてくる。",t:["museum","yose","lab"],q:"その景色は、どんな噺になる？"},
- {id:"real",x:760,y:330,ch:"転 ── E",n:"実在の街",p:"手に入れた道具と、館で出会った絵の生き物を連れて、本物の場所へ。渋谷で、アゲハの目と AR の中に入りこむと、人と蝶の境目が溶ける。スマホの AR で、目の前の参道や路地に道具が効く。「蝶になってもいい。帰ってくる体を、忘れないで」",t:["omiya","kawagoe","shibuya","network"],q:"いま、あなたは湊ですか。それとも、蝶の夢を見ている誰かですか"},
- {id:"daily",x:600,y:560,ch:"結 ── E",n:"いつもの街",p:"家の近く、通勤の道。道具はそのまま使える。家の近くの植え込みの前で、画面を閉じます。まず自分の体で受けとります。それから道具をひらき、ハチの道すじと、夕空のコウモリの声を重ねます。世界は、人間だけのものではありませんでした。",t:["map"],q:"画面を閉じたら、何が聞こえる？"},
+ {id:"forest",x:250,y:330,ch:"感覚をひらく道具",n:"はじまりの森",p:"目を覚ます森。碧から最初のレンズを受けとる。ミツバチの目で見ると花に蜜のありかの模様が浮かび、コウモリの耳で聴くと夕暮れの空が声で満ちる（どちらも出典で確かめた範囲の模式）。",t:["sight","hear","touch","magnet"],q:"同じ森を、ミツバチはどう見ている？"},
+ {id:"town",x:470,y:400,ch:"世界を切り分け直す道具",n:"はじまりの街",p:"街の人は、それぞれ別の切り分け方で世界を見ている。色の名・方位・季節・地名・仕事の目。昔の地図を重ねると、道の下に消えた川が見える。",t:["oldmap","koyomi","carve","kigo","civil","role"],q:"この通りを、季節の言葉で切り分けたら？"},
+ {id:"hall",x:520,y:215,ch:"物語にふれる場所",n:"館と宿",p:"物語にふれる場所。絵の中の生き物が額から抜け出し、目の前の景色に重なる。北斎の燕が、いつもの空を横切る。その生き物は、旅についてくる。",t:["museum","yose","lab"],q:"その景色は、どんな噺になる？"},
+ {id:"real",x:760,y:330,ch:"街を歩く道具",n:"実在の街",p:"手に入れた道具と、館で出会った絵の生き物を連れて、本物の場所へ。渋谷で、アゲハの目と AR の中に入りこむと、人と蝶の境目が溶ける。スマホの AR で、目の前の参道や路地に道具が効く。「蝶になってもいい。帰ってくる体を、忘れないで」",t:["omiya","kawagoe","shibuya","network"],q:"いま、あなたは湊ですか。それとも、蝶の夢を見ている誰かですか"},
+ {id:"daily",x:600,y:560,ch:"記録の地図",n:"いつもの街",p:"家の近く、通勤の道。道具はそのまま使える。家の近くの植え込みの前で、画面を閉じます。まず自分の体で受けとります。それから道具をひらき、ハチの道すじと、夕空のコウモリの声を重ねます。世界は、人間だけのものではありませんでした。",t:["map"],q:"画面を閉じたら、何が聞こえる？"},
  {id:"next",x:925,y:150,ch:"まだ地図にない場所",far:1,n:"まだ地図にない場所",p:"場所そのものが感じとる土地。旅人の記録が、次の旅人の受けとり方をひらく（IoT・開発中）。そこへ行くための、現実の空間で使える知覚拡張のデバイスを、β 版としてつくっている。クラウドファンディングで、世に出す予定。",t:[],q:"場所の方が、あなたに気づいたら？"}
 ];
 var W=1000,H=700,cv=document.getElementById("c"),cx=cv.getContext("2d"),pins=document.getElementById("pins"),V=document.getElementById("v");
@@ -126,13 +124,12 @@ function build(){
  /* 街・館・実在の街の屋根 */
  function blocks(cxp,cyp,rad,n,col,seed){for(var k=0;k<n;k++){var a=rnd(k,seed)*6.283,r=Math.sqrt(rnd(k,seed+1))*rad,bx=cxp+Math.cos(a)*r,by=cyp+Math.sin(a)*r*.7,hh=hgt(bx,by);if(hh<.1)continue;var yy=by-hh*K,w=3+rnd(k,seed+2)*4;c.fillStyle=col;c.fillRect((bx-w/2)*sc,(yy-3)*sc,w*sc,3*sc);c.fillStyle="rgba(0,0,0,.25)";c.fillRect((bx-w/2)*sc,yy*sc,w*sc,1.2*sc)}}
  blocks(470,400,70,160,"rgba(214,196,160,.85)",21);blocks(520,215,34,30,"rgba(232,207,150,.9)",41);
- /* 二つの塔（天文台・微文台） */
- [[140,205,"rgba(200,220,240,.95)"],[330,500,"rgba(230,215,190,.95)"]].forEach(function(T){var hh=Math.max(0,hgt(T[0],T[1])),by=T[1]-hh*K;c.fillStyle="rgba(0,0,0,.35)";c.fillRect((T[0]-3)*sc,(by-1)*sc,9*sc,2*sc);c.fillStyle=T[2];c.fillRect((T[0]-2.5)*sc,(by-22)*sc,5*sc,22*sc);c.beginPath();c.arc(T[0]*sc,(by-23)*sc,4.2*sc,Math.PI,0);c.fill()});
+
  /* 実在の街＝点群の層 */
  for(i=0;i<2600;i++){var a2=rnd(i,61)*6.283,r3=Math.sqrt(rnd(i,63))*95;x=760+Math.cos(a2)*r3;y=330+Math.sin(a2)*r3*.8;var h3=hgt(x,y);if(h3<.08)continue;c.fillStyle="rgba(170,235,244,"+(.25+rnd(i,65)*.45).toFixed(2)+")";c.fillRect(x*sc,(y-h3*K-rnd(i,67)*6)*sc,1.1*sc,1.1*sc)}
  /* 道（場所どうしをつなぐ） */
  c.strokeStyle="rgba(240,226,190,.5)";c.lineWidth=1.3*sc;c.setLineDash([5*sc,5*sc]);
- [["forest","town"],["forest","macro"],["forest","micro"],["town","hall"],["town","real"],["real","daily"],["town","daily"]].forEach(function(e){var A=P(e[0]),B=P(e[1]);c.beginPath();c.moveTo(A.x*sc,A.sy*sc);c.quadraticCurveTo((A.x+B.x)/2*sc,((A.sy+B.sy)/2+24)*sc,B.x*sc,B.sy*sc);c.stroke()});
+ [["forest","town"],["town","hall"],["town","real"],["real","daily"],["town","daily"]].forEach(function(e){var A=P(e[0]),B=P(e[1]);c.beginPath();c.moveTo(A.x*sc,A.sy*sc);c.quadraticCurveTo((A.x+B.x)/2*sc,((A.sy+B.sy)/2+24)*sc,B.x*sc,B.sy*sc);c.stroke()});
  c.strokeStyle="rgba(170,235,244,.35)";var A=P("real"),B=P("next");c.beginPath();c.moveTo(A.x*sc,A.sy*sc);c.quadraticCurveTo(880*sc,250*sc,B.x*sc,B.sy*sc);c.stroke();c.setLineDash([]);
  /* 等高の線（デジタルの層） */
  c.strokeStyle="rgba(150,225,236,.16)";c.lineWidth=.8*sc;
@@ -156,7 +153,7 @@ var bfDone=false;
 function draw(){cx.setTransform(1,0,0,1,0,0);cx.fillStyle="#041419";cx.fillRect(0,0,cv.width,cv.height);cx.drawImage(map,Math.round(ox*dpr),Math.round(oy*dpr));veil();
  for(var k=0;k<PL.length;k++){var p=PL[k],e=PL[k].el;e.style.left=(ox+p.x*S)+"px";e.style.top=(oy+p.sy*S-6)+"px";var bw=e.offsetWidth/2,lx=ox+p.x*S;e.style.setProperty("--dx",(lx-bw<16?16-(lx-bw):lx+bw>vw-16?(vw-16)-(lx+bw):0)+"px")}
  if(sel&&bfDone){BF.style.transform="translate("+(ox+sel.x*S+18)+"px,"+(oy+sel.sy*S-58)+"px)";BF.style.opacity=".7"}}
-PL.forEach(function(p){P(p.id);var b=document.createElement("button");b.type="button";b.className="pin"+(p.far?" far":"");b.innerHTML="<i>"+(p.far?"":p.ch.split(" ")[0])+"</i><b>"+p.n+"</b>";b.addEventListener("click",function(ev){ev.stopPropagation();open(p)});p.el=b;pins.appendChild(b)});
+PL.forEach(function(p){P(p.id);var b=document.createElement("button");b.type="button";b.className="pin"+(p.far?" far":"");b.innerHTML="<i>"+(p.far?"":p.ch)+"</i><b>"+p.n+"</b>";b.addEventListener("click",function(ev){ev.stopPropagation();open(p)});p.el=b;pins.appendChild(b)});
 var card=document.getElementById("card"),sayT=document.getElementById("sayT");
 function say(t){sayT.textContent=t}
 function open(p){sel=p;PL.forEach(function(q){q.el.classList.toggle("on",q===p)});
@@ -181,6 +178,7 @@ function up(){if(dn&&mv<6&&sel)close();dn=null;V.classList.remove("drag")}
 V.addEventListener("pointerup",up);V.addEventListener("pointercancel",up);
 var rt;addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(fit,120)});
 addEventListener("keydown",function(e){if(e.key==="Escape"){close();bag.classList.remove("show")}});
+if(/embed=1/.test(location.search)){document.getElementById("tag").target="_top";document.documentElement.classList.add("embed")}
 fit();
 })();
 </script>
