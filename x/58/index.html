@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Qualia/world</title>
+<meta name="description" content="受けとり方を広げる旅の、世界の地図。はじまりの森から、はじまりの街、館と宿、実在の街、日常へ。">
+<meta name="tdm-reservation" content="1">
+<meta name="robots" content="noai, noimageai">
+<meta name="theme-color" content="#061418">
+<link rel="icon" href="../39/favicon/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../_qgui/qgui-unify.css?v=20261127v8">
+<style>
+:root{--ink:#e9f2f1;--dim:rgba(233,242,241,.72);--line:rgba(170,226,236,.5);--gold:#e8cf96;--bg:#061418}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;overflow:hidden;-webkit-text-size-adjust:100%}
+#v{position:fixed;inset:0;touch-action:none;cursor:grab}
+#v.drag{cursor:grabbing}
+canvas{position:absolute;left:0;top:0}
+#pins{position:absolute;left:0;top:0;pointer-events:none}
+.pin{position:absolute;transform:translate(-50%,-100%);pointer-events:auto;background:none;border:0;padding:0 0 4px;color:var(--ink);font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:44px;min-height:44px;-webkit-tap-highlight-color:transparent}
+.pin b{font-weight:500;font-size:13.5px;letter-spacing:.12em;white-space:nowrap;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(6,30,34,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.pin i{font-style:normal;font-size:10.5px;letter-spacing:.2em;color:var(--dim)}
+.pin::after{content:"";width:9px;height:9px;border-radius:50%;background:#f0fbfc;box-shadow:0 0 0 4px rgba(143,227,234,.18),0 0 14px rgba(143,227,234,.7);order:3}
+.pin.on b{border-color:#bff3fb;color:#fff;box-shadow:0 0 14px rgba(120,220,235,.35)}
+.pin.far b{border-style:dashed;color:var(--dim)}
+.pin.far::after{background:transparent;border:1px solid rgba(240,251,252,.7);box-shadow:none}
+#tag{position:fixed;left:calc(env(safe-area-inset-left,0px) + 20px);top:calc(env(safe-area-inset-top,0px) + 18px);z-index:20;font-size:15px;letter-spacing:.1em;text-decoration:none;color:var(--ink)}
+#tag i{font-style:normal;opacity:.7}
+#card{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 136px);transform:translate(-50%,12px);width:min(460px,calc(100% - 32px));z-index:30;padding:20px 22px 18px;border:1px solid var(--line);border-radius:14px;background:rgba(5,24,28,.72);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);opacity:0;pointer-events:none;transition:opacity .35s,transform .35s}
+#card.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+#card .ch{margin:0 0 4px;font-size:11.5px;letter-spacing:.24em;color:var(--gold)}
+#card h2{margin:0 0 8px;font-weight:500;font-size:20px;letter-spacing:.12em}
+#card p{margin:0 0 14px;font-size:14px;line-height:1.95;color:var(--dim)}
+#card .go{display:flex;flex-wrap:wrap;gap:8px}
+#card .go a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border:1px solid var(--line);border-radius:999px;color:var(--ink);text-decoration:none;font-size:13.5px;letter-spacing:.06em;background:rgba(10,52,58,.3)}
+#card .go a.got{border-color:var(--gold)}
+#card .x{position:absolute;right:6px;top:6px;width:44px;height:44px;border:0;background:none;color:var(--dim);font-size:20px;cursor:pointer}
+#say{position:fixed;padding:10px 14px;border-radius:12px;background:radial-gradient(closest-side,rgba(4,20,24,.75),rgba(4,20,24,0));left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 88px);transform:translateX(-50%);width:min(560px,calc(100% - 40px));text-align:center;z-index:25;font-size:14px;line-height:1.8;letter-spacing:.08em;color:var(--ink);text-shadow:0 1px 8px rgba(0,0,0,.8);pointer-events:none;transition:opacity .4s}
+#say small{display:block;font-size:10.5px;letter-spacing:.3em;color:var(--dim)}
+#bag{position:fixed;right:0;top:0;bottom:0;width:min(360px,100%);z-index:70;padding:calc(env(safe-area-inset-top,0px) + 28px) 26px 40px;background:rgba(4,20,24,.9);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-left:1px solid var(--line);transform:translateX(102%);transition:transform .35s;overflow:auto}
+#bag.show{transform:none}
+#bag h2{font-weight:500;font-size:18px;letter-spacing:.16em;margin:0 0 6px}
+#bag .lead{font-size:13px;line-height:1.9;color:var(--dim);margin:0 0 22px}
+#bag h3{font-weight:500;font-size:12px;letter-spacing:.24em;color:var(--gold);margin:20px 0 8px}
+#bag ul{list-style:none;margin:0;padding:0}
+#bag li a{display:flex;align-items:center;justify-content:space-between;min-height:48px;padding:0 4px;border-bottom:1px solid rgba(170,226,236,.16);color:var(--ink);text-decoration:none;font-size:14.5px;letter-spacing:.06em}
+#bag li a span{font-size:12px;color:var(--dim)}
+#bag li.no a{color:rgba(233,242,241,.42)}
+#bag .cl{position:absolute;right:8px;top:calc(env(safe-area-inset-top,0px) + 12px);width:44px;height:44px;border:0;background:none;color:var(--ink);font-size:20px;cursor:pointer}
+#bag .ft{margin-top:30px;font-size:11px;line-height:1.9;color:rgba(233,242,241,.5)}
+#bag .ft a{color:inherit}
+@media (max-width:767px){#card{bottom:calc(env(safe-area-inset-bottom,0px) + 128px)}#say{font-size:13px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}.pin b{font-size:12.5px;padding:5px 10px}#v::after{content:"← 地図を指で動かす →";position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 60px);transform:translateX(-50%);font-size:11.5px;letter-spacing:.14em;color:rgba(233,242,241,.7);pointer-events:none;animation:hint 1s 4s forwards}@keyframes hint{to{opacity:0}}}
+@media (prefers-reduced-motion:reduce){#card,#bag{transition:none}}
+</style>
+</head>
+<body>
+<div id="v"><canvas id="c"></canvas><div id="pins"></div></div>
+<a id="tag" href="https://mitsulab.jp/" translate="no"><i>Qualia/</i>world</a>
+<div id="say" aria-live="polite"><small>碧</small><span id="sayT">この景色、ほんとうに受けとっていますか？</span></div>
+<section id="card" aria-live="polite"><button class="x" type="button" aria-label="閉じる">×</button><p class="ch" id="cCh"></p><h2 id="cH"></h2><p id="cP"></p><div class="go" id="cGo"></div></section>
+<aside id="bag" aria-label="持ち物"><button class="cl" type="button" aria-label="閉じる">×</button><h2>持ち物</h2><p class="lead">未来の景色から、色と音が抜け始めています。道具を使うたびに、同じ景色が別の景色に変わり、記録が一つ届くたびに、未来の花に一色ずつ色が戻ります。人の色だけでなく、ミツバチの紫も。記録はこの端末の中だけ。</p><div id="bagL"></div>
+<p class="ft">地図は描き起こした模式で、実在の地形ではない。<br>© mitsulab. All rights reserved.<br><a href="https://mitsulab.jp/">mitsulab.jp</a></p></aside>
+<div id="qgBar"><button class="qg-u" id="bHome" type="button">はじまりの森へ</button><button class="qg-u qu-menu" id="bBag" type="button" aria-label="持ち物" aria-expanded="false">≡</button></div>
+<script>
+(function(){
+"use strict";
+var T={
+ sight:["Qualia/sight","/x/02/"],hear:["Qualia/hear","/x/48/"],touch:["Qualia/touch","/x/10/"],magnet:["Qualia/magnet","/x/44/"],
+ museum:["Qualia/museum","https://mitsulab-soil.github.io/museum/"],yose:["Qualia/yose","https://mitsulab-soil.github.io/aoi-shizen-rakugo/"],
+ 
+ omiya:["Qualia/omiya","/x/09/"],kawagoe:["Qualia/kawagoe","/x/12/"],shibuya:["Qualia/shibuya","/x/14/"],
+ map:["Qualia/map","/x/39/"],carve:["Qualia/carve","/x/52/"],oldmap:["Qualia/oldmap","/x/53/"],civil:["Qualia/civil","/x/54/"],kigo:["Qualia/kigo","/x/55/"],koyomi:["Qualia/koyomi","/x/56/"],role:["Qualia/role","/x/57/"],network:["Qualia/network","/x/46/"]};
+var BAG=[["森で見つける道具 ── 知覚 P",["sight","hear","touch","magnet"]],["街で見つける道具 ── 意味づけ M",["oldmap","koyomi","carve","kigo","civil","role"]]];
+/* 場所：x,y は 0..1000 × 0..700 の地図の上 */
+var PL=[
+ {id:"forest",x:250,y:330,ch:"承 ── P",n:"はじまりの森",p:"目を覚ます森。碧から最初のレンズを受けとる。ミツバチの目で見ると花に蜜のありかの模様が浮かび、コウモリの耳で聴くと夕暮れの空が声で満ちる（どちらも出典で確かめた範囲の模式）。",t:["sight","hear","touch","magnet"],q:"同じ森を、ミツバチはどう見ている？"},
+ {id:"town",x:470,y:400,ch:"承 ── M",n:"はじまりの街",p:"街の人は、それぞれ別の切り分け方で世界を見ている。色の名・方位・季節・地名・仕事の目。昔の地図を重ねると、道の下に消えた川が見える。",t:["oldmap","koyomi","carve","kigo","civil","role"],q:"この通りを、季節の言葉で切り分けたら？"},
+ {id:"hall",x:520,y:215,ch:"承 ── N",n:"館と宿",p:"物語にふれる場所。絵の中の生き物が額から抜け出し、目の前の景色に重なる。北斎の燕が、いつもの空を横切る。その生き物は、旅についてくる。",t:["museum","yose"],q:"その景色は、どんな噺になる？"},
+ {id:"real",x:760,y:330,ch:"転 ── E",n:"実在の街",p:"手に入れた道具と、館で出会った絵の生き物を連れて、本物の場所へ。渋谷で、アゲハの目と AR の中に入りこむと、人と蝶の境目が溶ける。スマホの AR で、目の前の参道や路地に道具が効く。「蝶になってもいい。帰ってくる体を、忘れないで」",t:["omiya","kawagoe","shibuya","network"],q:"いま、あなたは湊ですか。それとも、蝶の夢を見ている誰かですか"},
+ {id:"daily",x:600,y:560,ch:"結 ── E",n:"いつもの街",p:"家の近く、通勤の道。道具はそのまま使える。家の近くの植え込みの前で、画面を閉じます。まず自分の体で受けとります。それから道具をひらき、ハチの道すじと、夕空のコウモリの声を重ねます。世界は、人間だけのものではありませんでした。",t:["map"],q:"画面を閉じたら、何が聞こえる？"},
+ {id:"next",x:925,y:150,ch:"次の大陸 ── a",far:1,n:"次の大陸",p:"場所そのものが感じとる大陸。旅人の記録が、次の旅人の受けとり方をひらく（IoT・開発中）。その海を渡るための、現実の空間で使える知覚拡張のデバイスを、β 版としてつくっている。クラウドファンディングで、世に出す予定。",t:[],q:"場所の方が、あなたに気づいたら？"}
+];
+var W=1000,H=700,cv=document.getElementById("c"),cx=cv.getContext("2d"),pins=document.getElementById("pins"),V=document.getElementById("v");
+var S=1,ox=0,oy=0,vw=0,vh=0,dpr=Math.min(2,window.devicePixelRatio||1),map=null,sel=null;
+var got={};try{got=JSON.parse(localStorage.getItem("qw-got")||"{}")||{}}catch(e){}
+function save(){try{localStorage.setItem("qw-got",JSON.stringify(got))}catch(e){}}
+/* 地形（描き起こし・毎回同じ形） */
+function rnd(i,j){var s=Math.sin(i*127.1+j*311.7)*43758.5453;return s-Math.floor(s)}
+function vn(x,y){var i=Math.floor(x),j=Math.floor(y),fx=x-i,fy=y-j;fx=fx*fx*(3-2*fx);fy=fy*fy*(3-2*fy);var a=rnd(i,j),b=rnd(i+1,j),c=rnd(i,j+1),d=rnd(i+1,j+1);return a+(b-a)*fx+(c-a)*fy+(a-b-c+d)*fx*fy}
+function fbm(x,y){var v=0,a=.5,f=1;for(var k=0;k<5;k++){v+=a*vn(x*f,y*f);f*=2.03;a*=.5}return v}
+function hgt(x,y){
+ var dx=(x-480)/430,dy=(y-370)/300,r=Math.sqrt(dx*dx+dy*dy);
+ var h=1.08-r+ (fbm(x/120,y/120)-.5)*.75;
+ var dx2=(x-930)/120,dy2=(y-150)/90,r2=Math.sqrt(dx2*dx2+dy2*dy2);h=Math.max(h,.55-r2*.8+(fbm(x/60+9,y/60)-.5)*.4);
+ var fdx=(x-250)/150,fdy=(y-330)/130;h+=Math.max(0,.18-.18*(fdx*fdx+fdy*fdy));
+ return h;}
+function build(){
+ var g=document.createElement("canvas"),sc=dpr*S,GW=Math.ceil(W*sc),GH=Math.ceil(H*sc);g.width=GW;g.height=GH;var c=g.getContext("2d");
+ var sea=c.createLinearGradient(0,0,0,GH);sea.addColorStop(0,"#07222b");sea.addColorStop(1,"#041419");c.fillStyle=sea;c.fillRect(0,0,GW,GH);
+ var step=4,cols=Math.ceil(W/step),rows=Math.ceil(H/step),hm=[],x,y,i,j;
+ for(j=0;j<=rows;j++){hm[j]=[];for(i=0;i<=cols;i++)hm[j][i]=hgt(i*step,j*step)}
+ var K=36; /* 高さの見かけ（模式の立体） */
+ for(j=0;j<rows;j++)for(i=0;i<cols;i++){
+  var h=hm[j][i];x=i*step;y=j*step;
+  if(h<.06){ if(h>-.02){c.fillStyle="rgba(120,200,210,"+(.10+(h+.02)*1.2).toFixed(3)+")";c.fillRect(x*sc,y*sc,step*sc+1,step*sc+1)} continue}
+  var sx=(hm[j][i+1]-h),sy=(hm[j+1][i]-h),sh=Math.max(-1,Math.min(1,(-sx*1.2-sy*1.6)*14));
+  var fd=Math.hypot(x-250,y-330),forest=fd<190?1-fd/190:0,td=Math.hypot(x-480,y-400),town=td<90?1-td/90:0;
+  var rr,gg,bb;
+  if(h<.12){rr=150;gg=140;bb=104}else{rr=58+h*40;gg=86+h*30;bb=64+h*14}
+  rr=rr*(1-forest*.55);gg=gg*(1-forest*.25);bb=bb*(1-forest*.45);
+  rr+=town*40;gg+=town*24;bb+=town*8;
+  if(x>860){rr=rr*.55+30;gg=gg*.55+50;bb=bb*.55+62}
+  var L=1+sh*.38;c.fillStyle="rgb("+(rr*L|0)+","+(gg*L|0)+","+(bb*L|0)+")";
+  c.fillRect(x*sc,(y-h*K)*sc,step*sc+1,(step+h*K*.0+2)*sc);
+ }
+ /* 木（はじまりの森） */
+ for(i=0;i<1700;i++){x=250+(rnd(i,3)-.5)*360;y=330+(rnd(i,7)-.5)*300;var d=Math.hypot((x-250)/180,(y-330)/150);if(d>1||rnd(i,11)<d*.8)continue;var hh=hgt(x,y);if(hh<.12)continue;var yy=y-hh*K;
+  c.fillStyle="rgba("+(16+rnd(i,5)*20|0)+","+(48+rnd(i,9)*36|0)+","+(30+rnd(i,2)*20|0)+",.92)";c.beginPath();c.ellipse(x*sc,(yy-2)*sc,2.4*sc,3.4*sc,0,0,7);c.fill();}
+ /* 街・館・実在の街の屋根 */
+ function blocks(cxp,cyp,rad,n,col,seed){for(var k=0;k<n;k++){var a=rnd(k,seed)*6.283,r=Math.sqrt(rnd(k,seed+1))*rad,bx=cxp+Math.cos(a)*r,by=cyp+Math.sin(a)*r*.7,hh=hgt(bx,by);if(hh<.1)continue;var yy=by-hh*K,w=3+rnd(k,seed+2)*4;c.fillStyle=col;c.fillRect((bx-w/2)*sc,(yy-3)*sc,w*sc,3*sc);c.fillStyle="rgba(0,0,0,.25)";c.fillRect((bx-w/2)*sc,yy*sc,w*sc,1.2*sc)}}
+ blocks(470,400,70,160,"rgba(214,196,160,.85)",21);blocks(520,215,34,30,"rgba(232,207,150,.9)",41);
+ /* 実在の街＝点群の層 */
+ for(i=0;i<2600;i++){var a2=rnd(i,61)*6.283,r3=Math.sqrt(rnd(i,63))*95;x=760+Math.cos(a2)*r3;y=330+Math.sin(a2)*r3*.8;var h3=hgt(x,y);if(h3<.08)continue;c.fillStyle="rgba(170,235,244,"+(.25+rnd(i,65)*.45).toFixed(2)+")";c.fillRect(x*sc,(y-h3*K-rnd(i,67)*6)*sc,1.1*sc,1.1*sc)}
+ /* 道（場所どうしをつなぐ） */
+ c.strokeStyle="rgba(240,226,190,.5)";c.lineWidth=1.3*sc;c.setLineDash([5*sc,5*sc]);
+ [["forest","town"],["town","hall"],["town","real"],["real","daily"],["town","daily"]].forEach(function(e){var A=P(e[0]),B=P(e[1]);c.beginPath();c.moveTo(A.x*sc,A.sy*sc);c.quadraticCurveTo((A.x+B.x)/2*sc,((A.sy+B.sy)/2+24)*sc,B.x*sc,B.sy*sc);c.stroke()});
+ c.strokeStyle="rgba(170,235,244,.35)";var A=P("real"),B=P("next");c.beginPath();c.moveTo(A.x*sc,A.sy*sc);c.quadraticCurveTo(880*sc,250*sc,B.x*sc,B.sy*sc);c.stroke();c.setLineDash([]);
+ /* 等高の線（デジタルの層） */
+ c.strokeStyle="rgba(150,225,236,.16)";c.lineWidth=.8*sc;
+ for(j=0;j<rows;j++)for(i=0;i<cols;i++){var h0=hm[j][i];if(h0<.06)continue;var l0=Math.floor(h0*9),l1=Math.floor(hm[j][i+1]*9),l2=Math.floor(hm[j+1][i]*9);if(l0!==l1||l0!==l2){c.fillStyle="rgba(150,225,236,.22)";c.fillRect(i*step*sc,(j*step-h0*K)*sc,1.2*sc,1.2*sc)}}
+ /* 経緯の格子 */
+ c.strokeStyle="rgba(150,225,236,.06)";c.lineWidth=1;for(x=0;x<=W;x+=50){c.beginPath();c.moveTo(x*sc,0);c.lineTo(x*sc,GH);c.stroke()}for(y=0;y<=H;y+=50){c.beginPath();c.moveTo(0,y*sc);c.lineTo(GW,y*sc);c.stroke()}
+ /* 次の大陸の網 */
+ c.strokeStyle="rgba(170,235,244,.4)";c.fillStyle="rgba(200,245,250,.8)";var pts=[];for(i=0;i<16;i++){var a4=rnd(i,81)*6.283,r4=Math.sqrt(rnd(i,83))*70;x=930+Math.cos(a4)*r4;y=150+Math.sin(a4)*r4*.7;var h4=hgt(x,y);if(h4<.06)continue;pts.push([x,y-h4*K])}
+ pts.forEach(function(p,k){pts.forEach(function(q,m){if(m>k&&Math.hypot(p[0]-q[0],p[1]-q[1])<45){c.beginPath();c.moveTo(p[0]*sc,p[1]*sc);c.lineTo(q[0]*sc,q[1]*sc);c.stroke()}});c.fillRect((p[0]-1)*sc,(p[1]-1)*sc,2*sc,2*sc)});
+ /* 霞 */
+ var v=c.createRadialGradient(GW/2,GH/2,GH*.3,GW/2,GH/2,GH*.85);v.addColorStop(0,"rgba(4,20,24,0)");v.addColorStop(1,"rgba(4,20,24,.65)");c.fillStyle=v;c.fillRect(0,0,GW,GH);
+ map=g;}
+function drawn(p){for(var k=0;k<p.t.length;k++)if(got[p.t[k]])return true;return !!got["_"+p.id]}
+function veil(){PL.forEach(function(p){if(p.far||drawn(p))return;var x=(ox+p.x*S)*dpr,y=(oy+p.sy*S)*dpr,r=(p.id==="forest"?175:p.id==="hall"?80:p.id==="real"?110:95)*S*dpr,g=cx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,"rgba(128,132,134,.66)");g.addColorStop(.7,"rgba(128,132,134,.46)");g.addColorStop(1,"rgba(128,132,134,0)");cx.fillStyle=g;cx.beginPath();cx.arc(x,y,r,0,7);cx.fill()})}
+function P(id){for(var k=0;k<PL.length;k++)if(PL[k].id===id){var p=PL[k];p.sy=p.y-Math.max(0,hgt(p.x,p.y))*36;return p}}
+function fit(){vw=innerWidth;vh=innerHeight;var portrait=vw<vh;S=portrait?Math.max(vh*.78/H,vw/W):Math.max(vw/W,vh/H)*1.02;cv.width=vw*dpr;cv.height=vh*dpr;cv.style.width=vw+"px";cv.style.height=vh+"px";build();
+ if(!fit.done){fit.done=1;focus(portrait?P("forest"):null,true)}else clamp();draw()}
+function clamp(){var mw=W*S,mh=H*S;ox=mw<=vw?(vw-mw)/2:Math.min(0,Math.max(vw-mw,ox));oy=mh<=vh?(vh-mh)/2:Math.min(0,Math.max(vh-mh,oy))}
+function focus(p,now){var tx=p?vw/2-p.x*S:(vw-W*S)/2,ty=p?vh*.42-p.sy*S:(vh-H*S)/2;if(now){ox=tx;oy=ty;clamp();return}var fx=ox,fy=oy,t0=performance.now();(function st(t){var k=Math.min(1,(t-t0)/520);k=1-Math.pow(1-k,3);ox=fx+(tx-fx)*k;oy=fy+(ty-fy)*k;clamp();draw();if(k<1)requestAnimationFrame(st)})(t0)}
+function draw(){cx.setTransform(1,0,0,1,0,0);cx.fillStyle="#041419";cx.fillRect(0,0,cv.width,cv.height);cx.drawImage(map,Math.round(ox*dpr),Math.round(oy*dpr));veil();
+ for(var k=0;k<PL.length;k++){var p=PL[k],e=PL[k].el;e.style.left=(ox+p.x*S)+"px";e.style.top=(oy+p.sy*S-6)+"px"}}
+PL.forEach(function(p){P(p.id);var b=document.createElement("button");b.type="button";b.className="pin"+(p.far?" far":"");b.innerHTML="<i>"+p.ch.split(" ")[0]+"</i><b>"+p.n+"</b>";b.addEventListener("click",function(ev){ev.stopPropagation();open(p)});p.el=b;pins.appendChild(b)});
+var card=document.getElementById("card"),sayT=document.getElementById("sayT");
+function say(t){sayT.textContent=t}
+function open(p){sel=p;PL.forEach(function(q){q.el.classList.toggle("on",q===p)});
+ document.getElementById("cCh").textContent=p.ch;document.getElementById("cH").textContent=p.n;document.getElementById("cP").textContent=p.p;
+ var go=document.getElementById("cGo");go.innerHTML="";p.t.forEach(function(k){var a=document.createElement("a");a.href=T[k][1];a.target="_blank";a.rel="noopener";a.translate=false;a.textContent=T[k][0];if(got[k])a.className="got";a.addEventListener("click",function(){got[k]=1;save();a.className="got";renderBag();draw()});go.appendChild(a)});
+ go.style.display=p.t.length?"":"none";card.classList.add("show");say(p.q);focus(p);if(!p.t.length&&!p.far){got["_"+p.id]=1;save()}}
+function close(){card.classList.remove("show");sel=null;PL.forEach(function(q){q.el.classList.remove("on")})}
+card.querySelector(".x").addEventListener("click",close);
+/* 持ち物 */
+var bag=document.getElementById("bag"),bB=document.getElementById("bBag");
+function renderBag(){var h="<h3>受けとった記録</h3><ul>";PL.forEach(function(p){if(p.far)return;h+='<li class="'+(drawn(p)?"":"no")+'"><a href="#" data-p="'+p.id+'">'+p.n+"<span>"+(drawn(p)?"色が戻った":"灰色")+"</span></a></li>"});h+="</ul><h3>道具</h3>";BAG.forEach(function(g){h+="<h3>"+g[0]+"</h3><ul>";g[1].forEach(function(k){h+='<li class="'+(got[k]?"":"no")+'"><a href="'+T[k][1]+'" target="_blank" rel="noopener" data-k="'+k+'" translate="no">'+T[k][0]+"<span>"+(got[k]?"手に入れた":"まだ")+"</span></a></li>"});h+="</ul>"});
+ var others=Object.keys(got).filter(function(k){return T[k]&&BAG[0][1].indexOf(k)<0&&BAG[1][1].indexOf(k)<0});if(others.length){h+="<h3>旅でふれたもの</h3><ul>";others.forEach(function(k){h+='<li><a href="'+T[k][1]+'" target="_blank" rel="noopener" data-k="'+k+'" translate="no">'+T[k][0]+"</a></li>"});h+="</ul>"}
+ document.getElementById("bagL").innerHTML=h;Array.prototype.forEach.call(document.querySelectorAll("#bagL a[data-p]"),function(a){a.addEventListener("click",function(e){e.preventDefault();bag.classList.remove("show");open(P(a.dataset.p))})});Array.prototype.forEach.call(document.querySelectorAll("#bagL a[data-k]"),function(a){a.addEventListener("click",function(){got[a.dataset.k]=1;save();setTimeout(renderBag,50)})})}
+bB.addEventListener("click",function(){var o=!bag.classList.contains("show");bag.classList.toggle("show",o);bB.setAttribute("aria-expanded",o);if(o)renderBag()});
+bag.querySelector(".cl").addEventListener("click",function(){bag.classList.remove("show");bB.setAttribute("aria-expanded","false")});
+document.getElementById("bHome").addEventListener("click",function(){open(P("forest"))});
+/* 地図を動かす */
+var dn=null,mv=0;
+V.addEventListener("pointerdown",function(e){if(e.target.closest(".pin"))return;dn={x:e.clientX,y:e.clientY,ox:ox,oy:oy};mv=0;V.classList.add("drag");V.setPointerCapture(e.pointerId)});
+V.addEventListener("pointermove",function(e){if(!dn)return;var dx=e.clientX-dn.x,dy=e.clientY-dn.y;mv=Math.max(mv,Math.abs(dx)+Math.abs(dy));ox=dn.ox+dx;oy=dn.oy+dy;clamp();if(!draw.q){draw.q=1;requestAnimationFrame(function(){draw.q=0;draw()})}});
+function up(){if(dn&&mv<6&&sel)close();dn=null;V.classList.remove("drag")}
+V.addEventListener("pointerup",up);V.addEventListener("pointercancel",up);
+var rt;addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(fit,120)});
+addEventListener("keydown",function(e){if(e.key==="Escape"){close();bag.classList.remove("show")}});
+fit();
+})();
+</script>
+</body>
+</html>
