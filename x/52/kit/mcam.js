@@ -43,14 +43,20 @@
     var n = w * h, id = new Uint8Array(n), i, k, bp = blur(px, w, h, 3);
     for (i = 0, k = 0; i < n; i++, k += 4) id[i] = Lt.T[((bp[k] >> 3) << 10) | ((bp[k + 1] >> 3) << 5) | (bp[k + 2] >> 3)];
     /* 小さな島をならす（まわり 8 つの多数に合わせる） */
-    var id2 = id.slice(0);
+    for (var pass = 0; pass < 2; pass++) { var id2 = id.slice(0);
     for (var yy = 1; yy < h - 1; yy++) for (var xx = 1; xx < w - 1; xx++) { var j = yy * w + xx, cnt = {}, best = id[j], bc = 0; for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var v = id[j + dy * w + dx]; cnt[v] = (cnt[v] || 0) + 1; if (cnt[v] > bc) { bc = cnt[v]; best = v; } } if (bc >= 5) id2[j] = best; }
-    id = id2;
-    mix = mix == null ? .48 : mix;
+    id = id2; }
+    mix = mix == null ? .34 : mix;
+    /* 塗りと縁を一枚の層にして、ぼかしてから重ねる（境目をなめらかに・縁は淡く） */
+    var ov = new Uint8ClampedArray(n * 4), em = new Uint8ClampedArray(n * 4);
     for (i = 0, k = 0; i < n; i++, k += 4) {
       var c = Lt.P[id[i]].rgb, x = i % w, gi = Lt.P[id[i]].g, edge = (x < w - 1 && gi !== Lt.P[id[i + 1]].g) || (i + w < n && gi !== Lt.P[id[i + w]].g);
-      if (edge) { px[k] = px[k] * .3 + 165; px[k + 1] = px[k + 1] * .3 + 172; px[k + 2] = px[k + 2] * .3 + 171; continue; }
-      px[k] = px[k] * (1 - mix) + c[0] * mix; px[k + 1] = px[k + 1] * (1 - mix) + c[1] * mix; px[k + 2] = px[k + 2] * (1 - mix) + c[2] * mix;
+      ov[k] = c[0]; ov[k + 1] = c[1]; ov[k + 2] = c[2]; if (edge) em[k] = 255;
+    }
+    ov = blur(ov, w, h, 2); em = blur(em, w, h, 1);
+    for (i = 0, k = 0; i < n; i++, k += 4) {
+      var e = em[k] / 255 * .32;
+      for (var ch = 0; ch < 3; ch++) { var v = px[k + ch] * (1 - mix) + ov[k + ch] * mix; px[k + ch] = v * (1 - e) + 214 * e; }
     }
     return id;
   }

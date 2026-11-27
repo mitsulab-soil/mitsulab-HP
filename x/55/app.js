@@ -37,7 +37,7 @@
         fx: function (px, w, h) { FX[show(s).cat](px, w, h); },
         over: function (c, W, H) { vert(c, W, H, show(s).w); },
         ask: function () { var p = show(s); return '「' + p.w + '」── ' + p.t + ' ' + LOOK[p.cat] + '、探してみてください。'; },
-        notes: function () { return []; },
+        notes: function () { return [{ text: '画面を閉じたら、いつもの道で、いまの季語を一つ見つけてみてください。' }]; },
         enter: function () {}
       };
     })

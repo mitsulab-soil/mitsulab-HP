@@ -9,7 +9,7 @@
     /* 2% の傾き：画面の幅で、実際の比のまま（左右で幅の 2% だけ高さがちがう） */
     var y2 = H * .2, x0 = 24, x1 = W - 24; c.strokeStyle = 'rgba(236,246,244,.4)'; c.lineWidth = 1; c.beginPath(); c.moveTo(x0, y2); c.lineTo(x1, y2); c.stroke(); c.strokeStyle = 'rgba(155,220,240,.95)'; c.lineWidth = 2; c.beginPath(); c.moveTo(x0, y2); c.lineTo(x1, y2 + (x1 - x0) * .02); c.stroke(); font(c, 12); label(c, '水平と、2% の傾き（歩道の標準・実際の比）', cx, y2 - 10);
     c.strokeStyle = 'rgba(236,246,244,.55)'; c.lineWidth = 1; c.beginPath(); c.arc(cx, cy, R, 0, 7); c.stroke(); c.beginPath(); c.arc(cx, cy, R * .1, 0, 7); c.stroke();
-    if (S.beta == null) { font(c, 13); label(c, '傾きのセンサーがあるスマホで、地面に置いてはかれます', cx, cy + R + 28); return; }
+    if (S.beta == null) { /* センサーがないとき：泡がゆっくり 2% の位置へ寄る見本を見せる */ var ph = (performance.now() / 3200) % 2, q = ph < 1 ? ph : 2 - ph, ex = .2 * (q * q * (3 - 2 * q)); c.fillStyle = 'rgba(155,220,240,.55)'; c.beginPath(); c.arc(cx - ex * R * .9, cy, R * .09, 0, 7); c.fill(); font(c, 13); label(c, 'スマホを地面に平らに置くと、', cx, cy + R + 30); label(c, 'ここに傾きの数字が出ます', cx, cy + R + 50); return; }
     var bx = Math.max(-1, Math.min(1, S.gamma / 10)), by = Math.max(-1, Math.min(1, S.beta / 10));
     c.fillStyle = 'rgba(155,220,240,.85)'; c.beginPath(); c.arc(cx - bx * R * .9, cy - by * R * .9, R * .09, 0, 7); c.fill();
     var deg = Math.sqrt(S.beta * S.beta + S.gamma * S.gamma), pct = Math.tan(Math.min(deg, 60) * Math.PI / 180) * 100;
@@ -20,13 +20,15 @@
     c.textAlign = 'center'; font(c, 13);
     if (!elev) { label(c, busy ? '地理院の標高を読んでいます…' : '位置を許可すると、まわりの土地の高さを読みます', W / 2, H * .3); return; }
     var ang = elev.down; if (S.heading != null) ang = elev.down - S.heading; /* 画面の上＝向いている方 */
-    var a = (ang - 90) * Math.PI / 180, cx = W / 2, cy = H * .42, L = Math.min(W, H) * .2, ph = (t / 1600) % 1;
+    /* 矢印は足もとの地面に寝かせて描く（奥行きで縦を縮める） */
+    var a = (ang - 90) * Math.PI / 180, cx = W / 2, cy = H * (W < 768 ? .68 : .74), L = Math.min(W, H) * .2, ph = (t / 1600) % 1, sq = .42;
     c.strokeStyle = 'rgba(155,220,240,.9)'; c.lineWidth = 2;
-    for (var i = 0; i < 4; i++) { var f = ((i / 4 + ph) % 1), x = cx + Math.cos(a) * L * (f * 2 - 1), y = cy + Math.sin(a) * L * (f * 2 - 1); c.globalAlpha = Math.sin(f * Math.PI); c.beginPath(); c.moveTo(x - Math.cos(a - .5) * 12, y - Math.sin(a - .5) * 12); c.lineTo(x, y); c.lineTo(x - Math.cos(a + .5) * 12, y - Math.sin(a + .5) * 12); c.stroke(); }
+    for (var i = 0; i < 4; i++) { var f = ((i / 4 + ph) % 1), x = cx + Math.cos(a) * L * (f * 2 - 1), y = cy + Math.sin(a) * sq * L * (f * 2 - 1); c.globalAlpha = Math.sin(f * Math.PI); c.beginPath(); c.moveTo(x - Math.cos(a - .5) * 12, y - Math.sin(a - .5) * 12 * sq); c.lineTo(x, y); c.lineTo(x - Math.cos(a + .5) * 12, y - Math.sin(a + .5) * 12 * sq); c.stroke(); }
     c.globalAlpha = 1; font(c, 13);
-    if (exa) { font(c, 11); label(c, '位置が分からないので、例の場所（さいたま市・氷川参道）の高さです', cx, cy - L - 20); font(c, 13); }
-    label(c, 'ここ ' + elev.h.toFixed(1) + ' m', cx, cy + L + 34); label(c, elev.drop < .2 ? 'まわり 40 m は、ほぼ平ら（差 0.2 m 未満）' : '40 m 先で、いちばん低い向きへ ' + elev.drop.toFixed(1) + ' m 下がる', cx, cy + L + 54);
-    if (S.heading == null) { font(c, 11); label(c, '矢印の上が北（向きのセンサーがあると、向いている方が上）', cx, cy + L + 74); }
+    var ty = cy - L * sq - 70;
+    if (exa) { font(c, 11); label(c, '位置が分からないので、例の場所（さいたま市・氷川参道）の高さです', cx, ty - 20); font(c, 13); }
+    label(c, 'ここ ' + elev.h.toFixed(1) + ' m', cx, ty); label(c, elev.drop < .2 ? 'まわり 40 m は、ほぼ平ら（差 0.2 m 未満）' : '40 m 先で、いちばん低い向きへ ' + elev.drop.toFixed(1) + ' m 下がる', cx, ty + 20);
+    if (S.heading == null) { font(c, 11); label(c, '足もとの矢印の奥が北（向きのセンサーがあると、向いている方が奥）', cx, ty + 40); }
   }
   function readElev(p) {
     busy = true; var d = 40, dl = d / 111320, dn = d / (111320 * Math.cos(p.lat * Math.PI / 180)), pts = [[0, 0], [dl, 0], [0, dn], [-dl, 0], [0, -dn]];
@@ -46,7 +48,7 @@
         ask: '縁石、舗装の継ぎ目、溝のふた。線は、どちらへ傾いて続いていますか。',
         notes: [{ text: '舗装した車道には、雨水を端へ流すため、1.5〜2% の横の傾きを付けることが標準とされています。', src: 'kozo' }, { text: '歩道には、2% の横の傾きを標準として付けるとされています。1 m で 2 cm です。', src: 'kozo' }] },
       { id: 'level', label: '傾きをはかる', fx: function (px) { M.tone(px, [.5, .55, .6], [6, 10, 14]); }, over: function (c, W, H, S) { level(c, W, H, S); },
-        ask: 'スマホを、道や庭の地面に平らに置いてみてください。',
+        ask: 'スマホを、道や庭の地面に平らに置いてみてください。次の雨の日、水はどちらへ流れるでしょう。',
         notes: [{ text: '歩道の横の傾きの標準は 2%。置いた所の数字と比べてみてください。', src: 'kozo' }] },
       { id: 'water', label: '水の下る向き', fx: function (px) { M.tone(px, [.55, .65, .75], [4, 10, 18]); }, over: function (c, W, H, S, t) { water(c, W, H, S, t); },
         enter: function () { if (!elev && !busy) M.locate().then(function (p) { exa = !p; readElev(p || { lat: 35.9111, lon: 139.6308 }); }); },
