@@ -11,7 +11,8 @@
     function showFrame() {
       frame = document.createElement('figure');
       frame.setAttribute('aria-label', '歌川広重《桜に燕》');
-      frame.style.cssText = 'position:fixed;right:16px;top:calc(env(safe-area-inset-top,0px) + 56px);z-index:30;margin:0;width:86px;height:242px;padding:6px;background:#2a2118;border:1px solid #8a6d45;box-shadow:0 6px 18px rgba(0,0,0,.45),inset 0 0 0 2px #4a3a26;pointer-events:none;opacity:0;transition:opacity .5s';
+      var fh = Math.round(Math.min(242, innerHeight * .42)), fw = Math.round(fh * .356);   // 低い画面では額を小さく
+      frame.style.cssText = 'position:fixed;right:16px;top:calc(env(safe-area-inset-top,0px) + 56px);z-index:30;margin:0;width:' + fw + 'px;height:' + fh + 'px;padding:6px;background:#2a2118;border:1px solid #8a6d45;box-shadow:0 6px 18px rgba(0,0,0,.45),inset 0 0 0 2px #4a3a26;pointer-events:none;opacity:0;transition:opacity .5s';
       frame.innerHTML = '<div style="position:relative;width:100%;height:100%;overflow:hidden;background:#d8cdb4"><img alt="" src="' + abs('n/e_empty.jpg') + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><img alt="" src="' + abs('n/e_full.jpg') + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .9s"></div>';
       document.body.appendChild(frame); requestAnimationFrame(function () { frame.style.opacity = 1; });
       cr = document.createElement('p'); cr.className = 'qlens-credit'; cr.innerHTML = '絵：歌川広重《桜に燕》1830年代・<a href="https://www.artic.edu/artworks/25873" target="_blank" rel="noopener" style="color:inherit">シカゴ美術館</a>所蔵・CC0（パブリックドメイン）。燕の体は Qualia/museum と同じ、画面の中で組んだ模式。';
