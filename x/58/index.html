@@ -65,6 +65,7 @@ canvas{position:absolute;left:0;top:0}
 #hint{position:fixed;right:calc(env(safe-area-inset-right,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 20px);z-index:20;font-size:11px;letter-spacing:.14em;color:var(--dim);pointer-events:none}
 @media (max-width:767px){#hint{display:none}}
 </style>
+<style>#bHome{background:none!important;border:0!important;border-bottom:1px solid currentColor!important;border-radius:0!important;padding:2px 0!important;box-shadow:none!important;letter-spacing:.08em}</style>
 </head>
 <body>
 <div id="v"><canvas id="c"></canvas><div id="pins"></div></div>
@@ -74,7 +75,7 @@ canvas{position:absolute;left:0;top:0}
 <section id="card" aria-live="polite"><button class="x" type="button" aria-label="閉じる">×</button><p class="ch" id="cCh"></p><h2 id="cH"></h2><p id="cP"></p><div class="go" id="cGo"></div></section>
 <aside id="bag" aria-label="持ち物"><button class="cl" type="button" aria-label="閉じる">×</button><h2>持ち物</h2><p class="lead">道具を使うたびに、同じ景色が別の景色に変わる。訪ねた場所から、灰色の霞が晴れていく。記録はこの端末の中だけ。</p><div id="bagL"></div>
 <p class="ft">地図は描き起こした模式で、実在の地形や縮尺ではない。<br>© mitsulab. All rights reserved.<br><a href="https://mitsulab.jp/">mitsulab.jp</a></p></aside>
-<div id="qgBar"><button class="qg-u" id="bHome" type="button">はじまりの森へ</button><button class="qg-u qu-menu" id="bBag" type="button" aria-label="持ち物" aria-expanded="false">≡</button></div>
+<div id="qgBar"><button class="qg-u" id="bHome" type="button">はじまりの森へ <span aria-hidden="true">→</span></button><button class="qg-u qu-menu" id="bBag" type="button" aria-label="持ち物" aria-expanded="false">≡</button></div>
 <script type="importmap">{"imports":{"three":"/x/10/vendor/three/build/three.module.js","three/addons/":"/x/10/vendor/three/examples/jsm/","@pixiv/three-vrm":"/x/10/vendor/three-vrm/three-vrm.module.min.js"}}</script>
 <link rel="modulepreload" href="/x/10/vendor/three/build/three.module.js">
 <script type="module">
@@ -178,6 +179,13 @@ for(let i=0;i<4;i++)addH(34+i*4.6,-20+i*.8,-.17,4.2,4.4,4.4,0x24252a,0x1d1e22,.9
  houses.forEach((o,i)=>{const y=H(o.x,o.z)-.2;q.setFromEuler(new THREE.Euler(0,o.ry,0));m.compose(new THREE.Vector3(o.x,y+o.h/2,o.z),q,new THREE.Vector3(o.w,o.h,o.d));W.setMatrixAt(i,m);W.setColorAt(i,c.set(o.wc));
   m.compose(new THREE.Vector3(o.x,y+o.h,o.z),q,new THREE.Vector3(o.w*1.3,o.rh*o.w*1.3,o.d*1.25));Rf.setMatrixAt(i,m);Rf.setColorAt(i,c.set(o.rc))});
  W.castShadow=W.receiveShadow=Rf.castShadow=true;S.add(W,Rf);
+ {const N=houses.length,bg=new THREE.BoxGeometry(1,1,1),Dr=new THREE.InstancedMesh(bg,new THREE.MeshStandardMaterial({color:0x3a2a20,roughness:.9}),N),Wn=new THREE.InstancedMesh(bg,new THREE.MeshStandardMaterial({color:0x6d5a44,roughness:.7}),N*2),Rg=new THREE.InstancedMesh(bg,new THREE.MeshStandardMaterial({color:0x2c2e31,roughness:.6}),N),Ba=new THREE.InstancedMesh(bg,MAT.stoneD,N),v=new THREE.Vector3(),sc=new THREE.Vector3();
+  houses.forEach((o,i)=>{const y=H(o.x,o.z)-.2;q.setFromEuler(new THREE.Euler(0,o.ry,0));const P=(dx,dy,dz)=>v.set(dx,dy,dz).applyQuaternion(q).add(new THREE.Vector3(o.x,y,o.z));
+   m.compose(P(-o.w*.22,.55,o.d/2+.03),q,sc.set(.55,1.1,.06));Dr.setMatrixAt(i,m);
+   [[o.w*.18,o.h*.62],[o.w*.18,o.h*.62-(o.h>2.6?1.1:9)]].forEach(([dx,dy],k)=>{m.compose(P(dx,Math.max(.9,dy),o.d/2+.03),q,o.h>2.6||k===0?sc.set(.8,.45,.05):sc.set(0,0,0));Wn.setMatrixAt(i*2+k,m)});
+   m.compose(P(0,o.h+o.rh*o.w*1.3*.5,0),q,sc.set(.12,.12,o.d*1.27));Rg.setMatrixAt(i,m);
+   m.compose(P(0,.12,0),q,sc.set(o.w*1.03,.3,o.d*1.03));Ba.setMatrixAt(i,m)});
+  Dr.castShadow=Wn.castShadow=false;Rg.castShadow=true;S.add(Dr,Wn,Rg,Ba);}
  // 蔵の白い帯
  houses.filter(o=>o.wc===0x24252a).forEach(o=>{box(o.w*1.02,.45,o.d*1.02,MAT.plaster,o.x,H(o.x,o.z)+o.h-.9,o.z,o.ry),box(o.w*1.03,1.1,o.d*1.03,MAT.plaster,o.x,H(o.x,o.z)-.2,o.z,o.ry);box(1.4,1.9,.1,MAT.brass,o.x,H(o.x,o.z),o.z+o.d/2+.06,o.ry)});}
 /* 街の広場と井戸 */
@@ -196,13 +204,14 @@ for(let i=0;i<4;i++)addH(34+i*4.6,-20+i*.8,-.17,4.2,4.4,4.4,0x24252a,0x1d1e22,.9
 // 大宮＝氷川参道の鳥居と社
 {const x=19,z=-15,y=H(x,z),g=new THREE.Group();g.position.set(x,y,z);g.rotation.y=-.6;g.scale.setScalar(1.5);S.add(g);
  cyl(.32,.38,6,MAT.red,-2.4,0,0,14,g);cyl(.32,.38,6,MAT.red,2.4,0,0,14,g);box(6.2,.4,.5,MAT.red,0,4.6,0,0,g);const k=box(7.8,.45,.75,MAT.dark,0,5.8,0,0,g);k.scale.x=1;box(7.2,.35,.6,MAT.red,0,5.45,0,0,g);box(.35,1,.35,MAT.red,0,4.9,0,0,g);
- const sx=33,sz=-10.5,sy=H(sx,sz);box(5.6,3,4,MAT.plaster,sx,sy,sz,-.6);box(5.8,.5,4.2,MAT.red,sx,sy+2.5,sz,-.6);roof(7.4,2,5.6,M(0x40564f,{metalness:.4,roughness:.45}),sx,sy+3,sz,-.6+Math.PI/2);cyl(3.4,3.6,.3,MAT.stone,sx,sy-.2,sz,24);}
-// 川越＝時の鐘
-{const x=47,z=-12,y=H(x,z);box(4.4,1,4.4,MAT.stoneD,x,y,z);let h=y+1;[[3.6,5],[2.9,4.6],[2.3,4.4]].forEach(([w,t],i)=>{box(w,t,w,MAT.wood,x,h,z);const r=new THREE.Mesh(new THREE.ConeGeometry(w*1.05,.9,4),MAT.dark);r.rotation.y=Math.PI/4;r.position.set(x,h+t+.4,z);r.castShadow=true;S.add(r);h+=t+.6});
- const by=h;box(3.6,.3,3.6,MAT.dark,x,by-.1,z);for(const a of [[-1,-1],[1,-1],[-1,1],[1,1]])cyl(.26,.26,4,M(0x9a6a3c),x+a[0]*1.7,by,z+a[1]*1.7,8);const cp=new THREE.Mesh(new THREE.ConeGeometry(3.6,2,4),MAT.dark);cp.rotation.y=Math.PI/4;cp.position.set(x,by+5,z);cp.castShadow=true;S.add(cp);const b=new THREE.Mesh(new THREE.CylinderGeometry(.7,1.1,1.7,20),MAT.brass);b.scale.setScalar(1.3);b.position.set(x,by+2,z);b.castShadow=true;S.add(b);}
+ const sx=29.5,sz=-13.5,sy=H(sx,sz);box(5.6,3,4,MAT.plaster,sx,sy,sz,-.6);box(5.8,.5,4.2,MAT.red,sx,sy+2.5,sz,-.6);roof(7.4,2,5.6,M(0x40564f,{metalness:.4,roughness:.45}),sx,sy+3,sz,-.6+Math.PI/2);cyl(3.4,3.6,.3,MAT.stone,sx,sy-.2,sz,24);}
+// 川越＝時の鐘（石垣の上に細い櫓・薄い庇・最上段に鐘）
+{const x=47,z=-12,y=H(x,z);box(4.6,1.2,4.6,MAT.stoneD,x,y,z);const tw=M(0x3b2e25,{roughness:.8});let h=y+1.2;
+ [[2.4,4.2],[2.1,3.8],[1.8,3.4]].forEach(([w,t])=>{box(w,t,w,tw,x,h,z);const e=new THREE.Mesh(new THREE.ConeGeometry(w*1.05,.5,4,1,true),MAT.dark);e.rotation.y=Math.PI/4;e.position.set(x,h+t*.62,z);e.castShadow=true;S.add(e);box(w*1.3,.12,w*1.3,MAT.dark,x,h+t*.62-.3,z);h+=t});
+ const by=h;box(2.4,.2,2.4,MAT.dark,x,by,z);for(const a of [[-1,-1],[1,-1],[-1,1],[1,1]])cyl(.12,.12,2.6,tw,x+a[0]*1,by,z+a[1]*1,8);const cp=new THREE.Mesh(new THREE.ConeGeometry(2.2,1.3,4),MAT.dark);cp.rotation.y=Math.PI/4;cp.position.set(x,by+3.2,z);cp.castShadow=true;S.add(cp);const b=new THREE.Mesh(new THREE.CylinderGeometry(.45,.7,1.1,20),MAT.brass);b.position.set(x,by+1.5,z);b.castShadow=true;S.add(b);}
 // 渋谷＝谷のビル群とスクランブル
 const winTex=(()=>{const c=document.createElement("canvas");c.width=64;c.height=128;const x=c.getContext("2d");x.fillStyle="#2b3a44";x.fillRect(0,0,64,128);for(let j=4;j<128;j+=8)for(let i=4;i<64;i+=8){x.fillStyle=Math.random()<.55?`rgba(255,${200+Math.random()*40|0},140,${.5+Math.random()*.5})`:"rgba(120,170,190,.35)";x.fillRect(i,j,5,4)}const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;return t})();
-{const hs=[[33,3,13],[36,1,9],[42,3,16],[44,8,11],[41,12,8],[34,10,10],[38,13,7],[45,-1,7]];hs.forEach(([x,z,h],i)=>{const t=winTex.clone();t.needsUpdate=true;t.repeat.set(1,h/8);const m=new THREE.MeshStandardMaterial({color:0x9aa7b3,map:t,emissive:0xffffff,emissiveMap:t,emissiveIntensity:.55,metalness:.3,roughness:.4});box(2.6,h,2.6,m,x,H(x,z)-.3,z,.2)});
+{const hs=[[35,5,13],[37,2,9],[42,3,16],[44,8,11],[41,12,8],[34,10,10],[38,13,7],[45,-1,7]];hs.forEach(([x,z,h],i)=>{const t=winTex.clone();t.needsUpdate=true;t.repeat.set(1,h/8);const m=new THREE.MeshStandardMaterial({color:0x9aa7b3,map:t,emissive:0xffffff,emissiveMap:t,emissiveIntensity:.55,metalness:.3,roughness:.4});box(2.6,h,2.6,m,x,H(x,z)-.3,z,.2)});
  const y=H(38,7)+.06;for(let i=0;i<9;i++){for(const r of [0,1.57]){const s=new THREE.Mesh(new THREE.PlaneGeometry(.35,3.4),MAT.white);s.rotation.x=-Math.PI/2;s.rotation.z=r+.2;const o=(i-4)*.6;s.position.set(38+Math.cos(r+.2)*o,y,7-Math.sin(r+.2)*o);S.add(s)}}
  const sc=new THREE.Mesh(new THREE.PlaneGeometry(2.4,1.4),M(0x223,{emissive:0x7fd6e6,emissiveIntensity:.9}));sc.position.set(42,H(42,3)+12,4.33);sc.rotation.y=.2;S.add(sc);}
 // つながりの網
