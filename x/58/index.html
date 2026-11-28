@@ -65,7 +65,7 @@ canvas{position:absolute;left:0;top:0}
 #hint{position:fixed;right:calc(env(safe-area-inset-right,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 20px);z-index:20;font-size:11px;letter-spacing:.14em;color:var(--dim);pointer-events:none}
 @media (max-width:767px){#hint{display:none}}
 </style>
-<style>#bHome{background:none!important;border:0!important;border-bottom:1px solid currentColor!important;border-radius:0!important;padding:2px 0!important;box-shadow:none!important;letter-spacing:.08em}</style>
+<style>#qgBar{position:fixed;left:20px;top:58px;z-index:20;display:flex;gap:18px;align-items:center}#qgBar .qg-u{color:#e8e4da;font:13px/1.6 'Shippori Mincho',serif;cursor:pointer;min-height:0;margin:10px 0}@media(max-width:700px){#qgBar{left:auto;right:16px;top:8px;gap:12px}}#bBag{background:none;border:0;font-size:18px}#bHome{background:none!important;border:0!important;border-bottom:1px solid currentColor!important;border-radius:0!important;padding:2px 0!important;box-shadow:none!important;letter-spacing:.08em}</style>
 </head>
 <body>
 <div id="v"><canvas id="c"></canvas><div id="pins"></div></div>
@@ -198,7 +198,7 @@ for(let i=0;i<4;i++)addH(34+i*4.6,-20+i*.8,-.17,4.2,4.4,4.4,0x24252a,0x1d1e22,.9
  for(const s of [-1,1]){const l=new THREE.Mesh(new THREE.SphereGeometry(.35,12,10),MAT.glow);l.scale.y=1.4;l.position.set(x+s*2.6,y+2.6,z+2.6);S.add(l)}}
 {let x=12,z=-23,y=H(x,z);box(5.5,4.2,5,MAT.stoneD,x,y,z);box(5.9,.4,5.4,MAT.stone,x,y+4.2,z);box(2.4,5.5,2.4,MAT.stoneD,x-1.4,y+4.6,z-1.2);
  const dm=new THREE.Mesh(new THREE.SphereGeometry(2.2,32,16,0,6.283,0,Math.PI/2),MAT.silver);dm.position.set(x+1.1,y+4.6,z+.6);dm.castShadow=true;S.add(dm);
- const tl=cyl(.35,.45,3,MAT.brass,x+1.6,y+5.6,z+1.2,12);tl.rotation.z=-.7;const ck=new THREE.Mesh(new THREE.CircleGeometry(.75,32),MAT.brass);ck.position.set(x-1.4,y+8.6,z+.02);S.add(ck);roof(2.8,1.2,2.8,MAT.tile,x-1.4,y+10.1,z-1.2);}
+ const tl=cyl(.16,.22,2.2,MAT.brass,x+1.4,y+6.2,z+.8,12);tl.rotation.z=-.35;const ck=new THREE.Mesh(new THREE.CircleGeometry(.75,32),MAT.brass);ck.position.set(x-1.4,y+8.6,z+.02);S.add(ck);roof(2.8,1.2,2.8,MAT.tile,x-1.4,y+10.1,z-1.2);}
 
 /* ---- 実在の街 */
 // 大宮＝氷川参道の鳥居と社
