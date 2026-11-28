@@ -18,7 +18,8 @@
       { id: 'civil', lens: 'm-civil', ja: '土木の目', d: '道をつくる人の目で線と傾きを読む。輪郭・水平・水の集まる所が浮かぶ。見上げて水平の線を動かす。根拠：道路構造令の横断勾配 1.5〜2%。' },
       { id: 'kigo', lens: 'm-kigo', ja: '季語', d: '季語を枠に、景色を季節の名で切りとる。いまの季語が縦書きで重なる。字幕を押して次へ、森に探す。根拠：太陽の黄経による季節の区切り。' },
       { id: 'koyomi', lens: 'm-koyomi', ja: '暦', d: '暦で一年を区切り、景色に名をつける。いまの七十二候と二十四節気が重なる。札で切りかえる。根拠：黄経 15° で節気・5° で候（国立天文台）。' },
-      { id: 'role', lens: 'm-role', ja: '立場の目', d: '立場ごとの目の向け方を借りる。植木職人・鳥を調べる人・子どもの見る所が残る。札で切りかえ森を歩く。根拠：mitsulab が書いた問い（仮説）。' } ] }
+      { id: 'role', lens: 'm-role', ja: '立場の目', d: '立場ごとの目の向け方を借りる。植木職人・鳥を調べる人・子どもの見る所が残る。札で切りかえ森を歩く。根拠：mitsulab が書いた問い（仮説）。' },
+      { id: 'language', lens: 'language', ja: 'ことば', d: '言語ごとの名前の切り分け方で景色を見直す。青と緑、明るい青と濃い青、蝶と蛾。札で言語を切りかえると、同じ名前の物が同じ色の輪郭でまとまる。根拠：辞書（大辞泉・Larousse）と論文（PNAS 2007）。' } ] }
   ];
   var ALL = []; GROUPS.forEach(function (G) { G.items.forEach(function (it) { ALL.push(it); }); });
   var O, cur = null, box, badge, THREE = null, loader = null, models = {}, rr = null, live = null;
@@ -32,15 +33,19 @@
     '.qs-more{display:inline-block;min-height:32px;margin:2px 0 0;padding:0;border:0;background:none;color:#cfe9ef;font:500 12px "Shippori Mincho",serif;letter-spacing:.06em;cursor:pointer}.qs-more:focus-visible{outline:1px solid rgba(190,236,246,.7)}' +
     '.qs .qs-pv p.qs-m[hidden],.qs-more[hidden]{display:none}.qs .qs-pv p.qs-m{display:block;-webkit-line-clamp:unset;margin:4px 0 0;font-size:12.5px;line-height:1.7;opacity:.92;max-height:min(34vh,220px);overflow-y:auto}' +
     '.qs-bar{position:relative;height:46px;margin:0 auto;max-width:640px;pointer-events:auto;touch-action:pan-y;cursor:grab;background:rgba(8,16,18,.46);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-top:1px solid rgba(220,240,240,.14);border-bottom:1px solid rgba(220,240,240,.14);-webkit-mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);overflow:hidden}' +
-    '.qs-bar:focus{outline:none}.qs-n{position:absolute;left:50%;top:0;height:46px;line-height:46px;border:0;padding:0 10px;background:none;color:inherit;font:400 16px "Cormorant Garamond","Helvetica Neue",sans-serif;letter-spacing:.1em;text-shadow:0 1px 4px rgba(0,0,0,.6);white-space:nowrap;transform-origin:50% 50%;cursor:pointer}' +
+    '.qs-bar:focus{outline:none}.qs-n{position:absolute;left:50%;top:0;height:46px;line-height:46px;border:0;padding:0 10px;background:none;color:inherit;font:500 17px "Cormorant Garamond","Helvetica Neue",sans-serif;letter-spacing:.08em;text-shadow:0 1px 4px rgba(0,0,0,.75);white-space:nowrap;transform-origin:50% 50%;cursor:pointer}' +
     '.qs-ar{display:none;position:absolute;bottom:0;width:44px;height:46px;border:0;background:none;color:#eef5f2;font:300 22px/46px serif;opacity:.8;pointer-events:auto;z-index:2}.qs-ar.l{left:0}.qs-ar.r{right:0}.qs-ar[disabled]{opacity:.15}' +
     '.qs-dot{position:absolute;left:50%;bottom:6px;width:4px;height:4px;margin-left:-2px;border-radius:2px;background:#eef5f2;pointer-events:none}' +
-    '.qs-sep{position:absolute;top:12px;width:1px;height:22px;background:rgba(243,214,150,.7);pointer-events:none;font-style:normal}.qs-sep b,.qs-sep s{position:absolute;top:-9px;font:600 10px/1 "Cormorant Garamond",serif;color:rgba(243,214,150,.9);text-decoration:none}.qs-sep b{right:5px;white-space:nowrap}.qs-sep s{left:5px;white-space:nowrap}' +
+    '.qs-sep{position:absolute;top:12px;width:1px;height:22px;background:rgba(243,214,150,.7);pointer-events:none;font-style:normal}.qs-sep b,.qs-sep s{position:absolute;top:-17px;font:600 12.5px/1 "Shippori Mincho","Cormorant Garamond",serif;color:rgba(246,222,166,1);text-shadow:0 1px 3px rgba(0,0,0,.7);text-decoration:none}.qs-sep b{right:5px;white-space:nowrap}.qs-sep s{left:5px;white-space:nowrap}' +
     '.qs-x{flex:0 0 44px;width:44px;height:44px;border:1px solid rgba(220,240,240,.25);border-radius:22px;background:rgba(8,16,18,.4);color:inherit;font-size:14px;opacity:.85;pointer-events:auto}' +
     '@media (min-width:768px){.qs{bottom:28px;right:auto;left:50%;width:640px;transform:translate(-50%,8px)}.qs.on{transform:translateX(-50%)}}' +
     '.qs:not(.has) .qs-dot{visibility:hidden}.qs .qs-x{display:none}' +   /* ✕ は左上の札の一つだけ */
     '@media (max-width:767px){.qs.has.rest .qs-pv{display:none}.qs-ar{display:block}.qs.has.rest .qs-pv canvas{width:96px;height:96px;flex-basis:96px;margin:-40px -8px -12px -10px}}' +
-    'body.qd-on .qlm{bottom:calc(var(--qsb,92px) + var(--qsh,140px) + 8px)!important}' +
+    'body.qd-on .qlm,body.qd-on .qll{bottom:calc(var(--qsb,92px) + var(--qsh,140px) + 8px)!important}' +
+    /* PC：使っているあいだは道具の札を小さく（説明を畳み、3D を小さく）して、画面の下を混ませない */
+    '@media (min-width:768px){.qs.has.rest .qs-pv{max-width:360px;padding:6px 12px;gap:8px}.qs.has.rest .qs-pv p,.qs.has.rest .qs-pv .qs-more,.qs.has.rest .qs-pv .qs-m{display:none!important}.qs.has.rest .qs-pv canvas{width:84px;height:84px;flex-basis:84px;margin:-26px -4px -10px -8px}}' +
+    /* スマホ：はじめの説明の列を広く（3D を少し小さく） */
+    '@media (max-width:767px){.qs-pv canvas{width:92px!important;height:92px!important;flex:0 0 92px!important;margin:-36px -14px -10px -14px!important}.qs .qs-pv p{font-size:12px!important;line-height:1.55!important}}' +
     '.qt-badge{position:fixed;left:12px;top:calc(env(safe-area-inset-top,0px) + 30px);z-index:25;display:flex;align-items:center;gap:8px;padding:4px 6px 4px 4px;border:1px solid rgba(170,226,236,.35);border-radius:28px;background:rgba(6,20,22,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:#e9f6f5;font-family:"Shippori Mincho",serif;opacity:0;transition:opacity .35s;pointer-events:none;cursor:pointer}' +
     '.qt-badge.on{opacity:1;pointer-events:auto}.qt-badge canvas{width:64px;height:64px;margin:-6px -2px -6px -4px}.qt-badge b{font:600 15px/1 "Cormorant Garamond","Shippori Mincho",serif;letter-spacing:.04em}.qt-badge small{display:block;font-size:10px;opacity:.7;margin-top:2px}' +
     '.qt-badge button{width:44px;height:44px;border:0;border-radius:22px;background:transparent;color:inherit;font-size:16px;cursor:pointer}';
@@ -59,6 +64,7 @@
     else if (id === 'kigo') { add(new THREE.BoxGeometry(.28, 1.1, .02), M(0xe6dcc6)); add(new THREE.TorusGeometry(.04, .01, 6, 16), M(0x864e4c), 0, .5, .02); }
     else if (id === 'koyomi') { add(new THREE.TorusGeometry(.5, .05, 8, 48), M(0xd6c09b)); for (var k = 0; k < 24; k++) { var a = k / 24 * Math.PI * 2; add(new THREE.BoxGeometry(.02, .1, .02), M(0xeef5f2), Math.cos(a) * .5, Math.sin(a) * .5, 0, 0, 0, a); } add(new THREE.SphereGeometry(.07, 12, 8), M(0xf3d696, { emissive: 0x6a5020 }), .5, 0, 0); }
     else if (id === 'role') { add(new THREE.TorusGeometry(.32, .05, 8, 32), M(0x4a5a5e), -.36, 0, 0); add(new THREE.TorusGeometry(.32, .05, 8, 32), M(0x4a5a5e), .36, 0, 0); add(new THREE.CylinderGeometry(.03, .03, .2, 8), M(0x4a5a5e), 0, 0, 0, 0, 0, Math.PI / 2); }
+    else if (id === 'language') { add(new THREE.TorusGeometry(.4, .045, 8, 40), M(0x9bdcf0), -.2, 0, 0); add(new THREE.TorusGeometry(.4, .045, 8, 40), M(0xf3d696), .2, 0, 0); }
     else { add(new THREE.IcosahedronGeometry(.5, 1), M(0x9bdcf0, { flatShading: true })); }
     return G;
   }
@@ -105,9 +111,9 @@
   function layout() {
     var n = ALL.length, G = gap();
     its.forEach(function (b, i) {
-      var d = i - pos, ad = Math.abs(d), op = ad < .5 ? 1 : ad < 1.5 ? .82 : ad < 2.4 && innerWidth >= 768 ? .58 : 0;   // 端で切れて見える名前は出さない
-      b.style.transform = 'translateX(calc(-50% + ' + (d * G) + 'px)) scale(' + (ad < .5 ? 1 : .86) + ')'; b.style.opacity = op; b.style.pointerEvents = op ? 'auto' : 'none';
-      b.style.fontWeight = ad < .5 ? 600 : 400; b.classList.toggle('cur', ad < .5);
+      var d = i - pos, ad = Math.abs(d), op = ad < .5 ? 1 : ad < 1.5 ? .92 : ad < 2.4 && innerWidth >= 768 ? .7 : 0;   // 端で切れて見える名前は出さない
+      b.style.transform = 'translateX(calc(-50% + ' + (d * G) + 'px)) scale(' + (ad < .5 ? 1 : .9) + ')'; b.style.opacity = op; b.style.pointerEvents = op ? 'auto' : 'none';
+      b.style.fontWeight = ad < .5 ? 700 : 600; b.classList.toggle('cur', ad < .5);
     });
     if (arrows.l) { arrows.l.disabled = Math.round(pos) <= 0; arrows.r.disabled = Math.round(pos) >= n - 1; }
     seps.forEach(function (m) { m.el.style.left = 'calc(50% + ' + ((m.at - pos) * G) + 'px)'; m.el.style.opacity = Math.abs(m.at - pos) < 3.5 ? 1 : 0; });

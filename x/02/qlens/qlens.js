@@ -26,7 +26,8 @@
     { id: 'm-koyomi', name: '暦', tool: 'm' },
     { id: 'm-civil', name: '土木の目', tool: 'm' },
     { id: 'm-oldmap', name: '地図', tool: 'm' },
-    { id: 'm-role', name: '立場の目', tool: 'm' }
+    { id: 'm-role', name: '立場の目', tool: 'm' },
+    { id: 'language', name: 'ことば', tool: 'language' }   // Qualia/language（lens-language.js）
   ];
   var defs = {}, loading = {}, cur = null, curId = 'none', base = '';
   function define(d) { defs[d.id] = d; }
