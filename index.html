@@ -2136,6 +2136,25 @@ html body #try .ts-c small{font:italic 400 21px/1.15 "Cormorant Garamond","Times
 html body #try .ts-c span{font-size:12.5px!important;color:#b9d7dc!important}
 @media(max-width:760px){html body #try .ts-z{width:48%!important;right:0!important}}
 @media(min-width:761px){html body #try .ts-st{grid-template-columns:minmax(0,1.1fr) minmax(0,1.3fr)!important}html body #try .tst.full .ts-a{aspect-ratio:3/4.2!important}}
+</style><style id="fix-1128d">
+html body :is(#top .tp-open,#top .sd-go-b,.ft2 .sp-more){display:inline-flex!important;align-items:center;gap:.9em;min-height:44px;padding:6px 2px!important;border:0!important;border-bottom:1px solid rgba(233,242,241,.55)!important;border-radius:0!important;background:none!important;box-shadow:none!important;color:#eef5fb!important;font:400 14.5px/1.5 "Shippori Mincho",serif!important;letter-spacing:.14em!important;text-decoration:none!important;cursor:pointer;transition:border-color .4s,color .4s}
+html body :is(#top .tp-open,#top .sd-go-b,.ft2 .sp-more)::before{display:none!important}
+html body :is(#top .tp-open,#top .sd-go-b)::after{content:"→"!important;position:static!important;width:auto!important;height:auto!important;border:0!important;transform:none;font-family:"Cormorant Garamond",serif;color:#8fe3ea;transition:transform .4s}
+html body :is(#top .tp-open,#top .sd-go-b,.ft2 .sp-more):hover{border-bottom-color:#8fe3ea!important;color:#fff!important}
+html body :is(#top .tp-open,#top .sd-go-b):hover::after{transform:translateX(4px)}
+html body .ft2,html body .ft2 *{background-color:transparent!important;background-image:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html body .ft2::before,html body .ft2::after{display:none!important}
+html body .ft2 :is(p,a,li,small,span){text-shadow:0 1px 12px rgba(0,0,0,.85)}
+html body #top .nx-ct :is(input,textarea,select){background:rgba(4,12,20,.42)!important;border:1px solid rgba(233,242,241,.28)!important;border-radius:4px!important;box-shadow:none!important}
+html body #top .nx-ct :is(input,textarea,select):focus{border-color:#8fe3ea!important;outline:none}
+html body #top .nx-ct :is(form,.nq-cg,.nq-cl,.nq-cr,fieldset){background:transparent!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html body #top .cx-3d .p1{top:0!important}html body #top .cx-3d .p4{bottom:7%!important}html body #top .cx-3d .p2{right:-2%!important}html body #top .cx-3d .p3{left:-2%!important}
+html body #top .nx-fd p{line-height:2.1!important;margin-bottom:1.2em!important}
+@media(max-width:600px){html body #top .nx-fd p{font-size:15px!important;line-height:2.05!important}}
+html body #top section.nx div.nx-b.nx-ct#topContact .ct-f .ct-go button:not(#z){min-height:44px!important;padding:6px 2px!important;border:0!important;border-bottom:1px solid rgba(233,242,241,.55)!important;border-radius:0!important;background:none!important;font:400 14.5px/1.5 "Shippori Mincho",serif!important;letter-spacing:.14em!important}
+html body #top section.nx div.nx-b.nx-ct#topContact .ct-f .ct-go button:not(#z)::after{content:" →"!important;display:inline!important;font-family:"Cormorant Garamond",serif;color:#8fe3ea}
+html body #top section.nx div.nx-b.nx-ct#topContact .ct-f .ct-go button:not(#z):hover{border-bottom-color:#8fe3ea!important;background:none!important}
+html body #top section.nx div.nx-b.nx-ct#topContact .ct-f :is(input,textarea,select):not(#z):not(#y):not(#x){background-color:rgba(4,12,20,.42)!important;border:1px solid rgba(233,242,241,.28)!important}
 </style><style id="fix-1128a">
 #top .cx-kocho,#top .cx-kocho *{text-align:center!important;margin-left:auto!important;margin-right:auto!important}
 #top .cx-kocho p{display:block;width:100%}
@@ -2187,7 +2206,7 @@ html body #try .ts-c span{font-size:12.5px!important;color:#b9d7dc!important}
 <p class="cx-nt" data-i18n-en="The full novel (about 80,000 characters) is planned for sale.">長編（約 8 万字）は、今後販売する予定です。</p></div>
 </div></section><script type="module">
 const box=document.querySelector('#sdPro .cx-3d');if(box){const cv=box.querySelector('canvas');let T=null,R=null,S,C,G,on=false,t0=0;
-async function init(){T=await import('three');R=new T.WebGLRenderer({canvas:cv,alpha:true,antialias:true});R.setPixelRatio(Math.min(2,devicePixelRatio));S=new T.Scene();C=new T.PerspectiveCamera(32,1,.1,50);C.position.set(0,1.1,7.2);C.lookAt(0,0,0);G=new T.Group();S.add(G);
+async function init(){T=await import('three');R=new T.WebGLRenderer({canvas:cv,alpha:true,antialias:true});R.setPixelRatio(Math.min(2,devicePixelRatio));S=new T.Scene();C=new T.PerspectiveCamera(32,1,.1,50);C.position.set(0,1.1,9.4);C.lookAt(0,0,0);G=new T.Group();S.add(G);
 const cols=[0x8fe3ea,0xe8cf96,0xb7c9f0,0xd9a9c8];[[1.55,.35,.0],[1.85,-.25,.6],[2.15,.18,1.2],[2.45,-.12,1.9]].forEach((a,i)=>{const r=new T.Mesh(new T.TorusGeometry(a[0],.008,8,160),new T.MeshBasicMaterial({color:cols[i],transparent:true,opacity:.75}));r.rotation.x=Math.PI/2+a[1];r.rotation.y=a[2]*.3;r.userData={s:.12+i*.05,d:i%2?-1:1};G.add(r);
 const pg=new T.BufferGeometry(),n=60,pp=new Float32Array(n*3);for(let k=0;k<n;k++){const q=k/n*Math.PI*2;pp[k*3]=Math.cos(q)*a[0];pp[k*3+1]=Math.sin(q)*a[0];pp[k*3+2]=0}pg.setAttribute('position',new T.BufferAttribute(pp,3));r.add(new T.Points(pg,new T.PointsMaterial({color:cols[i],size:.05,transparent:true,opacity:.9})))});
 size();}
